@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>14ª Regional - Frota (V37)</title>
+    <style>
+      :root { --primary: #003366; --secondary: #f8f9fa; --success: #28a745; --whatsapp: #25d366; --danger: #dc3545; --warning: #ffc107; --dark-text: #333; --excel-color: #1d6f42; --print-color: #6c757d; --blocked: #721c24; --blocked-bg: #f8d7da; }
+      body { font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #eef2f5; margin: 0; padding-bottom: 50px; color: var(--dark-text); }
+      .container { max-width: 1150px; margin: 20px auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); }
+      .header { background: var(--primary); color: white; padding: 15px 20px; border-radius: 10px 10px 0 0; margin: -20px -20px 20px -20px; }
+      .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+      #status-conexao { font-weight: bold; background: rgba(0, 0, 0, 0.2); padding: 5px 10px; border-radius: 4px; font-size: 0.8em; margin-left: 10px; }
+      button { padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: background 0.2s; color: white; font-size: 0.9em; margin-right: 3px; margin-bottom: 3px; }
+      button:hover { opacity: 0.9; }
+      .btn-primary { background: var(--primary); width: 100%; font-size: 1.1em; padding: 12px; margin-top: 10px; }
+      .btn-excel { background: var(--excel-color); }
+      .btn-print { background: var(--print-color); }
+      .btn-delete { background: var(--danger); }
+      .btn-edit { background: var(--warning); color: #333; }
+      .btn-confirm { background: var(--success); }
+      .btn-block { background: var(--blocked); width: 100%; margin-top: 5px; color: white;}
+      .btn-logout { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.4); font-size: 0.9em; }
+      .folga-box { background-color: var(--blocked-bg); border: 1px solid var(--blocked); color: var(--blocked); padding: 15px; border-radius: 5px; margin-top: 20px; margin-bottom: 20px; }
+      .folga-item { background: white; padding: 8px 12px; border-radius: 4px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--blocked); color: #333; }
+      .roteiro-box { border: 1px solid #ccc; background: #fdfdfd; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
+      .roteiro-header { font-size: 0.9em; font-weight: bold; color: #555; margin-bottom: 5px; border-bottom: 2px solid #ddd; padding-bottom: 5px; }
+      .roteiro-controls { display: flex; align-items: flex-end; gap: 10px; background: #eee; padding: 10px; border-radius: 5px; border: 1px solid #ddd; }
+      .select-group { display: flex; gap: 5px; flex: 1; }
+      .sel-uf { width: 70px; }
+      .sel-cidade { flex: 1; }
+      .btn-add-route { background: #fff; border: 1px solid #ccc; color: #333; height: 42px; }
+      .btn-clear-route { background: white; color: var(--danger); border: 1px solid var(--danger); height: 42px; }
+      .roteiro-lista { margin-top: 10px; width: 100%; border-collapse: collapse; font-size: 0.9em; }
+      .roteiro-lista th { background: #eee; color: #333; padding: 5px; text-align: left; border: 1px solid #ddd; }
+      .roteiro-lista td { padding: 5px; border: 1px solid #ddd; background: #fff; }
+      .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 0.8em; font-weight: bold; display: inline-block; white-space: nowrap; }
+      .status-pendente { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+      .status-confirmado { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+      .editing-mode { border: 2px solid var(--warning); background-color: #fffbf0; }
+      .main-form { background: var(--secondary); padding: 25px; border-radius: 8px; border: 1px solid #dee2e6; }
+      .form-row { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
+      .col { flex: 1; min-width: 200px; }
+      label { display: block; margin-bottom: 8px; font-weight: 600; color: #555; font-size: 0.9em; }
+      input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+      .driver-badge { background-color: #e8f0fe; color: var(--primary); padding: 15px; border-left: 5px solid var(--primary); margin-bottom: 25px; border-radius: 4px; display: flex; align-items: center; justify-content: space-between; }
+      .table-responsive { overflow-x: auto; margin-top: 15px; }
+      table { width: 100%; border-collapse: collapse; font-size: 0.9em; min-width: 800px; }
+      th { background: #004080; color: white; padding: 12px; text-align: left; white-space: nowrap; }
+      td { border-bottom: 1px solid #eee; padding: 12px; vertical-align: top; }
+      #login-screen { max-width: 400px; margin: 60px auto; text-align: center; padding: 40px; border-top: 6px solid var(--primary); }
+      .hidden { display: none !important; }
+      @media (max-width: 900px) { .roteiro-controls { flex-direction: column; align-items: stretch; } .select-group { width: 100%; } .col { min-width: 100%; } }
+    </style>
+  </head>
+  <body>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+      import { getDatabase, ref, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+      import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyDvGkxC9WkYICERhbIHcE9yComvh5AF2gw",
+        authDomain: "frota14regional-8fecc.firebaseapp.com",
+        databaseURL: "https://frota14regional-8fecc-default-rtdb.firebaseio.com",
+        projectId: "frota14regional-8fecc",
+        storageBucket: "frota14regional-8fecc.firebasestorage.app",
+        messagingSenderId: "974555151272",
+        appId: "1:974555151272:web:36d293685728a4e40bfb9d",
+        measurementId: "G-SYPV3YYBR1",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getDatabase(app);
+      const auth = getAuth(app);
+
+      window.db = db; window.dbRef = ref; window.dbPush = push; window.dbUpdate = update; window.dbRemove = remove; window.auth = auth;
+      window.listaViagens = []; window.listaFolgas = []; window.roteiroAtual = [];
+
+      // --- CONTATOS ---
+      const contatosSolicitantes = {
+        "Defensor Caio Cesar Nunes Cruz": "5527998764286",
+        "Defensor Emerson Halsey Soares": "5571999678855",
+        "Defensor Matheus Rocha Almeida": "5573991969670",
+        "Defensor Matheus Silva Bastos": "5571983394060",
+        "Defensora Ana Carolina Lugullo Maia de Araujo": "5521988052225",
+        "Defensora Janaina dos Santos Araújo": "5532988060602",
+        "Servidor Welder Oliveira Rios": "5573991853116",
+        "Servidora Adriele Macário dos Santos": "5573999051485",
+        "Servidora Sabrina Pereira de Oliveira": "5573991135887"
+      };
+
+      // --- DADOS GEOGRÁFICOS ---
+      const estados = ["AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT","PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO"];
+      
+      const cidadesPorEstado = {
+        "AC": ["RIO BRANCO"],
+        "AL": ["MACEIO"],
+        "AM": ["MANAUS"],
+        "AP": ["MACAPA"],
+        "BA": ["ABAIRA","ABARE","ACAJUTIBA","ADUSTINA","AGUA FRIA","AIQUARA","ALAGOINHAS","ALCOBACA","ALMADINA","AMARGOSA","AMELIA RODRIGUES","AMERICA DOURADA","ANAGE","ANDARAI","ANDORINHA","ANGICAL","ANGUERA","ANTAS","ANTONIO CARDOSO","ANTONIO GONCALVES","APORA","APUAREMA","ARACAS","ARACATU","ARACI","ARAMARI","ARATACA","ARATUIPE","AURELINO LEAL","BAIANOPOLIS","BAIXA GRANDE","BANZAE","BARRA","BARRA DA ESTIVA","BARRA DO CHOCA","BARRA DO MENDES","BARRA DO ROCHA","BARREIRAS","BARRO ALTO","BARRO PRETO","BARROCAS","BELMONTE","BELO CAMPO","BIRITINGA","BOA NOVA","BOA VISTA DO TUPIM","BOM JESUS DA LAPA","BOM JESUS DA SERRA","BONINAL","BONITO","BOQUIRA","BOTUPORA","BREJOES","BREJOLANDIA","BROTAS DE MACAUBAS","BRUMADO","BUERAREMA","BURITIRAMA","CAATIBA","CABACEIRAS DO PARAGUACU","CACHOEIRA","CACULE","CAEM","CAETANOS","CAETITE","CAFARNAUM","CAIRU","CALDEIRAO GRANDE","CAMACAN","CAMACARI","CAMAMU","CAMPO ALEGRE DE LOURDES","CAMPO FORMOSO","CANAPOLIS","CANARANA","CANAVIEIRAS","CANDEAL","CANDEIAS","CANDIBA","CANDIDO SALES","CANSANCAO","CANUDOS","CAPELA DO ALTO ALEGRE","CAPIM GROSSO","CARAIBAS","CARAIVA","CARAVELAS","CARDEAL DA SILVA","CARINHANHA","CASA NOVA","CASTRO ALVES","CATOLANDIA","CATU","CATURAMA","CENTRAL","CHORROCHO","CICERO DANTAS","CIPO","COARACI","COCOS","CONCEICAO DA FEIRA","CONCEICAO DO ALMEIDA","CONCEICAO DO COITE","CONCEICAO DO JACUIPE","CONDE","CONDEUBA","CONTENDAS DO SINCORA","CORACAO DE MARIA","CORDEIROS","CORIBE","CORONEL JOAO SA","CORRENTINA","COTEGIPE","CRAVOLANDIA","CRISOPOLIS","CRISTOPOLIS","CRUZ DAS ALMAS","CURACA","DARIO MEIRA","DIAS D AVILA","DOM BASILIO","DOM MACEDO COSTA","ELISIO MEDRADO","ENCRUZILHADA","ENTRE RIOS","ERICO CARDOSO","ESPLANADA","EUCLIDES DA CUNHA","EUNAPOLIS","FATIMA","FEIRA DA MATA","FEIRA DE SANTANA","FILADELFIA","FIRMINO ALVES","FLORESTA AZUL","FORMOSA DO RIO PRETO","GANDU","GAVIAO","GENTIO DO OURO","GLORIA","GONGOGI","GOVERNADOR MANGABEIRA","GUAJERU","GUANAMBI","GUARATINGA","HELIOPOLIS","IACU","IBIASSUCE","IBICARAI","IBICOARA","IBICUI","IBIPEBA","IBIPITANGA","IBIPITANGA","IBIPITANGA","IBIQUERA","IBIRAPITANGA","IBIRAPUA","IBIRATAIA","IBITIARA","IBITITA","IBOTIRAMA","ICHU","IGAPORA","IGRAPIUNA","IGUAI","ILHEUS","INHAMBUPE","IPECAETA","IPIAU","IPIRA","IPUPIARA","IRAJUBA","IRAMAIA","IRAQUARA","IRARA","IRECE","ITABELA","ITABERABA","ITABUNA","ITACARE","ITAETE","ITAGI","ITAGIBA","ITAGIMIRIM","ITAGUACU DA BAHIA","ITAJU DO COLONIA","ITAJUIPE","ITAMARAJU","ITAMARI","ITAMBE","ITANAGRA","ITANHEM","ITAPARICA","ITAPE","ITAPEBI","ITAPETINGA","ITAPICURU","ITAPITANGA","ITAQUARA","ITARANTIM","ITATIM","ITIRUCU","ITIUBA","ITORORO","ITUACU","ITUBERA","IUIU","JABORANDI","JACARACI","JACOBINA","JAGUAQUARA","JAGUARARI","JAGUARIPE","JANDAIRA","JEQUIE","JEREMOABO","JIQUIRICA","JITAUNA","JOAO DOURADO","JUAZEIRO","JUCURUCU","JUSSARA","JUSSARI","JUSSIAPE","LAFAIETE COUTINHO","LAGOA REAL","LAJE","LAJEDAO","LAJEDINHO","LAJEDO DO TABOCAL","LAMARAO","LAPAO","LAURO DE FREITAS","LENCOIS","LICINIO DE ALMEIDA","LIVRAMENTO DE NOSSA SENHORA","LUIS EDUARDO MAGALHAES","MACAJUBA","MACARANI","MACAUBAS","MACURURE","MADRE DE DEUS","MAETINGA","MAIQUINIQUE","MAIRI","MALHADA","MALHADA DE PEDRAS","MANOEL VITORINO","MANSIDAO","MARACAS","MARAGOGIPE","MARAU","MARCIONILIO SOUZA","MASCOTE","MATA DE SAO JOAO","MATINA","MEDEIROS NETO","MIGUEL CALMON","MILAGRES","MIRANGABA","MIRANTE","MONTE SANTO","MORPARA","MORRO DO CHAPEU","MORTUGABA","MUCUGE","MUCURI","MULUNGU DO MORRO","MUNDO NOVO","MUNIZ FERREIRA","MUQUEM DO SAO FRANCISCO","MURITIBA","MUTUIPE","NAZARE","NILO PECANHA","NORDESTINA","NOVA CANAA","NOVA FATIMA","NOVA IBIA","NOVA ITARANA","NOVA REDENCAO","NOVA SOURE","NOVA VICOSA","NOVO HORIZONTE","NOVO TRIUNFO","OLINDINA","OLIVEIRA DOS BREJINHOS","OURICANGAS","OUROLANDIA","PALMAS DE MONTE ALTO","PALMEIRAS","PARAMIRIM","PARATINGA","PARIPIRANGA","PAU BRASIL","PAULO AFONSO","PE DE SERRA","PEDRAO","PEDRO ALEXANDRE","PIATA","PILAO ARCADO","PINDAI","PINDOBACU","PINTADAS","PIRAI DO NORTE","PIRIPA","PIRITIBA","PLANALTINO","PLANALTO","POCOES","POJUCA","PONTO NOVO","PORTO SEGURO","POTIRAGUA","PRADO","PRESIDENTE DUTRA","PRESIDENTE JANIO QUADROS","PRESIDENTE TANCREDO NEVES","QUEIMADAS","QUIJINGUE","QUIXABEIRA","RAFAEL JAMBEIRO","REMANSO","RETIROLANDIA","RIACHAO DAS NEVES","RIACHAO DO JACUIPE","RIACHO DE SANTANA","RIBEIRA DO AMPARO","RIBEIRA DO POMBAL","RIBEIRAO DO LARGO","RIO DE CONTAS","RIO DO ANTONIO","RIO DO PIRES","RIO REAL","RODELAS","RUY BARBOSA","SALINAS DA MARGARIDA","SALVADOR","SANTA BARBARA","SANTA BRIGIDA","SANTA CRUZ CABRALIA","SANTA CRUZ DA VITORIA","SANTA INES","SANTA LUZIA","SANTA MARIA DA VITORIA","SANTA RITA DE CASSIA","SANTA TERESINHA","SANTALUZ","SANTANA","SANTANOPOLIS","SANTO AMARO","SANTO ANTONIO DE JESUS","SANTO ESTEVAO","SAO DESIDERIO","SAO DOMINGOS","SAO FELIPE","SAO FELIX","SAO FELIX DO CORIBE","SAO FRANCISCO DO CONDE","SAO GABRIEL","SAO GONCALO DOS CAMPOS","SAO JOSE DA VITORIA","SAO JOSE DO JACUIPE","SAO MIGUEL DAS MATAS","SAO SEBASTIAO DO PASSE","SAPEACU","SATIRO DIAS","SAUBARA","SAUDE","SEABRA","SEBASTIAO LARANJEIRAS","SENHOR DO BONFIM","SENTO SE","SERRA DO RAMALHO","SERRA DOURADA","SERRA PRETA","SERRINHA","SERROLANDIA","SIMOES FILHO","SITIO DO MATO","SITIO DO QUINTO","SOBRADINHO","SOUTO SOARES","TABOCAS DO BREJO VELHO","TANHACU","TANQUE NOVO","TANQUINHO","TAPEROA","TAPIRAMUTA","TEIXEIRA DE FREITAS","TEODORO SAMPAIO","TEOFILANDIA","TEOLANDIA","TERRA NOVA","TODOS","TREMEDAL","TUCANO","UAUA","UBAIRA","UBAITABA","UBATA","UIBAI","UMBURANAS","UNA","URANDI","URUCUCA","UTINGA","VALENCA","VALENTE","VARZEA DA ROCA","VARZEA DO POCO","VARZEA NOVA","VARZEDO","VERA CRUZ","VEREDA","VITORIA DA CONQUISTA","WAGNER","WANDERLEY","WENCESLAU GUIMARAES","XIQUE XIQUE"],
+        "CE": ["FORTALEZA"],
+        "DF": ["BRASILIA"],
+        "ES": ["VITORIA"],
+        "GO": ["GOIANIA"],
+        "MA": ["SAO LUIS"],
+        "MG": ["BELO HORIZONTE"],
+        "MS": ["CAMPO GRANDE"],
+        "MT": ["CUIABA"],
+        "PA": ["BELEM"],
+        "PB": ["JOAO PESSOA"],
+        "PE": ["RECIFE"],
+        "PI": ["TERESINA"],
+        "PR": ["CURITIBA"],
+        "RJ": ["RIO DE JANEIRO"],
+        "RN": ["NATAL"],
+        "RO": ["PORTO VELHO"],
+        "RR": ["BOA VISTA"],
+        "RS": ["PORTO ALEGRE"],
+        "SC": ["FLORIANOPOLIS"],
+        "SE": ["ARACAJU"],
+        "SP": ["SAO PAULO"],
+        "TO": ["PALMAS"]
+      };
+
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          document.getElementById("login-screen").classList.add("hidden");
+          document.getElementById("app-screen").classList.remove("hidden");
+          document.getElementById("nome-usuario").innerText = user.email;
+          
+          if (user.email && (user.email.toLowerCase().includes("admin") || user.email.toLowerCase().includes("motorista") || user.email.toLowerCase().includes("cleones"))) {
+            document.getElementById("painel-add-folga").classList.remove("hidden");
+            if(user.email.toLowerCase().includes("admin")) {
+                document.getElementById("admin-controls").classList.remove("hidden");
+                window.isAdmin = true;
+            } else {
+                window.isAdmin = false;
+                window.isMotorista = true;
+            }
+          } else {
+            document.getElementById("admin-controls").classList.add("hidden");
+            document.getElementById("painel-add-folga").classList.add("hidden");
+            window.isAdmin = false;
+            window.isMotorista = false;
+          }
+          iniciarEscutaBanco();
+          popularSelectsIniciais();
+        } else {
+          document.getElementById("login-screen").classList.remove("hidden");
+          document.getElementById("app-screen").classList.add("hidden");
+        }
+      });
+
+      window.realizarLogin = function () {
+        const email = document.getElementById("login-user").value;
+        const pass = document.getElementById("login-pass").value;
+        signInWithEmailAndPassword(auth, email, pass).catch((error) => alert("Erro: " + error.code));
+      };
+      window.fazerLogout = function () { signOut(auth).then(() => location.reload()); };
+
+      function iniciarEscutaBanco() {
+        document.getElementById("status-conexao").innerText = "🟡 Conectando...";
+        onValue(ref(db, "viagens"), (snapshot) => {
+          const data = snapshot.val();
+          window.listaViagens = [];
+          if (data) Object.keys(data).forEach(key => { if(data[key].saida) window.listaViagens.push({ ...data[key], id: key }); });
+          atualizarTabelaGlobal();
+        });
+        onValue(ref(db, "folgas"), (snapshot) => {
+          const data = snapshot.val();
+          window.listaFolgas = [];
+          if (data) Object.keys(data).forEach(key => window.listaFolgas.push({ ...data[key], id: key }));
+          document.getElementById("status-conexao").innerText = "🟢 Online";
+          document.getElementById("status-conexao").style.background = "var(--success)";
+          atualizarListaFolgas();
+        });
+      }
+
+      function criarDataLocal(dataString) {
+        if(!dataString) return null;
+        const partes = dataString.split('-');
+        return new Date(partes[0], partes[1] - 1, partes[2]);
+      }
+
+      window.salvarFolga = function() {
+        const inicio = document.getElementById('folga-inicio').value;
+        const fim = document.getElementById('folga-fim').value;
+        const motivo = document.getElementById('folga-motivo').value;
+        if(!inicio || !fim || !motivo) return alert("Preencha todos os dados da folga.");
+        const dInicio = criarDataLocal(inicio);
+        const dFim = criarDataLocal(fim);
+        if(dFim < dInicio) return alert("Data fim menor que início.");
+        push(ref(db, "folgas"), {
+            inicio: inicio,
+            fim: fim,
+            motivo: motivo,
+            registradoPor: auth.currentUser.email
+        }).then(() => {
+            alert("Bloqueio registrado!");
+            document.getElementById('folga-motivo').value = "";
+        }).catch(err => alert("Erro: " + err.message));
+      };
+
+      window.deletarFolga = function(id) {
+        if(confirm("Remover este bloqueio?")) remove(ref(db, "folgas/" + id));
+      };
+
+      function atualizarListaFolgas() {
+        const lista = document.getElementById('lista-folgas-visual');
+        lista.innerHTML = "";
+        const hoje = new Date();
+        hoje.setHours(0,0,0,0);
+        const folgasAtivas = window.listaFolgas.filter(f => {
+            const dataFim = criarDataLocal(f.fim);
+            dataFim.setHours(23, 59, 59, 999);
+            return dataFim >= hoje;
+        });
+        if(folgasAtivas.length === 0) { lista.innerHTML = "<p style='color:#666; font-style:italic;'>Nenhuma indisponibilidade futura.</p>"; return; }
+        folgasAtivas.sort((a,b) => criarDataLocal(a.inicio) - criarDataLocal(b.inicio));
+        folgasAtivas.forEach(f => {
+            const btnDel = (window.isAdmin || window.isMotorista) ? `<button class="btn-delete" style="float:right; font-size:0.7em;" onclick="deletarFolga('${f.id}')">X</button>` : '';
+            const dtInicio = criarDataLocal(f.inicio).toLocaleDateString('pt-BR');
+            const dtFim = criarDataLocal(f.fim).toLocaleDateString('pt-BR');
+            lista.innerHTML += `<div class="folga-item"><div><strong>🚫 ${dtInicio} até ${dtFim}</strong><br><small>${f.motivo}</small></div>${btnDel}</div>`;
+        });
+      }
+
+      function verificaBloqueioFolga(saida, chegada) {
+        const iniViagem = new Date(saida);
+        const fimViagem = new Date(chegada);
+        for (let folga of window.listaFolgas) {
+            const iniFolga = criarDataLocal(folga.inicio); iniFolga.setHours(0, 0, 0, 0); 
+            const fimFolga = criarDataLocal(folga.fim); fimFolga.setHours(23, 59, 59, 999);
+            if (iniViagem < fimFolga && fimViagem > iniFolga) return folga;
+        }
+        return null;
+      }
+
+      function existeConflito(novaSaida, novaChegada, ignorarId = null) {
+        const inicioNovo = new Date(novaSaida).getTime();
+        const fimNovo = new Date(novaChegada).getTime();
+        const buffer = 5 * 60 * 1000;
+        for (let item of window.listaViagens) {
+          if (ignorarId && item.id === ignorarId) continue;
+          if (!item.saida || !item.chegada) continue;
+          const inicioExistente = new Date(item.saida).getTime();
+          const fimExistente = new Date(item.chegada).getTime();
+          if (inicioNovo < fimExistente + buffer && fimNovo + buffer > inicioExistente) {
+            return item;
+          }
+        }
+        return null;
+      }
+
+      function popularSelectsIniciais() {
+        const ufsOrigem = document.getElementById('uf-origem');
+        const ufsDestino = document.getElementById('uf-destino');
+        [ufsOrigem, ufsDestino].forEach(sel => {
+            sel.innerHTML = "";
+            estados.forEach(uf => {
+                const opt = document.createElement('option');
+                opt.value = uf; opt.text = uf;
+                if(uf === 'BA') opt.selected = true; 
+                sel.add(opt);
+            });
+        });
+        carregarCidades('origem'); carregarCidades('destino');
+        // Padrão Teixeira de Freitas (input text)
+        document.getElementById('cidade-origem').value = "TEIXEIRA DE FREITAS";
+      }
+
+      window.carregarCidades = function(tipo) {
+        const uf = document.getElementById(`uf-${tipo}`).value;
+        const dataList = document.getElementById(`list-${tipo}`);
+        const inputCidade = document.getElementById(`cidade-${tipo}`);
+        
+        dataList.innerHTML = ""; 
+
+        if (cidadesPorEstado[uf]) {
+            cidadesPorEstado[uf].forEach(cid => {
+                const opt = document.createElement('option');
+                opt.value = cid;
+                dataList.appendChild(opt);
+            });
+            // Lógica de padrão se for BA na origem (e limpa caso mude)
+            if (tipo === 'origem' && uf === 'BA') {
+               inputCidade.value = "TEIXEIRA DE FREITAS";
+            } else {
+                inputCidade.value = ""; 
+            }
+        } else {
+            // Caso genérico (fallback)
+            ["CAPITAL", "INTERIOR"].forEach(o => {
+                const opt = document.createElement('option');
+                opt.value = o;
+                dataList.appendChild(opt);
+            });
+            inputCidade.value = "";
+        }
+      }
+
+      window.adicionarTrecho = function() {
+        const ufOrg = document.getElementById('uf-origem').value;
+        const cidOrg = document.getElementById('cidade-origem').value;
+        const ufDst = document.getElementById('uf-destino').value;
+        const cidDst = document.getElementById('cidade-destino').value;
+        if(!cidOrg || !cidDst) return alert("Selecione a Cidade de Origem e Destino.");
+        const origemStr = `${ufOrg} - ${cidOrg}`;
+        const destinoStr = `${ufDst} - ${cidDst}`;
+        window.roteiroAtual.push({ origem: origemStr, destino: destinoStr });
+        renderizarRoteiroUI();
+        document.getElementById('uf-origem').value = ufDst;
+        carregarCidades('origem'); 
+        document.getElementById('cidade-origem').value = cidDst;
+        document.getElementById('uf-destino').value = "BA";
+        carregarCidades('destino');
+      };
+
+      window.limparRoteiro = function() { 
+          window.roteiroAtual = []; 
+          renderizarRoteiroUI(); 
+          document.getElementById('uf-origem').value = "BA";
+          carregarCidades('origem');
+          document.getElementById('cidade-origem').value = "TEIXEIRA DE FREITAS";
+      };
+
+      function renderizarRoteiroUI() {
+        const tbody = document.getElementById('roteiro-lista-body');
+        tbody.innerHTML = "";
+        if(window.roteiroAtual.length === 0) { tbody.innerHTML = "<tr><td colspan='2' style='color:#999; text-align:center;'>Nenhum trecho adicionado.</td></tr>"; return; }
+        window.roteiroAtual.forEach((trecho) => { tbody.innerHTML += `<tr><td>${trecho.origem}</td><td>${trecho.destino}</td></tr>`; });
+      }
+
+      window.salvarNoFirebase = function () {
+        if (!auth.currentUser) return alert("Sessão expirada.");
+        const idEdicao = document.getElementById("edit-id").value;
+        let roteiroFinal = [];
+        let trajetoString = "";
+        if (window.roteiroAtual.length > 0) {
+            roteiroFinal = window.roteiroAtual;
+            trajetoString = window.roteiroAtual.map(t => `${t.origem} ➝ ${t.destino}`).join("; ");
+        } else {
+            const ufOrg = document.getElementById('uf-origem').value;
+            const cidOrg = document.getElementById('cidade-origem').value;
+            const ufDst = document.getElementById('uf-destino').value;
+            const cidDst = document.getElementById('cidade-destino').value;
+            if(cidOrg && cidDst) {
+                const orgStr = `${ufOrg} - ${cidOrg}`;
+                const dstStr = `${ufDst} - ${cidDst}`;
+                roteiroFinal = [{ origem: orgStr, destino: dstStr }];
+                trajetoString = `${orgStr} ➝ ${dstStr}`;
+            } else {
+                return alert("Selecione as cidades ou adicione trechos.");
+            }
+        }
+
+        const f = {
+            solicitante: document.getElementById("solicitante").value,
+            setor: document.getElementById("setor").value,
+            roteiro: roteiroFinal,
+            trajetoExibicao: trajetoString,
+            saida: document.getElementById("saida").value,
+            chegada: document.getElementById("chegada").value,
+            motivo: document.getElementById("motivo").value,
+            registradoPor: auth.currentUser.email,
+            timestamp: Date.now(),
+            status: idEdicao ? undefined : "Pendente",
+        };
+
+        if (!f.solicitante || !f.saida || !f.chegada) return alert("Preencha todos os campos.");
+        
+        const bloqueio = verificaBloqueioFolga(f.saida, f.chegada);
+        if(bloqueio) {
+            function fmt(dt) { if(!dt) return "--"; const d = new Date(dt); return d.toLocaleDateString("pt-BR") + " " + d.toLocaleTimeString("pt-BR", {hour:"2-digit", minute:"2-digit"}); }
+            const dIni = criarDataLocal(bloqueio.inicio).toLocaleDateString('pt-BR');
+            const dFim = criarDataLocal(bloqueio.fim).toLocaleDateString('pt-BR');
+            return alert(`🚫 MOTORISTA INDISPONÍVEL!\n\nMotivo: ${bloqueio.motivo}\nPeríodo: ${dIni} até ${dFim}`);
+        }
+
+        const conflitoViagem = existeConflito(f.saida, f.chegada, idEdicao);
+        if(conflitoViagem) {
+            function fmt(dt) { if(!dt) return "--"; const d = new Date(dt); return d.toLocaleDateString("pt-BR") + " " + d.toLocaleTimeString("pt-BR", {hour:"2-digit", minute:"2-digit"}); }
+            return alert(`⚠️ HORÁRIO OCUPADO!\n\nJá existe uma viagem agendada para:\n${conflitoViagem.solicitante}\n\nInício: ${fmt(conflitoViagem.saida)}\nTérmino: ${fmt(conflitoViagem.chegada)}`);
+        }
+
+        if (idEdicao) {
+             Object.keys(f).forEach(key => f[key] === undefined && delete f[key]);
+             update(ref(db, "viagens/" + idEdicao), f).then(() => { alert("Atualizado!"); cancelarEdicao(); });
+        } else {
+             push(ref(db, "viagens"), f).then(() => { enviarWhatsApp(f); cancelarEdicao(); });
+        }
+      };
+
+      window.prepararEdicao = function(id) {
+        const item = window.listaViagens.find(v => v.id === id);
+        if(!item) return;
+        document.getElementById("edit-id").value = id;
+        document.getElementById("solicitante").value = item.solicitante;
+        document.getElementById("setor").value = item.setor;
+        document.getElementById("saida").value = item.saida;
+        document.getElementById("chegada").value = item.chegada;
+        document.getElementById("motivo").value = item.motivo;
+        if(item.roteiro && Array.isArray(item.roteiro)) { window.roteiroAtual = item.roteiro; } else { window.roteiroAtual = []; }
+        renderizarRoteiroUI();
+        document.querySelector(".main-form").classList.add("editing-mode");
+        document.getElementById("form-title").innerHTML = "✏️ Editando Solicitação";
+        document.getElementById("btn-save").innerHTML = "💾 Atualizar";
+        document.getElementById("btn-save").style.background = "var(--warning)";
+        document.getElementById("btn-save").style.color = "#333";
+        document.getElementById("btn-cancel-edit").classList.remove("hidden");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      };
+
+      window.cancelarEdicao = function() {
+        document.getElementById("edit-id").value = "";
+        document.getElementById("solicitante").value = "";
+        document.getElementById("setor").value = "Geral";
+        document.getElementById("saida").value = "";
+        document.getElementById("chegada").value = "";
+        document.getElementById("motivo").value = "";
+        window.limparRoteiro();
+        document.querySelector(".main-form").classList.remove("editing-mode");
+        document.getElementById("form-title").innerHTML = "📝 Novo Agendamento";
+        document.getElementById("btn-save").innerHTML = "✅ Agendar e Avisar Motorista";
+        document.getElementById("btn-save").style.background = "var(--primary)";
+        document.getElementById("btn-save").style.color = "white";
+        document.getElementById("btn-cancel-edit").classList.add("hidden");
+      };
+
+      function enviarWhatsApp(dados) {
+        const telefoneMotorista = "5571996384423";
+        const carro = String.fromCodePoint(0x1f697);
+        let trajetoMsg = dados.trajetoExibicao.replace(/;/g, "\n📍"); 
+        function fmt(dt) { if(!dt) return "--"; const d = new Date(dt); return d.toLocaleDateString("pt-BR") + " " + d.toLocaleTimeString("pt-BR", {hour:"2-digit", minute:"2-digit"}); }
+        const texto = `Olá Cleones! ${carro} Nova viagem agendada.\n\n*Solicitante:* ${dados.solicitante}\n*Saída:* ${fmt(dados.saida)}\n*Retorno:* ${fmt(dados.chegada)}\n*Motivo:* ${dados.motivo}\n*Roteiro:*\n📍 ${trajetoMsg}`;
+        const url = `https://wa.me/${telefoneMotorista}?text=${encodeURIComponent(texto)}`;
+        if (confirm("Deseja avisar o motorista no WhatsApp agora?")) window.open(url, "_blank");
+      }
+
+      window.confirmarViagem = function(id) {
+        const item = window.listaViagens.find(v => v.id === id);
+        if(!item) return;
+
+        if(confirm("Confirmar a viagem de " + item.solicitante + "?")) {
+            update(ref(db, "viagens/" + id), { status: "Confirmado" });
+            
+            const telefoneSolicitante = contatosSolicitantes[item.solicitante];
+            
+            if (telefoneSolicitante) {
+                if(confirm(`Viagem confirmada! Deseja enviar aviso no WhatsApp para ${item.solicitante}?`)) {
+                    function fmt(dt) { if(!dt) return "--"; const d = new Date(dt); return d.toLocaleDateString("pt-BR") + " " + d.toLocaleTimeString("pt-BR", {hour:"2-digit", minute:"2-digit"}); }
+                    const carro = String.fromCodePoint(0x1f697);
+                    const msg = `Olá! ${carro} Sua viagem foi CONFIRMADA pelo motorista.\n\n📅 *Saída:* ${fmt(item.saida)}\n📅 *Retorno:* ${fmt(item.chegada)}\n📍 *Destino:* ${item.trajetoExibicao}`;
+                    window.open(`https://wa.me/${telefoneSolicitante}?text=${encodeURIComponent(msg)}`, '_blank');
+                }
+            } else {
+                alert("Viagem confirmada! (Número do solicitante não cadastrado para aviso)");
+            }
+        }
+      };
+
+      window.atualizarTabelaGlobal = function () {
+        const tb = document.getElementById("tb-corpo");
+        tb.innerHTML = "";
+        const userEmail = auth.currentUser ? auth.currentUser.email : "";
+        if (window.listaViagens.length === 0) { tb.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 30px; color: #666;">Nenhuma viagem agendada.</td></tr>'; return; }
+        window.listaViagens.sort((a, b) => new Date(b.saida) - new Date(a.saida));
+        function fmt(dt) { if(!dt) return "--"; const d = new Date(dt); return d.toLocaleDateString("pt-BR") + " " + d.toLocaleTimeString("pt-BR", {hour:"2-digit", minute:"2-digit"}); }
+        window.listaViagens.forEach((i) => {
+          let botoes = "";
+          const isOwner = i.registradoPor === userEmail;
+          const status = i.status || "Pendente";
+          let badgeClass = status === "Confirmado" ? "status-confirmado" : "status-pendente";
+          let badgeIcon = status === "Confirmado" ? "✅" : "⏳";
+          
+          if (status !== "Confirmado" && (window.isAdmin || window.isMotorista)) {
+             botoes += `<button class="btn-confirm" onclick="confirmarViagem('${i.id}')" title="Confirmar Viagem">✔</button>`;
+          }
+          if (window.isAdmin || isOwner) botoes += `<button class="btn-edit" onclick="prepararEdicao('${i.id}')">✏️</button>`;
+          if (window.isAdmin) botoes += `<button class="btn-delete" onclick="deletar('${i.id}')">🗑️</button>`;
+          
+          let roteiroDisplay = i.trajetoExibicao || `${i.origem} ➝ ${i.destino}`;
+          tb.innerHTML += `<tr><td style="text-align:center"><span class="status-badge ${badgeClass}">${badgeIcon} ${status}</span></td><td><strong style="color:var(--primary)">${fmt(i.saida)}</strong></td><td>${fmt(i.chegada)}</td><td><strong>${i.solicitante}</strong><br><small>${i.setor || "-"}</small></td><td style="font-size:0.9em">${roteiroDisplay}</td><td style="text-align:center; white-space:nowrap;">${botoes}</td></tr>`;
+        });
+      };
+      
+      window.deletar = function(id) { if(confirm("Apagar?")) remove(ref(db,"viagens/"+id)); };
+      
+      window.baixarExcel = function () {
+         if(window.listaViagens.length===0) return alert("Sem dados");
+         function fmt(dt) { if(!dt) return "--"; const d = new Date(dt); return d.toLocaleDateString("pt-BR") + " " + d.toLocaleTimeString("pt-BR", {hour:"2-digit", minute:"2-digit"}); }
+         let linhas=""; window.listaViagens.forEach(i=>{ 
+             let rt = i.trajetoExibicao || `${i.origem} -> ${i.destino}`;
+             linhas+=`<tr><td>${i.status}</td><td>${fmt(i.saida)}</td><td>${fmt(i.chegada)}</td><td>${i.solicitante}</td><td>${rt}</td></tr>` 
+         });
+         const html=`<table>${linhas}</table>`;
+         const blob=new Blob([html],{type:"application/vnd.ms-excel"});
+         const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="Relatorio.xls"; a.click();
+      };
+      window.imprimirRelatorio = function() { window.print(); };
+    </script>
+
+    <div id="login-screen" class="container">
+      <span class="logo-text">14ª Regional Teixeira de Freitas</span>
+      <div style="color: #666; margin-bottom: 25px;">Defensoria Pública - Agendamento Veículo</div>
+      <input type="email" id="login-user" placeholder="E-mail" style="margin-bottom: 15px" />
+      <input type="password" id="login-pass" placeholder="Senha" style="margin-bottom: 15px" />
+      <button class="btn-primary" onclick="realizarLogin()">Entrar no Sistema</button>
+    </div>
+
+    <div id="app-screen" class="container hidden">
+      <div class="header">
+        <div class="header-content">
+          <div style="display: flex; align-items: center">
+            <h2 style="margin: 0; font-size: 1.5em">14ª Regional</h2>
+            <span id="status-conexao">Inicializando...</span>
+          </div>
+          <div style="text-align: right">
+            <span id="nome-usuario" style="font-weight: bold; margin-right: 15px">...</span>
+            <button class="btn-logout" onclick="fazerLogout()">Sair</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="folga-box">
+        <h4 style="margin: 0 0 10px 0; display:flex; align-items:center;">🛑 Indisponibilidade / Folgas do Motorista</h4>
+        <div id="lista-folgas-visual"><p style="color:#666; font-style:italic;">Carregando...</p></div>
+        <div id="painel-add-folga" class="hidden" style="margin-top: 15px; border-top: 1px dashed #bbb; padding-top: 10px;">
+            <label style="font-size:0.9em; font-weight:bold;">Adicionar Bloqueio:</label>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <div style="flex:1"><input type="date" id="folga-inicio" placeholder="Início"></div>
+                <div style="flex:1"><input type="date" id="folga-fim" placeholder="Fim"></div>
+                <div style="flex:2"><input type="text" id="folga-motivo" placeholder="Motivo (ex: Férias, Manutenção)"></div>
+                <button class="btn-block" style="width: auto;" onclick="salvarFolga()">Bloquear</button>
+            </div>
+        </div>
+      </div>
+
+      <div class="main-form">
+        <div class="driver-badge">
+          <div><span style="font-size: 1.1em">🚘 Motorista: <strong>CLEONES DAMASCENO</strong></span></div>
+          <span style="font-size: 0.9em; font-weight: 600">📱 (71) 99638-4423</span>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+          <h3 id="form-title" style="margin: 0; color: var(--primary)">📝 Novo Agendamento</h3>
+          <button id="btn-cancel-edit" class="hidden" style="background: #999; padding: 5px 10px" onclick="cancelarEdicao()">❌ Cancelar Edição</button>
+        </div>
+        <input type="hidden" id="edit-id" />
+
+        <div class="form-row" style="margin-top: 15px">
+          <div class="col" style="flex: 2">
+            <label>Solicitante:</label>
+            <input type="text" id="solicitante" list="lista-solicitantes" placeholder="Digite..." />
+            <datalist id="lista-solicitantes">
+              <option value="Defensor Caio Cesar Nunes Cruz"></option>
+              <option value="Defensor Emerson Halsey Soares"></option>
+              <option value="Defensor Matheus Rocha Almeida"></option>
+              <option value="Defensor Matheus Silva Bastos"></option>
+              <option value="Defensora Ana Carolina Lugullo Maia de Araujo"></option>
+              <option value="Defensora Janaina dos Santos Araújo"></option>
+              <option value="Servidor Welder Oliveira Rios"></option>
+              <option value="Servidora Adriele Macário dos Santos"></option>
+              <option value="Servidora Sabrina Pereira de Oliveira"></option>
+            </datalist>
+          </div>
+          <div class="col"><label>Setor:</label><input type="text" id="setor" value="Geral" /></div>
+        </div>
+
+        <div class="roteiro-box">
+            <div class="roteiro-header">Roteiro (Selecione Estado e Cidade)</div>
+            <div class="roteiro-controls">
+                <div class="select-group">
+                    <div style="display:flex; flex-direction:column;">
+                        <label style="font-size:0.8em; margin-bottom:2px;">Origem (UF)</label>
+                        <select id="uf-origem" class="sel-uf" onchange="carregarCidades('origem')"></select>
+                    </div>
+                    <div style="display:flex; flex-direction:column; flex:1;">
+                        <label style="font-size:0.8em; margin-bottom:2px;">Cidade</label>
+                        <input type="text" id="cidade-origem" list="list-origem" class="sel-cidade" placeholder="Digite ou selecione...">
+                        <datalist id="list-origem"></datalist>
+                    </div>
+                </div>
+                <div class="select-group">
+                    <div style="display:flex; flex-direction:column;">
+                        <label style="font-size:0.8em; margin-bottom:2px;">Destino (UF)</label>
+                        <select id="uf-destino" class="sel-uf" onchange="carregarCidades('destino')"></select>
+                    </div>
+                    <div style="display:flex; flex-direction:column; flex:1;">
+                        <label style="font-size:0.8em; margin-bottom:2px;">Cidade</label>
+                        <input type="text" id="cidade-destino" list="list-destino" class="sel-cidade" placeholder="Digite ou selecione...">
+                        <datalist id="list-destino"></datalist>
+                    </div>
+                </div>
+                <button class="btn-add-route" onclick="adicionarTrecho()" type="button">Adicionar</button>
+                <button class="btn-clear-route" onclick="limparRoteiro()" type="button">Limpar</button>
+            </div>
+            <table class="roteiro-lista">
+                <thead><tr><th width="50%">De</th><th width="50%">Para</th></tr></thead>
+                <tbody id="roteiro-lista-body"><tr><td colspan="2" style="color:#999; text-align:center;">Nenhum trecho adicionado.</td></tr></tbody>
+            </table>
+        </div>
+
+        <div class="form-row">
+          <div class="col"><label>Data/Hora Saída:</label><input type="datetime-local" id="saida" /></div>
+          <div class="col"><label>Previsão Retorno:</label><input type="datetime-local" id="chegada" /></div>
+        </div>
+        <label>Motivo:</label><textarea id="motivo" rows="2"></textarea>
+        <button id="btn-save" class="btn-primary" onclick="salvarNoFirebase()">✅ Agendar e Avisar Motorista</button>
+      </div>
+
+      <div id="admin-controls" class="hidden" style="margin-top: 25px; background: #e9ecef; padding: 20px; border-radius: 8px;">
+        <h4 style="margin: 0 0 15px 0; color: #555">⚙️ Painel Administrativo</h4>
+        <button class="btn-excel" onclick="baixarExcel()">📊 Baixar Excel</button>
+        <button class="btn-print" onclick="imprimirRelatorio()">🖨️ Imprimir</button>
+      </div>
+
+      <h3 class="section-title">📅 Agenda Atualizada</h3>
+      <div class="table-responsive">
+        <table id="tabela-historico">
+          <thead><tr><th style="text-align: center">Status</th><th>Saída</th><th>Retorno</th><th>Solicitante</th><th>Roteiro Completo</th><th style="text-align: center">Ações</th></tr></thead>
+          <tbody id="tb-corpo"></tbody>
+        </table>
+      </div>
+    </div>
+  </body>
+</html>
