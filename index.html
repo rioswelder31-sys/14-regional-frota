@@ -3,9 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>14ª Regional - Frota (V37)</title>
+    <title>14ª Regional - Frota (V38.1)</title>
     <style>
-      :root { --primary: #003366; --secondary: #f8f9fa; --success: #28a745; --whatsapp: #25d366; --danger: #dc3545; --warning: #ffc107; --dark-text: #333; --excel-color: #1d6f42; --print-color: #6c757d; --blocked: #721c24; --blocked-bg: #f8d7da; }
+      :root { --primary: #003366; --secondary: #f8f9fa; --success: #28a745; --whatsapp: #25d366; --danger: #dc3545; --warning: #ffc107; --dark-text: #333; --excel-color: #1d6f42; --print-color: #6c757d; --blocked: #721c24; --blocked-bg: #f8d7da; --changed-text: #d63384; --route-audit: #6f42c1; }
       body { font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #eef2f5; margin: 0; padding-bottom: 50px; color: var(--dark-text); }
       .container { max-width: 1150px; margin: 20px auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); }
       .header { background: var(--primary); color: white; padding: 15px 20px; border-radius: 10px 10px 0 0; margin: -20px -20px 20px -20px; }
@@ -48,6 +48,11 @@
       table { width: 100%; border-collapse: collapse; font-size: 0.9em; min-width: 800px; }
       th { background: #004080; color: white; padding: 12px; text-align: left; white-space: nowrap; }
       td { border-bottom: 1px solid #eee; padding: 12px; vertical-align: top; }
+      
+      /* ESTILOS DE AUDITORIA */
+      .orig-date { font-size: 0.75em; color: var(--danger); font-style: italic; display: block; margin-top: 4px; }
+      .orig-route { font-size: 0.75em; color: var(--route-audit); font-style: italic; display: block; margin-top: 4px; border-top: 1px dotted #ccc; padding-top: 2px; }
+
       #login-screen { max-width: 400px; margin: 60px auto; text-align: center; padding: 40px; border-top: 6px solid var(--primary); }
       .hidden { display: none !important; }
       @media (max-width: 900px) { .roteiro-controls { flex-direction: column; align-items: stretch; } .select-group { width: 100%; } .col { min-width: 100%; } }
@@ -77,7 +82,6 @@
       window.db = db; window.dbRef = ref; window.dbPush = push; window.dbUpdate = update; window.dbRemove = remove; window.auth = auth;
       window.listaViagens = []; window.listaFolgas = []; window.roteiroAtual = [];
 
-      // --- CONTATOS ---
       const contatosSolicitantes = {
         "Defensor Caio Cesar Nunes Cruz": "5527998764286",
         "Defensor Emerson Halsey Soares": "5571999678855",
@@ -90,37 +94,11 @@
         "Servidora Sabrina Pereira de Oliveira": "5573991135887"
       };
 
-      // --- DADOS GEOGRÁFICOS ---
       const estados = ["AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT","PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO"];
       
       const cidadesPorEstado = {
-        "AC": ["RIO BRANCO"],
-        "AL": ["MACEIO"],
-        "AM": ["MANAUS"],
-        "AP": ["MACAPA"],
-        "BA": ["ABAIRA","ABARE","ACAJUTIBA","ADUSTINA","AGUA FRIA","AIQUARA","ALAGOINHAS","ALCOBACA","ALMADINA","AMARGOSA","AMELIA RODRIGUES","AMERICA DOURADA","ANAGE","ANDARAI","ANDORINHA","ANGICAL","ANGUERA","ANTAS","ANTONIO CARDOSO","ANTONIO GONCALVES","APORA","APUAREMA","ARACAS","ARACATU","ARACI","ARAMARI","ARATACA","ARATUIPE","AURELINO LEAL","BAIANOPOLIS","BAIXA GRANDE","BANZAE","BARRA","BARRA DA ESTIVA","BARRA DO CHOCA","BARRA DO MENDES","BARRA DO ROCHA","BARREIRAS","BARRO ALTO","BARRO PRETO","BARROCAS","BELMONTE","BELO CAMPO","BIRITINGA","BOA NOVA","BOA VISTA DO TUPIM","BOM JESUS DA LAPA","BOM JESUS DA SERRA","BONINAL","BONITO","BOQUIRA","BOTUPORA","BREJOES","BREJOLANDIA","BROTAS DE MACAUBAS","BRUMADO","BUERAREMA","BURITIRAMA","CAATIBA","CABACEIRAS DO PARAGUACU","CACHOEIRA","CACULE","CAEM","CAETANOS","CAETITE","CAFARNAUM","CAIRU","CALDEIRAO GRANDE","CAMACAN","CAMACARI","CAMAMU","CAMPO ALEGRE DE LOURDES","CAMPO FORMOSO","CANAPOLIS","CANARANA","CANAVIEIRAS","CANDEAL","CANDEIAS","CANDIBA","CANDIDO SALES","CANSANCAO","CANUDOS","CAPELA DO ALTO ALEGRE","CAPIM GROSSO","CARAIBAS","CARAIVA","CARAVELAS","CARDEAL DA SILVA","CARINHANHA","CASA NOVA","CASTRO ALVES","CATOLANDIA","CATU","CATURAMA","CENTRAL","CHORROCHO","CICERO DANTAS","CIPO","COARACI","COCOS","CONCEICAO DA FEIRA","CONCEICAO DO ALMEIDA","CONCEICAO DO COITE","CONCEICAO DO JACUIPE","CONDE","CONDEUBA","CONTENDAS DO SINCORA","CORACAO DE MARIA","CORDEIROS","CORIBE","CORONEL JOAO SA","CORRENTINA","COTEGIPE","CRAVOLANDIA","CRISOPOLIS","CRISTOPOLIS","CRUZ DAS ALMAS","CURACA","DARIO MEIRA","DIAS D AVILA","DOM BASILIO","DOM MACEDO COSTA","ELISIO MEDRADO","ENCRUZILHADA","ENTRE RIOS","ERICO CARDOSO","ESPLANADA","EUCLIDES DA CUNHA","EUNAPOLIS","FATIMA","FEIRA DA MATA","FEIRA DE SANTANA","FILADELFIA","FIRMINO ALVES","FLORESTA AZUL","FORMOSA DO RIO PRETO","GANDU","GAVIAO","GENTIO DO OURO","GLORIA","GONGOGI","GOVERNADOR MANGABEIRA","GUAJERU","GUANAMBI","GUARATINGA","HELIOPOLIS","IACU","IBIASSUCE","IBICARAI","IBICOARA","IBICUI","IBIPEBA","IBIPITANGA","IBIPITANGA","IBIPITANGA","IBIQUERA","IBIRAPITANGA","IBIRAPUA","IBIRATAIA","IBITIARA","IBITITA","IBOTIRAMA","ICHU","IGAPORA","IGRAPIUNA","IGUAI","ILHEUS","INHAMBUPE","IPECAETA","IPIAU","IPIRA","IPUPIARA","IRAJUBA","IRAMAIA","IRAQUARA","IRARA","IRECE","ITABELA","ITABERABA","ITABUNA","ITACARE","ITAETE","ITAGI","ITAGIBA","ITAGIMIRIM","ITAGUACU DA BAHIA","ITAJU DO COLONIA","ITAJUIPE","ITAMARAJU","ITAMARI","ITAMBE","ITANAGRA","ITANHEM","ITAPARICA","ITAPE","ITAPEBI","ITAPETINGA","ITAPICURU","ITAPITANGA","ITAQUARA","ITARANTIM","ITATIM","ITIRUCU","ITIUBA","ITORORO","ITUACU","ITUBERA","IUIU","JABORANDI","JACARACI","JACOBINA","JAGUAQUARA","JAGUARARI","JAGUARIPE","JANDAIRA","JEQUIE","JEREMOABO","JIQUIRICA","JITAUNA","JOAO DOURADO","JUAZEIRO","JUCURUCU","JUSSARA","JUSSARI","JUSSIAPE","LAFAIETE COUTINHO","LAGOA REAL","LAJE","LAJEDAO","LAJEDINHO","LAJEDO DO TABOCAL","LAMARAO","LAPAO","LAURO DE FREITAS","LENCOIS","LICINIO DE ALMEIDA","LIVRAMENTO DE NOSSA SENHORA","LUIS EDUARDO MAGALHAES","MACAJUBA","MACARANI","MACAUBAS","MACURURE","MADRE DE DEUS","MAETINGA","MAIQUINIQUE","MAIRI","MALHADA","MALHADA DE PEDRAS","MANOEL VITORINO","MANSIDAO","MARACAS","MARAGOGIPE","MARAU","MARCIONILIO SOUZA","MASCOTE","MATA DE SAO JOAO","MATINA","MEDEIROS NETO","MIGUEL CALMON","MILAGRES","MIRANGABA","MIRANTE","MONTE SANTO","MORPARA","MORRO DO CHAPEU","MORTUGABA","MUCUGE","MUCURI","MULUNGU DO MORRO","MUNDO NOVO","MUNIZ FERREIRA","MUQUEM DO SAO FRANCISCO","MURITIBA","MUTUIPE","NAZARE","NILO PECANHA","NORDESTINA","NOVA CANAA","NOVA FATIMA","NOVA IBIA","NOVA ITARANA","NOVA REDENCAO","NOVA SOURE","NOVA VICOSA","NOVO HORIZONTE","NOVO TRIUNFO","OLINDINA","OLIVEIRA DOS BREJINHOS","OURICANGAS","OUROLANDIA","PALMAS DE MONTE ALTO","PALMEIRAS","PARAMIRIM","PARATINGA","PARIPIRANGA","PAU BRASIL","PAULO AFONSO","PE DE SERRA","PEDRAO","PEDRO ALEXANDRE","PIATA","PILAO ARCADO","PINDAI","PINDOBACU","PINTADAS","PIRAI DO NORTE","PIRIPA","PIRITIBA","PLANALTINO","PLANALTO","POCOES","POJUCA","PONTO NOVO","PORTO SEGURO","POTIRAGUA","PRADO","PRESIDENTE DUTRA","PRESIDENTE JANIO QUADROS","PRESIDENTE TANCREDO NEVES","QUEIMADAS","QUIJINGUE","QUIXABEIRA","RAFAEL JAMBEIRO","REMANSO","RETIROLANDIA","RIACHAO DAS NEVES","RIACHAO DO JACUIPE","RIACHO DE SANTANA","RIBEIRA DO AMPARO","RIBEIRA DO POMBAL","RIBEIRAO DO LARGO","RIO DE CONTAS","RIO DO ANTONIO","RIO DO PIRES","RIO REAL","RODELAS","RUY BARBOSA","SALINAS DA MARGARIDA","SALVADOR","SANTA BARBARA","SANTA BRIGIDA","SANTA CRUZ CABRALIA","SANTA CRUZ DA VITORIA","SANTA INES","SANTA LUZIA","SANTA MARIA DA VITORIA","SANTA RITA DE CASSIA","SANTA TERESINHA","SANTALUZ","SANTANA","SANTANOPOLIS","SANTO AMARO","SANTO ANTONIO DE JESUS","SANTO ESTEVAO","SAO DESIDERIO","SAO DOMINGOS","SAO FELIPE","SAO FELIX","SAO FELIX DO CORIBE","SAO FRANCISCO DO CONDE","SAO GABRIEL","SAO GONCALO DOS CAMPOS","SAO JOSE DA VITORIA","SAO JOSE DO JACUIPE","SAO MIGUEL DAS MATAS","SAO SEBASTIAO DO PASSE","SAPEACU","SATIRO DIAS","SAUBARA","SAUDE","SEABRA","SEBASTIAO LARANJEIRAS","SENHOR DO BONFIM","SENTO SE","SERRA DO RAMALHO","SERRA DOURADA","SERRA PRETA","SERRINHA","SERROLANDIA","SIMOES FILHO","SITIO DO MATO","SITIO DO QUINTO","SOBRADINHO","SOUTO SOARES","TABOCAS DO BREJO VELHO","TANHACU","TANQUE NOVO","TANQUINHO","TAPEROA","TAPIRAMUTA","TEIXEIRA DE FREITAS","TEODORO SAMPAIO","TEOFILANDIA","TEOLANDIA","TERRA NOVA","TODOS","TREMEDAL","TUCANO","UAUA","UBAIRA","UBAITABA","UBATA","UIBAI","UMBURANAS","UNA","URANDI","URUCUCA","UTINGA","VALENCA","VALENTE","VARZEA DA ROCA","VARZEA DO POCO","VARZEA NOVA","VARZEDO","VERA CRUZ","VEREDA","VITORIA DA CONQUISTA","WAGNER","WANDERLEY","WENCESLAU GUIMARAES","XIQUE XIQUE"],
-        "CE": ["FORTALEZA"],
-        "DF": ["BRASILIA"],
-        "ES": ["VITORIA"],
-        "GO": ["GOIANIA"],
-        "MA": ["SAO LUIS"],
-        "MG": ["BELO HORIZONTE"],
-        "MS": ["CAMPO GRANDE"],
-        "MT": ["CUIABA"],
-        "PA": ["BELEM"],
-        "PB": ["JOAO PESSOA"],
-        "PE": ["RECIFE"],
-        "PI": ["TERESINA"],
-        "PR": ["CURITIBA"],
-        "RJ": ["RIO DE JANEIRO"],
-        "RN": ["NATAL"],
-        "RO": ["PORTO VELHO"],
-        "RR": ["BOA VISTA"],
-        "RS": ["PORTO ALEGRE"],
-        "SC": ["FLORIANOPOLIS"],
-        "SE": ["ARACAJU"],
-        "SP": ["SAO PAULO"],
-        "TO": ["PALMAS"]
+        "BA": ["ABAIRA","ABARE","ACAJUTIBA","ADUSTINA","AGUA FRIA","AIQUARA","ALAGOINHAS","ALCOBACA","ALMADINA","AMARGOSA","AMELIA RODRIGUES","AMERICA DOURADA","ANAGE","ANDARAI","ANDORINHA","ANGICAL","ANGUERA","ANTAS","ANTONIO CARDOSO","ANTONIO GONCALVES","APORA","APUAREMA","ARACAS","ARACATU","ARACI","ARAMARI","ARATACA","ARATUIPE","AURELINO LEAL","BAIANOPOLIS","BAIXA GRANDE","BANZAE","BARRA","BARRA DA ESTIVA","BARRA DO CHOCA","BARRA DO MENDES","BARRA DO ROCHA","BARREIRAS","BARRO ALTO","BARRO PRETO","BARROCAS","BELMONTE","BELO CAMPO","BIRITINGA","BOA NOVA","BOA VISTA DO TUPIM","BOM JESUS DA LAPA","BOM JESUS DA SERRA","BONINAL","BONITO","BOQUIRA","BOTUPORA","BREJOES","BREJOLANDIA","BROTAS DE MACAUBAS","BRUMADO","BUERAREMA","BURITIRAMA","CAATIBA","CABACEIRAS DO PARAGUACU","CACHOEIRA","CACULE","CAEM","CAETANOS","CAETITE","CAFARNAUM","CAIRU","CALDEIRAO GRANDE","CAMACAN","CAMACARI","CAMAMU","CAMPO ALEGRE DE LOURDES","CAMPO FORMOSO","CANAPOLIS","CANARANA","CANAVIEIRAS","CANDEAL","CANDEIAS","CANDIBA","CANDIDO SALES","CANSANCAO","CANUDOS","CAPELA DO ALTO ALEGRE","CAPIM GROSSO","CARAIBAS","CARAIVA","CARAVELAS","CARDEAL DA SILVA","CARINHANHA","CASA NOVA","CASTRO ALVES","CATOLANDIA","CATU","CATURAMA","CENTRAL","CHORROCHO","CICERO DANTAS","CIPO","COARACI","COCOS","CONCEICAO DA FEIRA","CONCEICAO DO ALMEIDA","CONCEICAO DO COITE","CONCEICAO DO JACUIPE","CONDE","CONDEUBA","CONTENDAS DO SINCORA","CORACAO DE MARIA","CORDEIROS","CORIBE","CORONEL JOAO SA","CORRENTINA","COTEGIPE","CRAVOLANDIA","CRISOPOLIS","CRISTOPOLIS","CRUZ DAS ALMAS","CURACA","DARIO MEIRA","DIAS D AVILA","DOM BASILIO","DOM MACEDO COSTA","ELISIO MEDRADO","ENCRUZILHADA","ENTRE RIOS","ERICO CARDOSO","ESPLANADA","EUCLIDES DA CUNHA","EUNAPOLIS","FATIMA","FEIRA DA MATA","FEIRA DE SANTANA","FILADELFIA","FIRMINO ALVES","FLORESTA AZUL","FORMOSA DO RIO PRETO","GANDU","GAVIAO","GENTIO DO OURO","GLORIA","GONGOGI","GOVERNADOR MANGABEIRA","GUAJERU","GUANAMBI","GUARATINGA","HELIOPOLIS","IACU","IBIASSUCE","IBICARAI","IBICOARA","IBICUI","IBIPEBA","IBIPITANGA","IBIPITANGA","IBIPITANGA","IBIQUERA","IBIRAPITANGA","IBIRAPUA","IBIRATAIA","IBITIARA","IBITITA","IBOTIRAMA","ICHU","IGAPORA","IGRAPIUNA","IGUAI","ILHEUS","INHAMBUPE","IPECAETA","IPIAU","IPIRA","IPUPIARA","IRAJUBA","IRAMAIA","IRAQUARA","IRARA","IRECE","ITABELA","ITABERABA","ITABUNA","ITACARE","ITAETE","ITAGI","ITAGIBA","ITAGIMIRIM","ITAGUACU DA BAHIA","ITAJU DO COLONIA","ITAJUIPE","ITAMARAJU","ITAMARI","ITAMBE","ITANAGRA","ITANHEM","ITAPARICA","ITAPE","ITAPEBI","ITAPETINGA","ITAPICURU","ITAPITANGA","ITAQUARA","ITARANTIM","ITATIM","ITIRUCU","ITIUBA","ITORORO","ITUACU","ITUBERA","IUIU","JABORANDI","JACARACI","JACOBINA","JAGUAQUARA","JAGUARARI","JAGUARIPE","JANDAIRA","JEQUIE","JEREMOABO","JIQUIRICA","JITAUNA","JOAO DOURADO","JUAZEIRO","JUCURUCU","JUSSARA","JUSSARI","JUSSIAPE","LAFAIETE COUTINHO","LAGOA REAL","LAJE","LAJEDAO","LAJEDINHO","LAJEDO DO TABOCAL","LAMARAO","LAPAO","LAURO DE FREITAS","LENCOIS","LICINIO DE ALMEIDA","LIVRAMENTO DE NOSSA SENHORA","LUIS EDUARDO MAGALHAES","MACAJUBA","MACARANI","MACAUBAS","MACURURE","MADRE DE DEUS","MAETINGA","MAIQUINIQUE","MAIRI","MALHADA","MALHADA DE PEDRAS","MANOEL VITORINO","MANSIDAO","MARACAS","MARAGOGIPE","MARAU","MARCIONILIO SOUZA","MASCOTE","MATA DE SAO JOAO","MATINA","MEDEIROS NETO","MIGUEL CALMON","MILAGRES","MIRANGABA","MIRANTE","MONTE SANTO","MORPARA","MORRO DO CHAPEU","MORTUGABA","MUCUGE","MUCURI","MULUNGU DO MORRO","MUNDO NOVO","MUNIZ FERREIRA","MUQUEM DO SAO FRANCISCO","MURITIBA","MUTUIPE","NAZARE","NILO PECANHA","NORDESTINA","NOVA CANAA","NOVA FATIMA","NOVA IBIA","NOVA ITARANA","NOVA REDENCAO","NOVA SOURE","NOVA VICOSA","NOVO HORIZONTE","NOVO TRIUNFO","OLINDINA","OLIVEIRA DOS BREJINHOS","OURICANGAS","OUROLANDIA","PALMAS DE MONTE ALTO","PALMEIRAS","PARAMIRIM","PARATINGA","PARIPIRANGA","PAU BRASIL","PAULO AFONSO","PE DE SERRA","PEDRAO","PEDRO ALEXANDRE","PIATA","PILAO ARCADO","PINDAI","PINDOBACU","PINTADAS","PIRAI DO NORTE","PIRIPA","PIRITIBA","PLANALTINO","PLANALTO","POCOES","POJUCA","PONTO NOVO","PORTO SEGURO","POTIRAGUA","PRADO","PRESIDENTE DUTRA","PRESIDENTE JANIO QUADROS","PRESIDENTE TANCREDO NEVES","QUEIMADAS","QUIJINGUE","QUIXABEIRA","RAFAEL JAMBEIRO","REMANSO","RETIROLANDIA","RIACHAO DAS NEVES","RIACHAO DO JACUIPE","RIACHO DE SANTANA","RIBEIRA DO AMPARO","RIBEIRA DO POMBAL","RIBEIRAO DO LARGO","RIO DE CONTAS","RIO DO ANTONIO","RIO DO PIRES","RIO REAL","RODELAS","RUY BARBOSA","SALINAS DA MARGARIDA","SALVADOR","SANTA BARBARA","SANTA BRIGIDA","SANTA CRUZ CABRALIA","SANTA CRUZ DA VITORIA","SANTA INES","SANTA LUZIA","SANTA MARIA DA VITORIA","SANTA RITA DE CASSIA","SANTA TERESINHA","SANTALUZ","SANTANA","SANTANOPOLIS","SANTO AMARO","SANTO ANTONIO DE JESUS","SANTO ESTEVAO","SAO DESIDERIO","SAO DOMINGOS","SAO FELIPE","SAO FELIX","SAO FELIX DO CORIBE","SAO FRANCISCO DO CONDE","SAO GABRIEL","SAO GONCALO DOS CAMPOS","SAO JOSE DA VITORIA","SAO JOSE DO JACUIPE","SAO MIGUEL DAS MATAS","SAO SEBASTIAO DO PASSE","SAPEACU","SATIRO DIAS","SAUBARA","SAUDE","SEABRA","SEBASTIAO LARANJEIRAS","SENHOR DO BONFIM","SENTO SE","SERRA DO RAMALHO","SERRA DOURADA","SERRA PRETA","SERRINHA","SERROLANDIA","SIMOES FILHO","SITIO DO MATO","SITIO DO QUINTO","SOBRADINHO","SOUTO SOARES","TABOCAS DO BREJO VELHO","TANHACU","TANQUE NOVO","TANQUINHO","TAPEROA","TAPIRAMUTA","TEIXEIRA DE FREITAS","TEODORO SAMPAIO","TEOFILANDIA","TEOLANDIA","TERRA NOVA","TODOS","TREMEDAL","TUCANO","UAUA","UBAIRA","UBAITABA","UBATA","UIBAI","UMBURANAS","UNA","URANDI","URUCUCA","UTINGA","VALENCA","VALENTE","VARZEA DA ROCA","VARZEA DO POCO","VARZEA NOVA","VARZEDO","VERA CRUZ","VERA CRUZ","VEREDA","VITORIA DA CONQUISTA","WAGNER","WANDERLEY","WENCESLAU GUIMARAES","XIQUE XIQUE"],
+        "AC": ["RIO BRANCO"], "AL": ["MACEIO"], "AM": ["MANAUS"], "AP": ["MACAPA"], "CE": ["FORTALEZA"], "DF": ["BRASILIA"], "ES": ["VITORIA"], "GO": ["GOIANIA"], "MA": ["SAO LUIS"], "MG": ["BELO HORIZONTE"], "MS": ["CAMPO GRANDE"], "MT": ["CUIABA"], "PA": ["BELEM"], "PB": ["JOAO PESSOA"], "PE": ["RECIFE"], "PI": ["TERESINA"], "PR": ["CURITIBA"], "RJ": ["RIO DE JANEIRO"], "RN": ["NATAL"], "RO": ["PORTO VELHO"], "RR": ["BOA VISTA"], "RS": ["PORTO ALEGRE"], "SC": ["FLORIANOPOLIS"], "SE": ["ARACAJU"], "SP": ["SAO PAULO"], "TO": ["PALMAS"]
       };
 
       onAuthStateChanged(auth, (user) => {
@@ -128,7 +106,6 @@
           document.getElementById("login-screen").classList.add("hidden");
           document.getElementById("app-screen").classList.remove("hidden");
           document.getElementById("nome-usuario").innerText = user.email;
-          
           if (user.email && (user.email.toLowerCase().includes("admin") || user.email.toLowerCase().includes("motorista") || user.email.toLowerCase().includes("cleones"))) {
             document.getElementById("painel-add-folga").classList.remove("hidden");
             if(user.email.toLowerCase().includes("admin")) {
@@ -266,7 +243,6 @@
             });
         });
         carregarCidades('origem'); carregarCidades('destino');
-        // Padrão Teixeira de Freitas (input text)
         document.getElementById('cidade-origem').value = "TEIXEIRA DE FREITAS";
       }
 
@@ -274,23 +250,16 @@
         const uf = document.getElementById(`uf-${tipo}`).value;
         const dataList = document.getElementById(`list-${tipo}`);
         const inputCidade = document.getElementById(`cidade-${tipo}`);
-        
         dataList.innerHTML = ""; 
-
         if (cidadesPorEstado[uf]) {
             cidadesPorEstado[uf].forEach(cid => {
                 const opt = document.createElement('option');
                 opt.value = cid;
                 dataList.appendChild(opt);
             });
-            // Lógica de padrão se for BA na origem (e limpa caso mude)
-            if (tipo === 'origem' && uf === 'BA') {
-               inputCidade.value = "TEIXEIRA DE FREITAS";
-            } else {
-                inputCidade.value = ""; 
-            }
+            if (tipo === 'origem' && uf === 'BA') { inputCidade.value = "TEIXEIRA DE FREITAS"; } 
+            else { inputCidade.value = ""; }
         } else {
-            // Caso genérico (fallback)
             ["CAPITAL", "INTERIOR"].forEach(o => {
                 const opt = document.createElement('option');
                 opt.value = o;
@@ -369,10 +338,40 @@
         };
 
         if (!f.solicitante || !f.saida || !f.chegada) return alert("Preencha todos os campos.");
-        
+
+        // LÓGICA DE AUDITORIA DE ALTERAÇÃO (V38.1)
+        let isModificado = false;
+        if (idEdicao) {
+            const itemAntigo = window.listaViagens.find(v => v.id === idEdicao);
+            if (itemAntigo) {
+                // Checa Mudança de Data Saída
+                if (itemAntigo.saida !== f.saida) {
+                    f.saidaOriginal = itemAntigo.saidaOriginal || itemAntigo.saida;
+                    isModificado = true;
+                } else if (itemAntigo.saidaOriginal) {
+                    f.saidaOriginal = itemAntigo.saidaOriginal;
+                }
+                
+                // Checa Mudança de Data Chegada (AUDITORIA DE RETORNO)
+                if (itemAntigo.chegada !== f.chegada) {
+                    f.chegadaOriginal = itemAntigo.chegadaOriginal || itemAntigo.chegada;
+                    isModificado = true;
+                } else if (itemAntigo.chegadaOriginal) {
+                    f.chegadaOriginal = itemAntigo.chegadaOriginal;
+                }
+
+                // Checa Mudança de Roteiro
+                if (itemAntigo.trajetoExibicao !== f.trajetoExibicao) {
+                    f.trajetoOriginal = itemAntigo.trajetoOriginal || itemAntigo.trajetoExibicao;
+                    isModificado = true;
+                } else if (itemAntigo.trajetoOriginal) {
+                    f.trajetoOriginal = itemAntigo.trajetoOriginal;
+                }
+            }
+        }
+
         const bloqueio = verificaBloqueioFolga(f.saida, f.chegada);
         if(bloqueio) {
-            function fmt(dt) { if(!dt) return "--"; const d = new Date(dt); return d.toLocaleDateString("pt-BR") + " " + d.toLocaleTimeString("pt-BR", {hour:"2-digit", minute:"2-digit"}); }
             const dIni = criarDataLocal(bloqueio.inicio).toLocaleDateString('pt-BR');
             const dFim = criarDataLocal(bloqueio.fim).toLocaleDateString('pt-BR');
             return alert(`🚫 MOTORISTA INDISPONÍVEL!\n\nMotivo: ${bloqueio.motivo}\nPeríodo: ${dIni} até ${dFim}`);
@@ -386,9 +385,13 @@
 
         if (idEdicao) {
              Object.keys(f).forEach(key => f[key] === undefined && delete f[key]);
-             update(ref(db, "viagens/" + idEdicao), f).then(() => { alert("Atualizado!"); cancelarEdicao(); });
+             update(ref(db, "viagens/" + idEdicao), f).then(() => { 
+                 alert("Atualizado!"); 
+                 if(isModificado) enviarWhatsApp(f, true);
+                 cancelarEdicao(); 
+             });
         } else {
-             push(ref(db, "viagens"), f).then(() => { enviarWhatsApp(f); cancelarEdicao(); });
+             push(ref(db, "viagens"), f).then(() => { enviarWhatsApp(f, false); cancelarEdicao(); });
         }
       };
 
@@ -405,7 +408,7 @@
         renderizarRoteiroUI();
         document.querySelector(".main-form").classList.add("editing-mode");
         document.getElementById("form-title").innerHTML = "✏️ Editando Solicitação";
-        document.getElementById("btn-save").innerHTML = "💾 Atualizar";
+        document.getElementById("btn-save").innerHTML = "💾 Atualizar e Notificar";
         document.getElementById("btn-save").style.background = "var(--warning)";
         document.getElementById("btn-save").style.color = "#333";
         document.getElementById("btn-cancel-edit").classList.remove("hidden");
@@ -428,25 +431,29 @@
         document.getElementById("btn-cancel-edit").classList.add("hidden");
       };
 
-      function enviarWhatsApp(dados) {
+      function enviarWhatsApp(dados, isAlteracao = false) {
         const telefoneMotorista = "5571996384423";
         const carro = String.fromCodePoint(0x1f697);
+        const alerta = String.fromCodePoint(0x26a0);
         let trajetoMsg = dados.trajetoExibicao.replace(/;/g, "\n📍"); 
         function fmt(dt) { if(!dt) return "--"; const d = new Date(dt); return d.toLocaleDateString("pt-BR") + " " + d.toLocaleTimeString("pt-BR", {hour:"2-digit", minute:"2-digit"}); }
-        const texto = `Olá Cleones! ${carro} Nova viagem agendada.\n\n*Solicitante:* ${dados.solicitante}\n*Saída:* ${fmt(dados.saida)}\n*Retorno:* ${fmt(dados.chegada)}\n*Motivo:* ${dados.motivo}\n*Roteiro:*\n📍 ${trajetoMsg}`;
+        
+        let cabecalho = isAlteracao ? `${alerta} *ALTERAÇÃO DE VIAGEM!* ${alerta}` : `${carro} Nova viagem agendada.`;
+        let msgMod = isAlteracao ? "\n\n*Atenção:* Houve mudança no roteiro ou horário original!" : "";
+
+        const texto = `Olá Cleones! ${cabecalho}${msgMod}\n\n*Solicitante:* ${dados.solicitante}\n*Saída:* ${fmt(dados.saida)}\n*Retorno:* ${fmt(dados.chegada)}\n*Motivo:* ${dados.motivo}\n*Roteiro:*\n📍 ${trajetoMsg}`;
         const url = `https://wa.me/${telefoneMotorista}?text=${encodeURIComponent(texto)}`;
-        if (confirm("Deseja avisar o motorista no WhatsApp agora?")) window.open(url, "_blank");
+        
+        let confirmMsg = isAlteracao ? "Houve alterações. Avisar motorista da mudança?" : "Deseja avisar o motorista no WhatsApp agora?";
+        if (confirm(confirmMsg)) window.open(url, "_blank");
       }
 
       window.confirmarViagem = function(id) {
         const item = window.listaViagens.find(v => v.id === id);
         if(!item) return;
-
         if(confirm("Confirmar a viagem de " + item.solicitante + "?")) {
             update(ref(db, "viagens/" + id), { status: "Confirmado" });
-            
             const telefoneSolicitante = contatosSolicitantes[item.solicitante];
-            
             if (telefoneSolicitante) {
                 if(confirm(`Viagem confirmada! Deseja enviar aviso no WhatsApp para ${item.solicitante}?`)) {
                     function fmt(dt) { if(!dt) return "--"; const d = new Date(dt); return d.toLocaleDateString("pt-BR") + " " + d.toLocaleTimeString("pt-BR", {hour:"2-digit", minute:"2-digit"}); }
@@ -454,9 +461,7 @@
                     const msg = `Olá! ${carro} Sua viagem foi CONFIRMADA pelo motorista.\n\n📅 *Saída:* ${fmt(item.saida)}\n📅 *Retorno:* ${fmt(item.chegada)}\n📍 *Destino:* ${item.trajetoExibicao}`;
                     window.open(`https://wa.me/${telefoneSolicitante}?text=${encodeURIComponent(msg)}`, '_blank');
                 }
-            } else {
-                alert("Viagem confirmada! (Número do solicitante não cadastrado para aviso)");
-            }
+            } else { alert("Viagem confirmada! (Número do solicitante não cadastrado)"); }
         }
       };
 
@@ -467,6 +472,7 @@
         if (window.listaViagens.length === 0) { tb.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 30px; color: #666;">Nenhuma viagem agendada.</td></tr>'; return; }
         window.listaViagens.sort((a, b) => new Date(b.saida) - new Date(a.saida));
         function fmt(dt) { if(!dt) return "--"; const d = new Date(dt); return d.toLocaleDateString("pt-BR") + " " + d.toLocaleTimeString("pt-BR", {hour:"2-digit", minute:"2-digit"}); }
+        
         window.listaViagens.forEach((i) => {
           let botoes = "";
           const isOwner = i.registradoPor === userEmail;
@@ -480,13 +486,36 @@
           if (window.isAdmin || isOwner) botoes += `<button class="btn-edit" onclick="prepararEdicao('${i.id}')">✏️</button>`;
           if (window.isAdmin) botoes += `<button class="btn-delete" onclick="deletar('${i.id}')">🗑️</button>`;
           
+          // AUDITORIA DE SAÍDA
+          let htmlSaida = `<strong style="color:var(--primary)">${fmt(i.saida)}</strong>`;
+          if (i.saidaOriginal) {
+              htmlSaida += `<span class="orig-date">(Original: ${fmt(i.saidaOriginal)})</span>`;
+          }
+
+          // AUDITORIA DE RETORNO (SOLICITADO)
+          let htmlRetorno = `<span>${fmt(i.chegada)}</span>`;
+          if (i.chegadaOriginal) {
+              htmlRetorno = `<strong>${fmt(i.chegada)}</strong><span class="orig-date">(Antigo: ${fmt(i.chegadaOriginal)})</span>`;
+          }
+
+          // AUDITORIA DE ROTEIRO
           let roteiroDisplay = i.trajetoExibicao || `${i.origem} ➝ ${i.destino}`;
-          tb.innerHTML += `<tr><td style="text-align:center"><span class="status-badge ${badgeClass}">${badgeIcon} ${status}</span></td><td><strong style="color:var(--primary)">${fmt(i.saida)}</strong></td><td>${fmt(i.chegada)}</td><td><strong>${i.solicitante}</strong><br><small>${i.setor || "-"}</small></td><td style="font-size:0.9em">${roteiroDisplay}</td><td style="text-align:center; white-space:nowrap;">${botoes}</td></tr>`;
+          if (i.trajetoOriginal) {
+              roteiroDisplay = `${roteiroDisplay}<span class="orig-route">Original: ${i.trajetoOriginal}</span>`;
+          }
+
+          tb.innerHTML += `<tr>
+              <td style="text-align:center"><span class="status-badge ${badgeClass}">${badgeIcon} ${status}</span></td>
+              <td>${htmlSaida}</td>
+              <td>${htmlRetorno}</td>
+              <td><strong>${i.solicitante}</strong><br><small>${i.setor || "-"}</small></td>
+              <td style="font-size:0.9em">${roteiroDisplay}</td>
+              <td style="text-align:center; white-space:nowrap;">${botoes}</td>
+          </tr>`;
         });
       };
       
       window.deletar = function(id) { if(confirm("Apagar?")) remove(ref(db,"viagens/"+id)); };
-      
       window.baixarExcel = function () {
          if(window.listaViagens.length===0) return alert("Sem dados");
          function fmt(dt) { if(!dt) return "--"; const d = new Date(dt); return d.toLocaleDateString("pt-BR") + " " + d.toLocaleTimeString("pt-BR", {hour:"2-digit", minute:"2-digit"}); }
@@ -496,14 +525,14 @@
          });
          const html=`<table>${linhas}</table>`;
          const blob=new Blob([html],{type:"application/vnd.ms-excel"});
-         const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="Relatorio.xls"; a.click();
+         const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="Relatorio_Frota.xls"; a.click();
       };
       window.imprimirRelatorio = function() { window.print(); };
     </script>
 
     <div id="login-screen" class="container">
-      <span class="logo-text">14ª Regional Teixeira de Freitas</span>
-      <div style="color: #666; margin-bottom: 25px;">Defensoria Pública - Agendamento Veículo</div>
+      <h2 style="color: var(--primary); margin: 0;">14ª Regional</h2>
+      <div style="color: #666; margin-bottom: 25px;">Defensoria Pública - Frota V38.1</div>
       <input type="email" id="login-user" placeholder="E-mail" style="margin-bottom: 15px" />
       <input type="password" id="login-pass" placeholder="Senha" style="margin-bottom: 15px" />
       <button class="btn-primary" onclick="realizarLogin()">Entrar no Sistema</button>
@@ -513,7 +542,7 @@
       <div class="header">
         <div class="header-content">
           <div style="display: flex; align-items: center">
-            <h2 style="margin: 0; font-size: 1.5em">14ª Regional</h2>
+            <h2 style="margin: 0; font-size: 1.5em">Frota DPE</h2>
             <span id="status-conexao">Inicializando...</span>
           </div>
           <div style="text-align: right">
@@ -524,14 +553,13 @@
       </div>
 
       <div class="folga-box">
-        <h4 style="margin: 0 0 10px 0; display:flex; align-items:center;">🛑 Indisponibilidade / Folgas do Motorista</h4>
+        <h4 style="margin: 0 0 10px 0;">🛑 Indisponibilidade do Motorista</h4>
         <div id="lista-folgas-visual"><p style="color:#666; font-style:italic;">Carregando...</p></div>
         <div id="painel-add-folga" class="hidden" style="margin-top: 15px; border-top: 1px dashed #bbb; padding-top: 10px;">
-            <label style="font-size:0.9em; font-weight:bold;">Adicionar Bloqueio:</label>
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <div style="flex:1"><input type="date" id="folga-inicio" placeholder="Início"></div>
-                <div style="flex:1"><input type="date" id="folga-fim" placeholder="Fim"></div>
-                <div style="flex:2"><input type="text" id="folga-motivo" placeholder="Motivo (ex: Férias, Manutenção)"></div>
+                <div style="flex:1"><input type="date" id="folga-inicio"></div>
+                <div style="flex:1"><input type="date" id="folga-fim"></div>
+                <div style="flex:2"><input type="text" id="folga-motivo" placeholder="Motivo"></div>
                 <button class="btn-block" style="width: auto;" onclick="salvarFolga()">Bloquear</button>
             </div>
         </div>
@@ -545,7 +573,7 @@
 
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px;">
           <h3 id="form-title" style="margin: 0; color: var(--primary)">📝 Novo Agendamento</h3>
-          <button id="btn-cancel-edit" class="hidden" style="background: #999; padding: 5px 10px" onclick="cancelarEdicao()">❌ Cancelar Edição</button>
+          <button id="btn-cancel-edit" class="hidden" style="background: #999; padding: 5px 10px" onclick="cancelarEdicao()">❌ Cancelar</button>
         </div>
         <input type="hidden" id="edit-id" />
 
@@ -569,36 +597,36 @@
         </div>
 
         <div class="roteiro-box">
-            <div class="roteiro-header">Roteiro (Selecione Estado e Cidade)</div>
+            <div class="roteiro-header">Roteiro da Viagem</div>
             <div class="roteiro-controls">
                 <div class="select-group">
-                    <div style="display:flex; flex-direction:column;">
-                        <label style="font-size:0.8em; margin-bottom:2px;">Origem (UF)</label>
+                    <div>
+                        <label style="font-size:0.8em;">Origem (UF)</label>
                         <select id="uf-origem" class="sel-uf" onchange="carregarCidades('origem')"></select>
                     </div>
-                    <div style="display:flex; flex-direction:column; flex:1;">
-                        <label style="font-size:0.8em; margin-bottom:2px;">Cidade</label>
-                        <input type="text" id="cidade-origem" list="list-origem" class="sel-cidade" placeholder="Digite ou selecione...">
+                    <div style="flex:1;">
+                        <label style="font-size:0.8em;">Cidade</label>
+                        <input type="text" id="cidade-origem" list="list-origem" class="sel-cidade">
                         <datalist id="list-origem"></datalist>
                     </div>
                 </div>
                 <div class="select-group">
-                    <div style="display:flex; flex-direction:column;">
-                        <label style="font-size:0.8em; margin-bottom:2px;">Destino (UF)</label>
+                    <div>
+                        <label style="font-size:0.8em;">Destino (UF)</label>
                         <select id="uf-destino" class="sel-uf" onchange="carregarCidades('destino')"></select>
                     </div>
-                    <div style="display:flex; flex-direction:column; flex:1;">
-                        <label style="font-size:0.8em; margin-bottom:2px;">Cidade</label>
-                        <input type="text" id="cidade-destino" list="list-destino" class="sel-cidade" placeholder="Digite ou selecione...">
+                    <div style="flex:1;">
+                        <label style="font-size:0.8em;">Cidade</label>
+                        <input type="text" id="cidade-destino" list="list-destino" class="sel-cidade">
                         <datalist id="list-destino"></datalist>
                     </div>
                 </div>
-                <button class="btn-add-route" onclick="adicionarTrecho()" type="button">Adicionar</button>
+                <button class="btn-add-route" onclick="adicionarTrecho()" type="button">Add</button>
                 <button class="btn-clear-route" onclick="limparRoteiro()" type="button">Limpar</button>
             </div>
             <table class="roteiro-lista">
-                <thead><tr><th width="50%">De</th><th width="50%">Para</th></tr></thead>
-                <tbody id="roteiro-lista-body"><tr><td colspan="2" style="color:#999; text-align:center;">Nenhum trecho adicionado.</td></tr></tbody>
+                <thead><tr><th>De</th><th>Para</th></tr></thead>
+                <tbody id="roteiro-lista-body"></tbody>
             </table>
         </div>
 
@@ -611,12 +639,11 @@
       </div>
 
       <div id="admin-controls" class="hidden" style="margin-top: 25px; background: #e9ecef; padding: 20px; border-radius: 8px;">
-        <h4 style="margin: 0 0 15px 0; color: #555">⚙️ Painel Administrativo</h4>
         <button class="btn-excel" onclick="baixarExcel()">📊 Baixar Excel</button>
         <button class="btn-print" onclick="imprimirRelatorio()">🖨️ Imprimir</button>
       </div>
 
-      <h3 class="section-title">📅 Agenda Atualizada</h3>
+      <h3 class="section-title">📅 Agenda de Viagens</h3>
       <div class="table-responsive">
         <table id="tabela-historico">
           <thead><tr><th style="text-align: center">Status</th><th>Saída</th><th>Retorno</th><th>Solicitante</th><th>Roteiro Completo</th><th style="text-align: center">Ações</th></tr></thead>
