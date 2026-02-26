@@ -52,6 +52,11 @@
       .orig-route { font-size: 0.75em; color: var(--route-audit); font-style: italic; display: block; margin-top: 4px; border-top: 1px dotted #ccc; padding-top: 2px; }
       #login-screen { max-width: 400px; margin: 60px auto; text-align: center; padding: 40px; border-top: 6px solid var(--primary); }
       .hidden { display: none !important; }
+      
+      /* Estilo para viagens concluídas */
+      .viagem-concluida { background-color: #f2f2f2 !important; color: #777; }
+      .viagem-concluida td { opacity: 0.7; }
+
       @media (max-width: 900px) { .roteiro-controls { flex-direction: column; align-items: stretch; } .select-group { width: 100%; } .col { min-width: 100%; } }
     </style>
   </head>
@@ -482,7 +487,10 @@
         const tb = document.getElementById("tb-corpo");
         tb.innerHTML = "";
         const userEmail = auth.currentUser ? auth.currentUser.email : "";
+        const agoraTimestamp = Date.now();
+        
         if (window.listaViagens.length === 0) { tb.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 30px; color: #666;">Nenhuma viagem agendada.</td></tr>'; return; }
+        
         window.listaViagens.sort((a, b) => new Date(b.saida) - new Date(a.saida));
         function fmt(dt) { if(!dt) return "--"; const d = new Date(dt); return d.toLocaleDateString("pt-BR") + " " + d.toLocaleTimeString("pt-BR", {hour:"2-digit", minute:"2-digit"}); }
         
@@ -493,7 +501,12 @@
           let badgeClass = status === "Confirmado" ? "status-confirmado" : "status-pendente";
           let badgeIcon = status === "Confirmado" ? "✅" : "⏳";
           
-          if (status !== "Confirmado" && (window.isAdmin || window.isMotorista)) {
+          // Lógica de cor baseada na data de saída
+          const dataSaidaViagem = new Date(i.saida).getTime();
+          const foiRealizada = dataSaidaViagem < agoraTimestamp;
+          const classeLinha = foiRealizada ? "viagem-concluida" : "";
+
+          if (!foiRealizada && status !== "Confirmado" && (window.isAdmin || window.isMotorista)) {
              botoes += `<button class="btn-confirm" onclick="confirmarViagem('${i.id}')" title="Confirmar Viagem">✔</button>`;
           }
           if (window.isAdmin || isOwner) botoes += `<button class="btn-edit" onclick="prepararEdicao('${i.id}')">✏️</button>`;
@@ -514,7 +527,7 @@
               roteiroDisplay = `${roteiroDisplay}<span class="orig-route">Original: ${i.trajetoOriginal}</span>`;
           }
 
-          tb.innerHTML += `<tr>
+          tb.innerHTML += `<tr class="${classeLinha}">
               <td style="text-align:center"><span class="status-badge ${badgeClass}">${badgeIcon} ${status}</span></td>
               <td>${htmlSaida}</td>
               <td>${htmlRetorno}</td>
