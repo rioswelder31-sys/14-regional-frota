@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Frota DPE - Multi-Regional (V50.0)</title>
+    <title>Frota DPE - Multi-Regional (V51.0)</title>
     <style>
       :root { --primary: #003366; --secondary: #f8f9fa; --success: #28a745; --whatsapp: #25d366; --danger: #dc3545; --warning: #ffc107; --dark-text: #333; --excel-color: #1d6f42; --print-color: #6c757d; --blocked: #721c24; --blocked-bg: #f8d7da; }
       body { font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #eef2f5; margin: 0; padding-bottom: 50px; color: var(--dark-text); }
@@ -199,7 +199,7 @@
       window.realizarLogin = () => {
         const email = document.getElementById("login-user").value;
         const pass = document.getElementById("login-pass").value;
-        signInWithEmailAndPassword(auth, email, pass).catch(e => alert("Login ou senha incorretos para esta Regional."));
+        signInWithEmailAndPassword(auth, email, pass).catch(e => alert("Login inválido."));
       };
 
       onAuthStateChanged(auth, (user) => {
@@ -213,7 +213,7 @@
           document.getElementById('app-unit-name').innerText = regionalNome;
           document.getElementById('nome-usuario').innerText = user.email;
 
-          // MONITOR DE CONEXÃO
+          // MONITOR DE CONEXÃO V39 STYLE
           onValue(ref(db, ".info/connected"), (snap) => {
             const status = document.getElementById("status-conexao");
             if (snap.val() === true) { status.innerText = "🟢 Online"; status.style.background = "var(--success)"; }
@@ -225,7 +225,6 @@
           
           configurarUI(); iniciarEscutaBanco();
         } else {
-            // Se deslogado, volta para a tela de unidades
             document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
             document.getElementById('unit-screen').classList.remove('hidden');
         }
@@ -246,18 +245,31 @@
       window.carregarCidades = (t) => {
         const uf = document.getElementById(`uf-${t}`).value;
         const dl = document.getElementById(`list-${t}`); dl.innerHTML = "";
+        const input = document.getElementById(`cidade-${t}`);
         if(uf === 'BA') cidadesBA.forEach(c => dl.innerHTML += `<option value="${c}">`);
         else if(uf === 'ES') cidadesES.forEach(c => dl.innerHTML += `<option value="${c}">`);
         else if(capitais[uf]) dl.innerHTML += `<option value="${capitais[uf]}">`;
-        if(t === 'origem' && uf === 'BA' && regionalID === '14-regional') document.getElementById(`cidade-${t}`).value = "TEIXEIRA DE FREITAS";
+        if(t === 'origem' && uf === 'BA' && regionalID === '14-regional') input.value = "TEIXEIRA DE FREITAS";
       };
 
+      // --- ROTEIRO INTELIGENTE (Move destino para origem) ---
       window.adicionarTrecho = () => {
-        const o = `${document.getElementById('uf-origem').value} - ${document.getElementById('cidade-origem').value}`;
-        const d = `${document.getElementById('uf-destino').value} - ${document.getElementById('cidade-destino').value}`;
-        if(!document.getElementById('cidade-origem').value || !document.getElementById('cidade-destino').value) return alert("Selecione as cidades.");
+        const ufOrg = document.getElementById('uf-origem').value;
+        const cidOrg = document.getElementById('cidade-origem').value;
+        const ufDst = document.getElementById('uf-destino').value;
+        const cidDst = document.getElementById('cidade-destino').value;
+
+        if(!cidOrg || !cidDst) return alert("Selecione as cidades.");
+
+        const o = `${ufOrg} - ${cidOrg}`;
+        const d = `${ufDst} - ${cidDst}`;
         window.roteiroAtual.push({ origem: o, destino: d });
         renderRoteiro();
+
+        // LOGICA DE CONTINUIDADE: Destino vira Origem
+        document.getElementById('uf-origem').value = ufDst;
+        carregarCidades('origem');
+        document.getElementById('cidade-origem').value = cidDst;
       };
 
       function renderRoteiro() {
@@ -282,32 +294,32 @@
 
       window.salvarNoFirebase = () => {
         const id = document.getElementById("edit-id").value;
+        const trajetoString = window.roteiroAtual.map(t => `${t.origem} ➝ ${t.destino}`).join("; ") || "Trecho Direto";
         const dados = {
           solicitante: document.getElementById("solicitante").value,
           setor: document.getElementById("setor").value,
           saida: document.getElementById("saida").value,
           chegada: document.getElementById("chegada").value,
           motivo: document.getElementById("motivo").value,
-          trajetoExibicao: window.roteiroAtual.map(t => `${t.origem} ➝ ${t.destino}`).join("; ") || "Trecho Direto",
-          registradoPor: window.userEmail
+          trajetoExibicao: trajetoString,
+          registradoPor: window.userEmail,
+          status: id ? undefined : "Pendente"
         };
         const root = (regionalID === '14-regional' ? '' : `unidades/${regionalID}/`) + 'viagens';
         
         if(id) {
             update(ref(db, `${root}/${id}`), dados).then(() => { alert("Atualizado!"); location.reload(); });
         } else {
-            push(ref(db, root), dados).then(() => { alert("Agendado!"); notify(dados); location.reload(); });
+            push(ref(db, root), dados).then(() => { 
+                // --- LÓGICA WHATSAPP V39.0 (Confirm Popup) ---
+                const msg = `🚗 *AGENDAMENTO:* ${dados.solicitante}\n📍 *Roteiro:* ${dados.trajetoExibicao}\n📅 *Saída:* ${new Date(dados.saida).toLocaleString()}\n📅 *Retorno:* ${new Date(dados.chegada).toLocaleString()}`;
+                if(confirm("Agendado! Deseja notificar o motorista no WhatsApp agora?")) {
+                    window.open(`https://wa.me/${CONTATOS[regionalID].tel}?text=${encodeURIComponent(msg)}`, '_blank');
+                }
+                location.reload(); 
+            });
         }
       };
-
-      function notify(d) {
-        const tel = CONTATOS[regionalID].tel;
-        const msg = `🚗 *AGENDAMENTO:* ${d.solicitante}\n📍 *Roteiro:* ${d.trajetoExibicao}\n📅 *Saída:* ${new Date(d.saida).toLocaleString()}`;
-        const url = `https://api.whatsapp.com/send?phone=${tel}&text=${encodeURIComponent(msg)}`;
-        if(confirm("Deseja abrir o WhatsApp para notificar o motorista?")) {
-            window.location.href = url; // Método mais robusto que window.open
-        }
-      }
 
       window.atualizarTabelaGlobal = () => {
         const tb = document.getElementById("tb-corpo"); tb.innerHTML = "";
@@ -348,7 +360,14 @@
 
       window.cancelarEdicao = () => { location.reload(); };
       window.deletar = (id) => { if(confirm("Excluir?")) remove(ref(db, (regionalID==='14-regional'?'':'unidades/'+regionalID+'/') + "viagens/" + id)); };
-      window.confirmar = (id) => { update(ref(db, (regionalID==='14-regional'?'':'unidades/'+regionalID+'/') + "viagens/" + id), {status: "Confirmado"}); };
+      window.confirmar = (id) => { 
+          const v = window.listaViagens.find(x => x.id === id);
+          update(ref(db, (regionalID==='14-regional'?'':'unidades/'+regionalID+'/') + "viagens/" + id), {status: "Confirmado"}); 
+          const msg = `✅ *VIAGEM CONFIRMADA*\nOlá, sua solicitação de viagem para ${v.trajetoExibicao} foi confirmada pelo motorista.`;
+          if(confirm("Confirmado! Deseja avisar o solicitante no WhatsApp?")) {
+              window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+          }
+      };
       window.fazerLogout = () => signOut(auth).then(() => { localStorage.clear(); location.reload(); });
 
       window.salvarFolga = () => {
@@ -359,7 +378,7 @@
         const l = document.getElementById('lista-folgas-visual'); l.innerHTML = "";
         window.listaFolgas.forEach(f => l.innerHTML += `<div class="folga-item"><strong>🚫 ${f.inicio} a ${f.fim}</strong>: ${f.motivo}</div>`);
       }
-      window.baixarExcel = () => { alert("Função em manutenção."); };
+      window.baixarExcel = () => { window.print(); };
     </script>
   </body>
 </html>
