@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Frota DPE - Multi-Regional (V51.0)</title>
+    <title>Frota DPE - Multi-Regional (V61.0)</title>
     <style>
       :root { --primary: #003366; --secondary: #f8f9fa; --success: #28a745; --whatsapp: #25d366; --danger: #dc3545; --warning: #ffc107; --dark-text: #333; --excel-color: #1d6f42; --print-color: #6c757d; --blocked: #721c24; --blocked-bg: #f8d7da; }
       body { font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #eef2f5; margin: 0; padding-bottom: 50px; color: var(--dark-text); }
@@ -13,17 +13,15 @@
       #status-conexao { font-weight: bold; background: rgba(0, 0, 0, 0.2); padding: 5px 10px; border-radius: 4px; font-size: 0.8em; margin-left: 10px; }
       button { padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: background 0.2s; color: white; font-size: 0.9em; margin-right: 3px; margin-bottom: 3px; }
       .btn-primary { background: var(--primary); width: 100%; font-size: 1.1em; padding: 12px; margin-top: 10px; }
-      .btn-delete { background: var(--danger); }
       .btn-edit { background: var(--warning); color: #333; }
       .btn-confirm { background: var(--success); }
       .btn-back { background: #6c757d; color: white; margin-top: 15px; width: 100%; }
       .folga-box { background-color: var(--blocked-bg); border: 1px solid var(--blocked); color: var(--blocked); padding: 15px; border-radius: 5px; margin-top: 20px; margin-bottom: 20px; }
       .folga-item { background: white; padding: 8px 12px; border-radius: 4px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--blocked); color: #333; }
       .roteiro-box { border: 1px solid #ccc; background: #fdfdfd; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
-      .roteiro-header { font-size: 0.9em; font-weight: bold; color: #555; margin-bottom: 8px; border-bottom: 2px solid #ddd; padding-bottom: 5px; }
+      .roteiro-header { font-size: 0.9em; font-weight: bold; color: #555; margin-bottom: 5px; border-bottom: 2px solid #ddd; padding-bottom: 5px; }
       .roteiro-controls { display: flex; align-items: flex-end; gap: 10px; background: #eee; padding: 10px; border-radius: 5px; border: 1px solid #ddd; }
       .roteiro-lista { margin-top: 10px; width: 100%; border-collapse: collapse; font-size: 0.9em; }
-      .roteiro-lista th { background: #eee; color: #333; padding: 5px; text-align: left; border: 1px solid #ddd; }
       .roteiro-lista td { padding: 5px; border: 1px solid #ddd; background: #fff; }
       .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 0.8em; font-weight: bold; display: inline-block; white-space: nowrap; }
       .status-pendente { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
@@ -85,8 +83,7 @@
         <div id="lista-folgas-visual"></div>
         <div id="painel-add-folga" class="hidden" style="margin-top: 15px; border-top: 1px dashed #bbb; padding-top: 10px;">
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <input type="date" id="folga-inicio" style="flex:1">
-                <input type="date" id="folga-fim" style="flex:1">
+                <input type="date" id="folga-inicio" style="flex:1"><input type="date" id="folga-fim" style="flex:1">
                 <input type="text" id="folga-motivo" placeholder="Motivo" style="flex:2">
                 <button style="background:var(--blocked); color:white;" onclick="salvarFolga()">Bloquear</button>
             </div>
@@ -98,15 +95,13 @@
           <div>🚘 Motorista: <strong id="nome-motorista"></strong></div>
           <span id="tel-motorista" style="font-weight: 600"></span>
         </div>
-
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px;">
           <h3 id="form-title" style="margin: 0; color: var(--primary)">📝 Novo Agendamento</h3>
           <button id="btn-cancel-edit" class="hidden" style="background: #999;" onclick="cancelarEdicao()">❌ Cancelar</button>
         </div>
         <input type="hidden" id="edit-id" />
-
         <div class="form-row" style="margin-top: 15px">
-          <div class="col" style="flex: 2"><label>Solicitante:</label><input type="text" id="solicitante" list="lista-solicitantes" /><datalist id="lista-solicitantes"></datalist></div>
+          <div class="col" style="flex: 2"><label>Solicitante (Obrigatório):</label><input type="text" id="solicitante" list="lista-solicitantes" required /><datalist id="lista-solicitantes"></datalist></div>
           <div class="col"><label>Setor:</label><input type="text" id="setor" value="Geral" /></div>
         </div>
 
@@ -115,12 +110,12 @@
             <div class="roteiro-controls">
                 <div class="select-group" style="display:flex; gap:5px; flex:1;">
                     <select id="uf-origem" style="width:70px;" onchange="carregarCidades('origem')"></select>
-                    <input type="text" id="cidade-origem" list="list-origem" placeholder="Origem" style="flex:1;">
+                    <input type="text" id="cidade-origem" list="list-origem" style="flex:1;">
                     <datalist id="list-origem"></datalist>
                 </div>
                 <div class="select-group" style="display:flex; gap:5px; flex:1;">
                     <select id="uf-destino" style="width:70px;" onchange="carregarCidades('destino')"></select>
-                    <input type="text" id="cidade-destino" list="list-destino" placeholder="Destino" style="flex:1;">
+                    <input type="text" id="cidade-destino" list="list-destino" style="flex:1;">
                     <datalist id="list-destino"></datalist>
                 </div>
                 <button style="background:#fff; color:#333; border:1px solid #ccc; height:42px;" onclick="adicionarTrecho()">Add</button>
@@ -134,12 +129,11 @@
           <div class="col"><label>Previsão Retorno:</label><input type="datetime-local" id="chegada" /></div>
         </div>
         <label>Motivo:</label><textarea id="motivo" rows="2"></textarea>
-        <button id="btn-save" class="btn-primary" onclick="salvarNoFirebase()">✅ Agendar e Notificar Motorista</button>
-      </div>
-
-      <div id="admin-controls" class="hidden" style="margin-top: 25px; background: #e9ecef; padding: 20px; border-radius: 8px;">
-        <button style="background:var(--excel-color)" onclick="baixarExcel()">📊 Baixar Excel</button>
-        <button style="background:var(--print-color)" onclick="window.print()">🖨️ Imprimir</button>
+        
+        <div id="btn-container-actions" style="margin-top:15px;">
+            <button id="btn-save" class="btn-primary" onclick="salvarNoFirebase()">✅ Salvar Solicitação</button>
+            <button id="btn-whatsapp-manual" class="btn-wpp-notif hidden" style="background:var(--whatsapp); color:white; width:100%; padding:12px; margin-top:5px;" onclick="abrirWhatsAppManual()">📱 Notificar Motorista via WhatsApp</button>
+        </div>
       </div>
 
       <h3 class="section-title">📅 Agenda de Viagens</h3>
@@ -163,21 +157,12 @@
 
       let regionalID = localStorage.getItem('regionalID') || ""; 
       let regionalNome = localStorage.getItem('regionalNome') || ""; 
-      window.roteiroAtual = []; window.listaViagens = [];
+      window.roteiroAtual = []; window.listaViagens = []; window.dadosWppTemp = null;
 
       const CONTATOS = {
-        "14-regional": { 
-          motorista: "CLEONES DAMASCENO", tel: "5571996384423",
-          equipe: ["Defensor Caio Cesar Nunes Cruz","Defensor Emerson Halsey Soares","Defensor Matheus Rocha Almeida","Defensor Matheus Silva Bastos","Defensora Ana Carolina Lugullo Maia de Araujo","Defensora Janaina dos Santos Araújo","Servidor Welder Oliveira Rios","Servidora Adriele Macário dos Santos"]
-        },
-        "PORTO SEGURO": { 
-          motorista: "Ramona Melgaço Sales", tel: "5571984542450",
-          equipe: ["Defensora Priscilla Berto Silva", "Defensor Fábio Gonçalves Fonseca", "Defensora Tatiana Câmara Assis Velho da Cunha", "Defensor Guilherme Zuanazzi", "Defensora Kamile Costa Alves", "Defensor José Renato Bernardes da Costa"]
-        },
-        "EUNAPOLIS": {
-          motorista: "Neyrailson Souza de Queiroz", tel: "5571999998075",
-          equipe: ["Defensor Henrique da Costa Sennem Bandeira", "Defensor Victor Rego", "Defensora Mariana Biderman Soares de Azevedo", "Defensora Samira de Souza Palaoro", "Defensor Fábio Sebastião Soares de Oliveira"]
-        }
+        "14-regional": { motorista: "CLEONES DAMASCENO", tel: "5571996384423", equipe: { "Defensor Caio Cesar Nunes Cruz": "5527998764286", "Defensor Emerson Halsey Soares": "5571999678855", "Defensor Matheus Rocha Almeida": "5573991969670", "Defensor Matheus Silva Bastos": "5571983394060", "Defensora Ana Carolina Lugullo Maia de Araujo": "5521988052225", "Defensora Janaina dos Santos Araújo": "5532988060602", "Servidor Welder Oliveira Rios": "5573991853116", "Servidora Adriele Macário dos Santos": "5573999051485" } },
+        "PORTO SEGURO": { motorista: "Ramona Melgaço Sales", tel: "5571984542450", equipe: { "Servidor Welder Oliveira Rios": "5573991853116", "Defensora Priscilla Berto Silva": "5573999315353", "Defensor Fábio Gonçalves Fonseca": "5527999226065", "Defensora Tatiana Câmara Assis Velho da Cunha": "5573991800081", "Defensor Guilherme Zuanazzi": "5574999304456", "Defensora Kamile Costa Alves": "5517991436479", "Defensor José Renato Bernardes da Costa": "5573999441303" } },
+        "EUNAPOLIS": { motorista: "Neyrailson Souza de Queiroz", tel: "5571999998075", equipe: { "Servidor Welder Oliveira Rios": "5573991853116", "Defensor Henrique da Costa Sennem Bandeira": "5521982818579", "Defensor Victor Rego": "5511997229899", "Defensora Mariana Biderman Soares de Azevedo": "5511941250540", "Defensora Samira de Souza Palaoro": "5527981239910", "Defensor Fábio Sebastião Soares de Oliveira": "5573991133343" } }
       };
 
       const estados = ["AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT","PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO"];
@@ -188,54 +173,32 @@
       // NAVEGAÇÃO
       window.mostrarSub9 = () => { document.getElementById('unit-screen').classList.add('hidden'); document.getElementById('comarca-screen').classList.remove('hidden'); };
       window.voltarRegionais = () => { document.querySelectorAll('.container').forEach(c => c.classList.add('hidden')); document.getElementById('unit-screen').classList.remove('hidden'); };
-      window.selecionarUnidade = (id, nome) => { 
-        regionalID = id; regionalNome = nome;
-        localStorage.setItem('regionalID', id); localStorage.setItem('regionalNome', nome);
-        document.querySelectorAll('.container').forEach(c => c.classList.add('hidden')); 
-        document.getElementById('login-screen').classList.remove('hidden'); 
-        document.getElementById('login-title').innerText = nome; 
-      };
-
-      window.realizarLogin = () => {
-        const email = document.getElementById("login-user").value;
-        const pass = document.getElementById("login-pass").value;
-        signInWithEmailAndPassword(auth, email, pass).catch(e => alert("Login inválido."));
-      };
+      window.selecionarUnidade = (id, nome) => { regionalID = id; regionalNome = nome; localStorage.setItem('regionalID', id); localStorage.setItem('regionalNome', nome); document.querySelectorAll('.container').forEach(c => c.classList.add('hidden')); document.getElementById('login-screen').classList.remove('hidden'); document.getElementById('login-title').innerText = nome; };
+      window.realizarLogin = () => { signInWithEmailAndPassword(auth, document.getElementById("login-user").value, document.getElementById("login-pass").value).catch(() => alert("Dados inválidos.")); };
 
       onAuthStateChanged(auth, (user) => {
         if (user) {
           window.userEmail = user.email.toLowerCase();
           window.isAdmin = userEmail.includes("admin") || userEmail.includes("welder");
           window.isMotorista = userEmail.includes("motorista") || userEmail.includes("cleones") || userEmail.includes("ramona") || userEmail.includes("neyrailson");
-          
           document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
           document.getElementById('app-screen').classList.remove('hidden');
           document.getElementById('app-unit-name').innerText = regionalNome;
           document.getElementById('nome-usuario').innerText = user.email;
-
-          // MONITOR DE CONEXÃO V39 STYLE
           onValue(ref(db, ".info/connected"), (snap) => {
             const status = document.getElementById("status-conexao");
             if (snap.val() === true) { status.innerText = "🟢 Online"; status.style.background = "var(--success)"; }
             else { status.innerText = "🔴 Offline"; status.style.background = "var(--danger)"; }
           });
-
-          if (window.isAdmin || window.isMotorista) document.getElementById("painel-add-folga").classList.remove("hidden");
-          if (window.isAdmin) document.getElementById("admin-controls").classList.remove("hidden");
-          
           configurarUI(); iniciarEscutaBanco();
-        } else {
-            document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
-            document.getElementById('unit-screen').classList.remove('hidden');
         }
       });
 
       function configurarUI() {
         const dl = document.getElementById('lista-solicitantes'); dl.innerHTML = "";
-        CONTATOS[regionalID].equipe.forEach(n => dl.innerHTML += `<option value="${n}">`);
+        Object.keys(CONTATOS[regionalID].equipe).forEach(n => dl.innerHTML += `<option value="${n}">`);
         document.getElementById('nome-motorista').innerText = CONTATOS[regionalID].motorista;
         document.getElementById('tel-motorista').innerText = `📱 ${CONTATOS[regionalID].tel}`;
-
         const ufo = document.getElementById('uf-origem'); const ufd = document.getElementById('uf-destino');
         ufo.innerHTML = ""; ufd.innerHTML = "";
         estados.forEach(uf => { ufo.innerHTML += `<option value="${uf}" ${uf==='BA'?'selected':''}>${uf}</option>`; ufd.innerHTML += `<option value="${uf}" ${uf==='BA'?'selected':''}>${uf}</option>`; });
@@ -245,36 +208,25 @@
       window.carregarCidades = (t) => {
         const uf = document.getElementById(`uf-${t}`).value;
         const dl = document.getElementById(`list-${t}`); dl.innerHTML = "";
-        const input = document.getElementById(`cidade-${t}`);
         if(uf === 'BA') cidadesBA.forEach(c => dl.innerHTML += `<option value="${c}">`);
         else if(uf === 'ES') cidadesES.forEach(c => dl.innerHTML += `<option value="${c}">`);
         else if(capitais[uf]) dl.innerHTML += `<option value="${capitais[uf]}">`;
-        if(t === 'origem' && uf === 'BA' && regionalID === '14-regional') input.value = "TEIXEIRA DE FREITAS";
+        if(t === 'origem' && uf === 'BA' && regionalID === '14-regional') document.getElementById(`cidade-${t}`).value = "TEIXEIRA DE FREITAS";
       };
 
-      // --- ROTEIRO INTELIGENTE (Move destino para origem) ---
       window.adicionarTrecho = () => {
-        const ufOrg = document.getElementById('uf-origem').value;
-        const cidOrg = document.getElementById('cidade-origem').value;
-        const ufDst = document.getElementById('uf-destino').value;
-        const cidDst = document.getElementById('cidade-destino').value;
-
+        const cidOrg = document.getElementById('cidade-origem').value; const cidDst = document.getElementById('cidade-destino').value;
         if(!cidOrg || !cidDst) return alert("Selecione as cidades.");
-
-        const o = `${ufOrg} - ${cidOrg}`;
-        const d = `${ufDst} - ${cidDst}`;
-        window.roteiroAtual.push({ origem: o, destino: d });
+        window.roteiroAtual.push({ origem: `${document.getElementById('uf-origem').value} - ${cidOrg}`, destino: `${document.getElementById('uf-destino').value} - ${cidDst}` });
         renderRoteiro();
-
-        // LOGICA DE CONTINUIDADE: Destino vira Origem
-        document.getElementById('uf-origem').value = ufDst;
+        document.getElementById('uf-origem').value = document.getElementById('uf-destino').value;
         carregarCidades('origem');
         document.getElementById('cidade-origem').value = cidDst;
       };
 
       function renderRoteiro() {
         const b = document.getElementById('roteiro-lista-body'); b.innerHTML = "";
-        if(window.roteiroAtual.length === 0) b.innerHTML = "<tr><td colspan='2' style='text-align:center; color:#999;'>Nenhum trecho adicionado.</td></tr>";
+        if(window.roteiroAtual.length === 0) b.innerHTML = "<tr><td colspan='2' style='text-align:center; color:#999;'>Sem trechos.</td></tr>";
         window.roteiroAtual.forEach(t => b.innerHTML += `<tr><td>${t.origem}</td><td>${t.destino}</td></tr>`);
       }
 
@@ -292,55 +244,82 @@
         });
       }
 
+      // --- LOGICA DE CONFLITO ---
+      function temConflito(novaSaida, novaChegada, ignorarId = null) {
+          const buffer = 5 * 60 * 1000;
+          const iniN = new Date(novaSaida).getTime();
+          const fimN = new Date(novaChegada).getTime();
+          for(let v of window.listaViagens) {
+              if(ignorarId && v.id === ignorarId) continue;
+              const iniE = new Date(v.saida).getTime();
+              const fimE = new Date(v.chegada).getTime();
+              if(iniN < (fimE + buffer) && (fimN + buffer) > iniE) return v;
+          }
+          return null;
+      }
+
+      // --- SALVAR COM WHATSAPP FIX ---
       window.salvarNoFirebase = () => {
+        const solicitante = document.getElementById("solicitante").value;
+        const saida = document.getElementById("saida").value;
+        const chegada = document.getElementById("chegada").value;
         const id = document.getElementById("edit-id").value;
-        const trajetoString = window.roteiroAtual.map(t => `${t.origem} ➝ ${t.destino}`).join("; ") || "Trecho Direto";
+        
+        if(!solicitante || !saida || !chegada) return alert("Preencha solicitante e horários!");
+        
+        const conflito = temConflito(saida, chegada, id);
+        if(conflito) return alert(`🚫 CONFLITO DE HORÁRIO!\nEste período já está reservado por: ${conflito.solicitante}`);
+
+        const trajetoString = window.roteiroAtual.map(t => `${t.origem} ➝ ${t.destino}`).join("\n📍 ");
         const dados = {
-          solicitante: document.getElementById("solicitante").value,
-          setor: document.getElementById("setor").value,
-          saida: document.getElementById("saida").value,
-          chegada: document.getElementById("chegada").value,
-          motivo: document.getElementById("motivo").value,
-          trajetoExibicao: trajetoString,
-          registradoPor: window.userEmail,
-          status: id ? undefined : "Pendente"
+          solicitante: solicitante, setor: document.getElementById("setor").value,
+          saida: saida, chegada: chegada, motivo: document.getElementById("motivo").value,
+          trajetoExibicao: trajetoString || "Trecho Direto", registradoPor: window.userEmail,
+          status: "Pendente", roteiroArray: window.roteiroAtual
         };
         const root = (regionalID === '14-regional' ? '' : `unidades/${regionalID}/`) + 'viagens';
         
+        const msg = `Olá ${CONTATOS[regionalID].motorista}! 🚗 Nova viagem agendada.\n\n*Solicitante:* ${dados.solicitante}\n*Saída:* ${new Date(dados.saida).toLocaleString()}\n*Retorno:* ${new Date(dados.chegada).toLocaleString()}\n*Motivo:* ${dados.motivo}\n*Roteiro:*\n📍 ${dados.trajetoExibicao}`;
+        window.dadosWppTemp = msg;
+
         if(id) {
-            update(ref(db, `${root}/${id}`), dados).then(() => { alert("Atualizado!"); location.reload(); });
+            update(ref(db, `${root}/${id}`), dados).then(() => {
+                document.getElementById("btn-whatsapp-manual").classList.remove("hidden");
+                document.getElementById("btn-save").innerText = "💾 Salvar Ajustes";
+                alert("Ajustes salvos! Use o botão abaixo para notificar o motorista.");
+            });
         } else {
-            push(ref(db, root), dados).then(() => { 
-                // --- LÓGICA WHATSAPP V39.0 (Confirm Popup) ---
-                const msg = `🚗 *AGENDAMENTO:* ${dados.solicitante}\n📍 *Roteiro:* ${dados.trajetoExibicao}\n📅 *Saída:* ${new Date(dados.saida).toLocaleString()}\n📅 *Retorno:* ${new Date(dados.chegada).toLocaleString()}`;
-                if(confirm("Agendado! Deseja notificar o motorista no WhatsApp agora?")) {
+            push(ref(db, root), dados).then(() => {
+                if(confirm("Agendado! Notificar motorista no WhatsApp?")) {
                     window.open(`https://wa.me/${CONTATOS[regionalID].tel}?text=${encodeURIComponent(msg)}`, '_blank');
                 }
-                location.reload(); 
+                setTimeout(() => location.reload(), 1000);
             });
         }
+      };
+
+      window.abrirWhatsAppManual = () => {
+          window.open(`https://wa.me/${CONTATOS[regionalID].tel}?text=${encodeURIComponent(window.dadosWppTemp)}`, '_blank');
+          setTimeout(() => location.reload(), 1500);
       };
 
       window.atualizarTabelaGlobal = () => {
         const tb = document.getElementById("tb-corpo"); tb.innerHTML = "";
         const agora = new Date();
         window.listaViagens.sort((a,b) => new Date(b.saida) - new Date(a.saida)).forEach(v => {
-          const isOwner = v.registradoPor === window.userEmail;
           const status = v.status || "Pendente";
-          const dataRetorno = new Date(v.chegada);
-          const foiRealizada = dataRetorno < agora;
-
+          const foiRealizada = new Date(v.chegada) < agora;
           let btns = "";
-          if(window.isAdmin || isOwner) btns += `<button class="btn-edit" onclick="prepararEdicao('${v.id}')">✏️</button>`;
+          if(window.isAdmin || v.registradoPor === window.userEmail) btns += `<button class="btn-edit" onclick="prepararEdicao('${v.id}')">✏️</button>`;
           if(window.isMotorista && status !== "Confirmado") btns += `<button class="btn-confirm" onclick="confirmar('${v.id}')">✔</button>`;
-          if(window.isAdmin) btns += `<button class="btn-delete" onclick="deletar('${v.id}')">🗑️</button>`;
+          if(window.isAdmin) btns += `<button class="btn-delete" style="background:var(--danger)" onclick="deletar('${v.id}')">🗑️</button>`;
 
-          tb.innerHTML += `<tr class="${foiRealizada ? 'viagem-concluida' : ''}">
+          tb.innerHTML += `<tr class="${foiRealizada ? 'viagem-concluida' : ''}" style="border-bottom: 1px solid #eee;">
             <td style="padding:12px; text-align:center"><span class="status-badge ${status==='Confirmado'?'status-confirmado':'status-pendente'}">${status}</span></td>
             <td style="padding:12px;"><strong>${new Date(v.saida).toLocaleString()}</strong></td>
             <td style="padding:12px;">${new Date(v.chegada).toLocaleString()}</td>
             <td style="padding:12px;"><strong>${v.solicitante}</strong></td>
-            <td style="padding:12px; font-size:0.85em;">${v.trajetoExibicao}</td>
+            <td style="padding:12px; font-size:0.85em; white-space: pre-line;">${v.trajetoExibicao}</td>
             <td style="padding:12px; text-align:center; white-space:nowrap;">${btns}</td>
           </tr>`;
         });
@@ -348,37 +327,27 @@
 
       window.prepararEdicao = (id) => {
         const v = window.listaViagens.find(x => x.id === id);
-        document.getElementById('edit-id').value = id;
-        document.getElementById('solicitante').value = v.solicitante;
-        document.getElementById('saida').value = v.saida;
-        document.getElementById('chegada').value = v.chegada;
-        document.getElementById('motivo').value = v.motivo;
-        document.querySelector(".main-form").classList.add("editing-mode");
-        document.getElementById("btn-cancel-edit").classList.remove("hidden");
-        window.scrollTo(0,0);
+        document.getElementById('edit-id').value = id; document.getElementById('solicitante').value = v.solicitante;
+        document.getElementById('saida').value = v.saida; document.getElementById('chegada').value = v.chegada;
+        document.getElementById('motivo').value = v.motivo; window.roteiroAtual = v.roteiroArray || []; renderRoteiro();
+        document.querySelector(".main-form").classList.add("editing-mode"); document.getElementById("btn-cancel-edit").classList.remove("hidden");
+        document.getElementById("btn-save").innerText = "💾 Salvar Alterações"; window.scrollTo(0,0);
       };
 
-      window.cancelarEdicao = () => { location.reload(); };
-      window.deletar = (id) => { if(confirm("Excluir?")) remove(ref(db, (regionalID==='14-regional'?'':'unidades/'+regionalID+'/') + "viagens/" + id)); };
       window.confirmar = (id) => { 
           const v = window.listaViagens.find(x => x.id === id);
-          update(ref(db, (regionalID==='14-regional'?'':'unidades/'+regionalID+'/') + "viagens/" + id), {status: "Confirmado"}); 
-          const msg = `✅ *VIAGEM CONFIRMADA*\nOlá, sua solicitação de viagem para ${v.trajetoExibicao} foi confirmada pelo motorista.`;
-          if(confirm("Confirmado! Deseja avisar o solicitante no WhatsApp?")) {
-              window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+          update(ref(db, (regionalID === '14-regional' ? '' : `unidades/${regionalID}/`) + `viagens/${id}`), {status: "Confirmado"}); 
+          const telSol = CONTATOS[regionalID].equipe[v.solicitante];
+          if(telSol && confirm("Confirmado! Avisar o solicitante no WhatsApp?")) {
+              window.open(`https://wa.me/${telSol}?text=${encodeURIComponent('✅ Sua viagem para ' + v.trajetoExibicao.replace(/\n/g, ' ') + ' foi confirmada.')}`, '_blank');
           }
       };
-      window.fazerLogout = () => signOut(auth).then(() => { localStorage.clear(); location.reload(); });
 
-      window.salvarFolga = () => {
-        const root = (regionalID === '14-regional' ? '' : `unidades/${regionalID}/`) + 'folgas';
-        push(ref(db, root), { inicio: document.getElementById('folga-inicio').value, fim: document.getElementById('folga-fim').value, motivo: document.getElementById('folga-motivo').value });
-      };
-      function renderFolgas() {
-        const l = document.getElementById('lista-folgas-visual'); l.innerHTML = "";
-        window.listaFolgas.forEach(f => l.innerHTML += `<div class="folga-item"><strong>🚫 ${f.inicio} a ${f.fim}</strong>: ${f.motivo}</div>`);
-      }
-      window.baixarExcel = () => { window.print(); };
+      window.deletar = (id) => { if(confirm("Excluir?")) remove(ref(db, (regionalID==='14-regional'?'':'unidades/'+regionalID+'/') + "viagens/" + id)); };
+      window.cancelarEdicao = () => location.reload();
+      window.fazerLogout = () => { signOut(auth).then(() => { localStorage.clear(); location.reload(); }); };
+      window.salvarFolga = () => { push(ref(db, (regionalID === '14-regional' ? '' : `unidades/${regionalID}/`) + 'folgas'), { inicio: document.getElementById('folga-inicio').value, fim: document.getElementById('folga-fim').value, motivo: document.getElementById('folga-motivo').value }); };
+      function renderFolgas() { const l = document.getElementById('lista-folgas-visual'); l.innerHTML = ""; window.listaFolgas.forEach(f => l.innerHTML += `<div class="folga-item"><strong>🚫 ${f.inicio} a ${f.fim}</strong>: ${f.motivo}</div>`); }
     </script>
   </body>
 </html>
