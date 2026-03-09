@@ -3,15 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Frota DPE - Multi-Regional (V61.0)</title>
+    <title>Frota DPE - Multi-Regional (V64.0)</title>
     <style>
-      :root { --primary: #003366; --secondary: #f8f9fa; --success: #28a745; --whatsapp: #25d366; --danger: #dc3545; --warning: #ffc107; --dark-text: #333; --excel-color: #1d6f42; --print-color: #6c757d; --blocked: #721c24; --blocked-bg: #f8d7da; }
+      :root { --primary: #003366; --secondary: #f8f9fa; --success: #28a745; --whatsapp: #25d366; --danger: #dc3545; --warning: #ffc107; --dark-text: #333; --blocked: #721c24; --blocked-bg: #f8d7da; }
       body { font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #eef2f5; margin: 0; padding-bottom: 50px; color: var(--dark-text); }
       .container { max-width: 1150px; margin: 20px auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); }
       .header { background: var(--primary); color: white; padding: 15px 20px; border-radius: 10px 10px 0 0; margin: -20px -20px 20px -20px; }
       .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
       #status-conexao { font-weight: bold; background: rgba(0, 0, 0, 0.2); padding: 5px 10px; border-radius: 4px; font-size: 0.8em; margin-left: 10px; }
-      button { padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: background 0.2s; color: white; font-size: 0.9em; margin-right: 3px; margin-bottom: 3px; }
+      button { padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; color: white; font-size: 0.9em; margin-right: 3px; margin-bottom: 3px; }
       .btn-primary { background: var(--primary); width: 100%; font-size: 1.1em; padding: 12px; margin-top: 10px; }
       .btn-edit { background: var(--warning); color: #333; }
       .btn-confirm { background: var(--success); }
@@ -39,6 +39,14 @@
       #login-screen, #comarca-screen { max-width: 400px; margin: 60px auto; text-align: center; padding: 40px; border-top: 6px solid var(--primary); }
       .hidden { display: none !important; }
       .viagem-concluida { background-color: #f2f2f2 !important; color: #777; opacity: 0.6; }
+      .badge-alterado { font-size: 0.7em; background: var(--warning); color: #000; padding: 2px 5px; border-radius: 3px; margin-top: 5px; display: block; }
+      
+      @keyframes pulse-wpp {
+        0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); }
+        70% { transform: scale(1.02); box-shadow: 0 0 0 10px rgba(37, 211, 102, 0); }
+        100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+      }
+      .btn-wpp-notif { background: var(--whatsapp); color: white; width: 100%; padding: 15px; margin-top: 10px; font-size: 1.1em; animation: pulse-wpp 2s infinite; }
     </style>
   </head>
   <body>
@@ -74,18 +82,18 @@
       <div class="header">
         <div class="header-content">
           <div><h2 id="app-unit-name" style="margin: 0; font-size: 1.5em">Frota DPE</h2><span id="status-conexao">Conectando...</span></div>
-          <div><span id="nome-usuario" style="font-weight: bold; margin-right: 15px"></span><button class="btn-logout" style="background:rgba(255,255,255,0.1); border:1px solid white;" onclick="fazerLogout()">Sair</button></div>
+          <div><span id="nome-usuario" style="font-weight: bold; margin-right: 15px"></span><button style="background:rgba(255,255,255,0.1); border:1px solid white;" onclick="fazerLogout()">Sair</button></div>
         </div>
       </div>
 
       <div class="folga-box">
-        <h4 style="margin: 0 0 10px 0;">🛑 Motorista não disponível</h4>
+        <h4 style="margin: 0 0 10px 0;">🛑 Indisponibilidade do Motorista</h4>
         <div id="lista-folgas-visual"></div>
         <div id="painel-add-folga" class="hidden" style="margin-top: 15px; border-top: 1px dashed #bbb; padding-top: 10px;">
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                 <input type="date" id="folga-inicio" style="flex:1"><input type="date" id="folga-fim" style="flex:1">
-                <input type="text" id="folga-motivo" placeholder="Motivo" style="flex:2">
-                <button style="background:var(--blocked); color:white;" onclick="salvarFolga()">Bloquear</button>
+                <input type="text" id="folga-motivo" placeholder="Motivo (Ex: Folga, Oficina)" style="flex:2">
+                <button style="background:var(--blocked); color:white;" onclick="salvarFolga()">Bloquear Datas</button>
             </div>
         </div>
       </div>
@@ -132,7 +140,7 @@
         
         <div id="btn-container-actions" style="margin-top:15px;">
             <button id="btn-save" class="btn-primary" onclick="salvarNoFirebase()">✅ Salvar Solicitação</button>
-            <button id="btn-whatsapp-manual" class="btn-wpp-notif hidden" style="background:var(--whatsapp); color:white; width:100%; padding:12px; margin-top:5px;" onclick="abrirWhatsAppManual()">📱 Notificar Motorista via WhatsApp</button>
+            <button id="btn-whatsapp-manual" class="btn-wpp-notif hidden" onclick="abrirWhatsAppManual()">📱 Clique Aqui para Notificar o Motorista</button>
         </div>
       </div>
 
@@ -157,7 +165,7 @@
 
       let regionalID = localStorage.getItem('regionalID') || ""; 
       let regionalNome = localStorage.getItem('regionalNome') || ""; 
-      window.roteiroAtual = []; window.listaViagens = []; window.dadosWppTemp = null;
+      window.roteiroAtual = []; window.listaViagens = []; window.listaFolgas = []; window.dadosWppTemp = null;
 
       const CONTATOS = {
         "14-regional": { motorista: "CLEONES DAMASCENO", tel: "5571996384423", equipe: { "Defensor Caio Cesar Nunes Cruz": "5527998764286", "Defensor Emerson Halsey Soares": "5571999678855", "Defensor Matheus Rocha Almeida": "5573991969670", "Defensor Matheus Silva Bastos": "5571983394060", "Defensora Ana Carolina Lugullo Maia de Araujo": "5521988052225", "Defensora Janaina dos Santos Araújo": "5532988060602", "Servidor Welder Oliveira Rios": "5573991853116", "Servidora Adriele Macário dos Santos": "5573999051485" } },
@@ -168,9 +176,8 @@
       const estados = ["AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT","PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO"];
       const capitais = {"AC":"RIO BRANCO","AL":"MACEIÓ","AM":"MANAUS","AP":"MACAPÁ","CE":"FORTALEZA","DF":"BRASÍLIA","ES":"VITÓRIA","GO":"GOIÂNIA","MA":"SÃO LUÍS","MG":"BELO HORIZONTE","MS":"CAMPO GRANDE","MT":"CUIABÁ","PA":"BELÉM","PB":"JOÃO PESSOA","PE":"RECIFE","PI":"TERESINA","PR":"CURITIBA","RJ":"RIO DE JANEIRO","RN":"NATAL","RO":"PORTO VELHO","RR":"BOA VISTA","RS":"PORTO ALEGRE","SC":"FLORIANÓPOLIS","SE":"ARACAJU","SP":"SÃO PAULO","TO":"PALMAS"};
       const cidadesES = ["SERRA", "VILA VELHA", "SÃO MATEUS", "CARIACICA", "VITÓRIA"];
-      const cidadesBA = ["ABARÉ","ACAJUTIBA","ALAGOINHAS","ALCOBAÇA","ALMADINA","AMARGOSA","AMÉLIA RODRIGUES","ANAGÉ","ANDARAÍ","ANGICAL","ANTAS","APORÁ","APUAREMA","ARAÇÁS","ARACI","ARAMARI","ARATACA","ARATUÍPE","AURELINO LEAL","BAIANÓPOLIS","BAIXA GRANDE","BANZÁE","BARRA","BARRA DA ESTIVA","BARRA DO CHOÇA","BARRA DO MENDES","BARRA DO ROCHA","BARREIRAS","BARRO ALTO","BARROCAS","BELMONTE","BELO CAMPO","BIRITINGA","BOA NOVA","BOA VISTA DO TUPIM","BOM JESUS DA LAPA","BOM JESUS DA SERRA","BONINAL","BONITO","BOQUIRA","BOTUPORÃ","BREJÕES","BREJOLÂNDIA","BROTAS DE MACAÚBAS","BRUMADO","BUERAREMA","BURITIRAMA","CAATIBA","CABACEIRAS DO PARAGUAÇU","CACHOEIRA","CACULÉ","CAÉM","CAETANOS","CAETITÉ","CAFARNAUM","CAIRU","CALDEIRÃO GRANDE","CAMACAN","CAMAÇARI","CAMAMU","CAMPO ALEGRE DE LOURDES","CAMPO FORMOSO","CANÁPOLIS","CANARANA","CANAVIEIRAS","CANDEAL","CANDEIAS","CANDIBA","CÂNDIDO SALES","CANSANÇÃO","CANUDOS","CAPELA DO ALTO ALEGRE","CAPIM GROSSO","CARAÍBAS","CARAVELAS","CARDEAL DA SILVA","CARINHANHA","CASA NOVA","CASTRO ALVES","CATU","CATURAMA","CENTRAL","CHORROCHÓ","CÍCERO DANTAS","CIPÓ","COARACI","COCOS","CONCEIÇÃO DA FEIRA","CONCEIÇÃO DO ALMEIDA","CONCEIÇÃO DO COITÉ","CONCEIÇÃO DO JACUÍPE","CONDE","CONDEÚBA","CORAÇÃO DE MARIA","CORDEIROS","CORIBE","CORONEL JOÃO SÁ","CORRENTINA","COTEGIPE","CRAVOLÂNDIA","CRISÓPOLIS","CRISTÓPOLIS","CRUZ DAS ALMAS","CURAÇÁ","DÁRIO MEIRA","DIAS D'ÁVILA","DOM BASÍLIO","ELÍSIO MEDRADO","ENCRUZILHADA","ENTRE RIOS","ÉRICO CARDOSO","ESPLANADA","EUCLIDES DA CUNHA","EUNÁPOLIS","FÁTIMA","FEIRA DE SANTANA","FILADÉLFIA","FIRMINO ALVES","FLORESTA AZUL","FORMOSA DO RIO PRETO","GANDU","GAVIÃO","GENTIO DO OURO","GLÓRIA","GONGOGI","GOVERNADOR MANGABEIRA","GUANAMBI","GUARATINGA","HELIÓPOLIS","IAÇU","IBIASSUCÊ","IBICARAÍ","IBICOARA","IBICUÍ","IBIPEBA","IBIPITANGA","IBIQUERA","IBIRAPITANGA","IBIRAPUÃ","IBIRATAIA","IBITIARA","IBITITÁ","IBOTIRAMA","ICHU","IGAPORÃ","IGRAPIÚNA","IGUAÍ","ILHÉUS","INHAMBUPE","IPECAETÁ","IPIAÚ","IPIRÁ","IPUPIARA","IRAJUBA","IRAMAIA","IRAQUARA","IRARÁ","IRECÊ","ITABELA","ITABERABA","ITABUNA","ITACARÉ","ITAETÊ","ITAGI","ITAGIBÁ","ITAGIMIRIM","ITAJU DO COLÔNIA","ITAJUÍPE","ITAMARAJU","ITAMARI","ITAMBÉ","ITANAGRA","ITANHÉM","ITAPARICA","ITAPÉ","ITAPEBI","ITAPETINGA","ITAPICURU","ITAPITANGA","ITAQUARA","ITARANTIM","ITATIM","ITIRUÇU","ITIÚBA","ITORORÓ","ITUAÇU","ITUBERÁ","IUIÚ","JABORANDI","JACARACI","JACOBINA","JAGUAQUARA","JAGUARARI","JAGUARIPE","JEQUIÉ","JEREMOABO","JIQUIRIÇÁ","JITAÚNA","JOÃO DOURADO","JUAZEIRO","JUCURUÇU","JUSSARA","JUSSARI","JUSSIAPE","LAFAIETE COUTINHO","LAGOA REAL","LAJE","LAJEDÃO","LAJEDINHO","LAMARÃO","LAPÃO","LAURO DE FREITAS","LENÇÓIS","LICÍNIO DE ALMEIDA","LIVRAMENTO DE NOSSA SENHORA","LUÍS EDUARDO MAGALHAES","MACAJUBA","MACARANI","MACAÚBAS","MACURURÉ","MADRE DE DEUS","MAETINGA","MAIQUINIQUE","MAIRI","MALHADA","MALHADA DE PEDRAS","MANOEL VITORINO","MANSIDÃO","MARACÁS","MARAGOGIPE","MARAÚ","MASCOTE","MATA DE SÃO JOÃO","MATINA","MEDEIROS NETO","MIGUEL CALMON","MILAGRES","MIRANGABA","MONTE SANTO","MORPARÁ","MORRO DO CHAPÉU","MORTUGABA","MUCUGÊ","MUCURI","MULUNGU DO MORRO","MUNDO NOVO","MUNIZ FERREIRA","MUQUÉM DO SÃO FRANCISCO","MURITIBA","MUTUÍPE","NAZARÉ","NILO PEÇANHA","NORDESTINA","NOVA CANAÃ","NOVA FÁTIMA","NOVA IBIA","NOVA SOURE","NOVA VIÇOSA","NOVO HORIZONTE","NOVO TRIUNFO","OLINDINA","OLIVEIRA DOS BREJINHOS","OURIÇANGAS","OUROLÂNDIA","PALMAS DE MONTE ALTO","PALMEIRAS","PARAMIRIM","PARATINGA","PARIPIRANGA","PAU BRASIL","PAULO AFONSO","PÉ DE SERRA","PEDRÃO","PEDRO ALEXANDRE","PIATÃ","PILÃO ARCADO","PINDAÍ","PINDOBAÇU","PINTADAS","PIRAÍ DO NORTE","PIRIPÁ","PIRITIBA","PLANALTINO","PLANALTO","POÇÕES","POJUCA","PONTO NOVO","PORTO SEGURO","POTIRAGUÁ","PRADO","PRESIDENTE DUTRA","QUEIMADAS","QUIJINGUE","QUIXABEIRA","RAFAEL JAMBEIRO","REMANSO","RETIROLÂNDIA","RIACHÃO DAS NEVES","RIACHÃO DO JACUÍPE","RIACHO DE SANTANA","RIBEIRA DO AMPARO","RIBEIRA DO POMBAL","RIBEIRÃO DO LARGO","RIO DE CONTAS","RIO DO ANTÔNIO","RIO DO PIRES","RIO REAL","RODELAS","RUY BARBOSA","SALINAS DA MARGARIDA","SALVADOR","SANTA BÁRBARA","SANTA BRÍGIDA","SANTA CRUZ CABRÁLIA","SANTA INÊS","SANTA LUZIA","SANTA MARIA DA VITÓRIA","SANTA RITA DE CÁSSIA","SANTA TERESINHA","SANTALUZ","SANTANA","SANTANÓPOLIS","SANTO AMARO","SANTO ANTÔNIO DE JESUS","SANTO ESTÊVÃO","SÃO DESIDÉRIO","SÃO DOMINGOS","SÃO FELIPE","SÃO FÉLIX","SÃO FRANCISCO DO CONDE","SÃO GABRIEL","SÃO GONÇALO DOS CAMPOS","SÃO JOSÉ DO JACUÍPE","SÃO SEBASTIÃO DO PASSÉ","SAPEACU","SÁTIRO DIAS","SAUBARA","SAÚDE","SEABRA","SEBASTIÃO LARANJEIRAS","SENHOR DO BONFIM","SENTO SÉ","SERRA DO RAMALHO","SERRA DOURADA","SERRA PRETA","SERRINHA","SERROLÂNDIA","SIMÕES FILHO","SÍTIO DO MATO","SÍTIO DO QUINTO","SOBRADINHO","SOUTO SOARES","TABOCAS DO BREJO VELHO","TANHAÇU","TANQUE NOVO","TANQUINHO","TAPEROÁ","TAPIRAMUTÁ","TEIXEIRA DE FREITAS","TEODORO SAMPAIO","TEOFILÂNDIA","TEOLÂNDIA","TERRA NOVA","TREMEDAL","TUCANO","UAUÁ","UBAÍRA","UBAITABA","UBATÃ","UIBAÍ","UMBURANAS","UNA","URANDI","URUÇUCA","UTINGA","VALENÇA","VALENTE","VÁRZEA DA ROÇA","VÁRZEA DO POÇO","VÁRZEA NOVA","VARZEDO","VERA CRUZ","VEREDA","VITÓRIA DA CONQUISTA","WAGNER","WANDERLEY","WENCESLAU GUIMARÃES","XIQUE-XIQUE"];
+      const cidadesBA = ["ABARÉ","ACAJUTIBA","ALAGOINHAS","ALCOBAÇA","ALMADINA","AMARGOSA","AMÉLIA RODRIGUES","ANAGÉ","ANDARAÍ","ANGICAL","ANTAS","APORÁ","APUAREMA","ARAÇÁS","ARACI","ARAMARI","ARATACA","ARATUÍPE","AURELINO LEAL","BAIANÓPOLIS","BAIXA GRANDE","BANZÁE","BARRA","BARRA DA ESTIVA","BARRA DO CHOÇA","BARRA DO MENDES","BARRA DO ROCHA","BARREIRAS","BARRO ALTO","BARROCAS","BELMONTE","BELO CAMPO","BIRITINGA","BOA NOVA","BOA VISTA DO TUPIM","BOM JESUS DA LAPA","BOM JESUS DA SERRA","BONINAL","BONITO","BOQUIRA","BOTUPORÃ","BREJÕES","BREJOLÂNDIA","BROTAS DE MACAÚBAS","BRUMADO","BUERAREMA","BURITIRAMA","CAATIBA","CABACEIRAS DO PARAGUAÇU","CACHOEIRA","CACULÉ","CAÉM","CAETANOS","CAETITÉ","CAFARNAUM","CAIRU","CALDEIRÃO GRANDE","CAMACAN","CAMAÇARI","CAMAMU","CAMPO ALEGRE DE LOURDES","CAMPO FORMOSO","CANÁPOLIS","CANARANA","CANAVIEIRAS","CANDEAL","CANDEIAS","CANDIBA","CÂNDIDO SALES","CANSANÇÃO","CANUDOS","CAPELA DO ALTO ALEGRE","CAPIM GROSSO","CARAÍBAS","CARAVELAS","CARDEAL DA SILVA","CARINHANHA","CASA NOVA","CASTRO ALVES","CATU","CATURAMA","CENTRAL","CHORROCHÓ","CÍCERO DANTAS","CIPÓ","COARACI","COCOS","CONCEIÇÃO DA FEIRA","CONCEIÇÃO DO ALMEIDA","CONCEIÇÃO DO COITÉ","CONCEIÇÃO DO JACUÍPE","CONDE","CONDEÚBA","CORAÇÃO DE MARIA","CORDEIROS","CORIBE","CORONEL JOÃO SÁ","CORRENTINA","COTEGIPE","CRAVOLÂNDIA","CRISÓPOLIS","CRISTÓPOLIS","CRUZ DAS ALMAS","CURAÇÁ","DÁRIO MEIRA","DIAS D'ÁVILA","DOM BASÍLIO","ELÍSIO MEDRADO","ENCRUZILHADA","ENTRE RIOS","ÉRICO CARDOSO","ESPLANADA","EUCLIDES DA CUNHA","EUNÁPOLIS","FÁTIMA","FEIRA DE SANTANA","FILADÉLFIA","FIRMINO Alves","FLORESTA AZUL","FORMOSA DO RIO PRETO","GANDU","GAVIÃO","GENTIO DO OURO","GLÓRIA","GONGOGI","GOVERNADOR MANGABEIRA","GUANAMBI","GUARATINGA","HELIÓPOLIS","IAÇU","IBIASSUCÊ","IBICARAÍ","IBICOARA","IBICUÍ","IBIPEBA","IBIPITANGA","IBIQUERA","IBIRAPITANGA","IBIRAPUÃ","IBIRATAIA","IBITIARA","IBITITÁ","IBOTIRAMA","ICHU","IGAPORÃ","IGRAPIÚNA","IGUAÍ","ILHÉUS","INHAMBUPE","IPECAETÁ","IPIAÚ","IPIRÁ","IPUPIARA","IRAJUBA","IRAMAIA","IRAQUARA","IRARÁ","IRECÊ","ITABELA","ITABERABA","ITABUNA","ITACARÉ","ITAETÊ","ITAGI","ITAGIBÁ","ITAGIMIRIM","ITAJU DO COLÔNIA","ITAJUÍPE","ITAMARAJU","ITAMARI","ITAMBÉ","ITANAGRA","ITANHÉM","ITAPARICA","ITAPÉ","ITAPEBI","ITAPETINGA","ITAPICURU","ITAPPITANGA","ITAQUARA","ITARANTIM","ITATIM","ITIRUÇU","ITIÚBA","ITORORÓ","ITUAÇU","ITUBERÁ","IUIÚ","JABORANDI","JACARACI","JACOBINA","JAGUAQUARA","JAGUARARI","JAGUARIPE","JEQUIÉ","JEREMOABO","JIQUIRIÇÁ","JITAÚNA","JOÃO DOURADO","JUAZEIRO","JUCURUÇU","JUSSARA","JUSSARI","JUSSIAPE","LAFAIETE COUTINHO","LAGOA REAL","LAJE","LAJEDÃO","LAJEDINHO","LAMARÃO","LAPÃO","LAURO DE FREITAS","LENÇÓIS","LICÍNIO DE ALMEIDA","LIVRAMENTO DE NOSSA SENHORA","LUÍS EDUARDO MAGALHAES","MACAJUBA","MACARANI","MACAÚBAS","MACURURÉ","MADRE DE DEUS","MAETINGA","MAIQUINIQUE","MAIRI","MALHADA","MALHADA DE PEDRAS","MANOEL VITORINO","MANSIDÃO","MARACÁS","MARAGOGIPE","MARAÚ","MASCOTE","MATA DE SÃO JOÃO","MATINA","MEDEIROS NETO","MIGUEL CALMON","MILAGRES","MIRANGABA","MONTE SANTO","MORPARÁ","MORRO DO CHAPÉU","MORTUGABA","MUCUGÊ","MUCURI","MULUNGU DO MORRO","MUNDO NOVO","MUNIZ FERREIRA","MUQUÉM DO SÃO FRANCISCO","MURITIBA","MUTUÍPE","NAZARÉ","NILO PEÇANHA","NORDESTINA","NOVA CANAÃ","NOVA FÁTIMA","NOVA IBIA","NOVA SOURE","NOVA VIÇOSA","NOVO HORIZONTE","NOVO TRIUNFO","OLINDINA","OLIVEIRA DOS BREJINHOS","OURIÇANGAS","OUROLÂNDIA","PALMAS DE MONTE ALTO","PALMEIRAS","PARAMIRIM","PARATINGA","PARIPIRANGA","PAU BRASIL","PAULO AFONSO","PÉ DE SERRA","PEDRÃO","PEDRO ALEXANDRE","PIATÃ","PILÃO ARCADO","PINDAÍ","PINDOBAÇU","PINTADAS","PIRAÍ DO NORTE","PIRIPÁ","PIRITIBA","PLANALTINO","PLANALTO","POÇÕES","POJUCA","PONTO NOVO","PORTO SEGURO","POTIRAGUÁ","PRADO","PRESIDENTE DUTRA","QUEIMADAS","QUIJINGUE","QUIXABEIRA","RAFAEL JAMBEIRO","REMANSO","RETIROLÂNDIA","RIACHÃO DAS NEVES","RIACHÃO DO JACUÍPE","RIACHO DE SANTANA","RIBEIRA DO AMPARO","RIBEIRA DO POMBAL","RIBEIRÃO DO LARGO","RIO DE CONTAS","RIO DO ANTÔNIO","RIO DO PIRES","RIO REAL","RODELAS","RUY BARBOSA","SALINAS DA MARGARIDA","SALVADOR","SANTA BÁRBARA","SANTA BRÍGIDA","SANTA CRUZ CABRÁLIA","SANTA INÊS","SANTA LUZIA","SANTA MARIA DA VITÓRIA","SANTA RITA DE CÁSSIA","SANTA TERESINHA","SANTALUZ","SANTANA","SANTANÓPOLIS","SANTO AMARO","SANTO ANTÔNIO DE JESUS","SANTO ESTÊVÃO","SÃO DESIDÉRIO","SÃO DOMINGOS","SÃO FELIPE","SÃO FÉLIX","SÃO FRANCISCO DO CONDE","SÃO GABRIEL","SÃO GONÇALO DOS CAMPOS","SÃO JOSÉ DO JACUÍPE","SÃO SEBASTIÃO DO PASSÉ","SAPEACU","SÁTIRO DIAS","SAUBARA","SAÚDE","SEABRA","SEBASTIÃO LARANJEIRAS","SENHOR DO BONFIM","SENTO SÉ","SERRA DO RAMALHO","SERRA DOURADA","SERRA PRETA","SERRINHA","SERROLÂNDIA","SIMÕES FILHO","SÍTIO DO MATO","SÍTIO DO QUINTO","SOBRADINHO","SOUTO SOARES","TABOCAS DO BREJO VELHO","TANHAÇU","TANQUE NOVO","TANQUINHO","TAPEROÁ","TAPIRAMUTÁ","TEIXEIRA DE FREITAS","TEODORO SAMPAIO","TEOFILÂNDIA","TEOLÂNDIA","TERRA NOVA","TREMEDAL","TUCANO","UAUÁ","UBAÍRA","UBAITABA","UBATÃ","UIBAÍ","UMBURANAS","UNA","URANDI","URUÇUCA","UTINGA","VALENÇA","VALENTE","VÁRZEA DA ROÇA","VÁRZEA DO POÇO","VÁRZEA NOVA","VARZEDO","VERA CRUZ","VEREDA","VITÓRIA DA CONQUISTA","WAGNER","WANDERLEY","WENCESLAU GUIMARÃES","XIQUE-XIQUE"];
 
-      // NAVEGAÇÃO
       window.mostrarSub9 = () => { document.getElementById('unit-screen').classList.add('hidden'); document.getElementById('comarca-screen').classList.remove('hidden'); };
       window.voltarRegionais = () => { document.querySelectorAll('.container').forEach(c => c.classList.add('hidden')); document.getElementById('unit-screen').classList.remove('hidden'); };
       window.selecionarUnidade = (id, nome) => { regionalID = id; regionalNome = nome; localStorage.setItem('regionalID', id); localStorage.setItem('regionalNome', nome); document.querySelectorAll('.container').forEach(c => c.classList.add('hidden')); document.getElementById('login-screen').classList.remove('hidden'); document.getElementById('login-title').innerText = nome; };
@@ -185,6 +192,7 @@
           document.getElementById('app-screen').classList.remove('hidden');
           document.getElementById('app-unit-name').innerText = regionalNome;
           document.getElementById('nome-usuario').innerText = user.email;
+          if(window.isAdmin || window.isMotorista) document.getElementById('painel-add-folga').classList.remove('hidden');
           onValue(ref(db, ".info/connected"), (snap) => {
             const status = document.getElementById("status-conexao");
             if (snap.val() === true) { status.innerText = "🟢 Online"; status.style.background = "var(--success)"; }
@@ -208,10 +216,12 @@
       window.carregarCidades = (t) => {
         const uf = document.getElementById(`uf-${t}`).value;
         const dl = document.getElementById(`list-${t}`); dl.innerHTML = "";
-        if(uf === 'BA') cidadesBA.forEach(c => dl.innerHTML += `<option value="${c}">`);
-        else if(uf === 'ES') cidadesES.forEach(c => dl.innerHTML += `<option value="${c}">`);
-        else if(capitais[uf]) dl.innerHTML += `<option value="${capitais[uf]}">`;
-        if(t === 'origem' && uf === 'BA' && regionalID === '14-regional') document.getElementById(`cidade-${t}`).value = "TEIXEIRA DE FREITAS";
+        let cidades = [];
+        if(uf === 'BA') { cidades = ["TEIXEIRA DE FREITAS", ...cidadesBA.filter(c => c !== "TEIXEIRA DE FREITAS")]; }
+        else if(uf === 'ES') { cidades = cidadesES; }
+        else if(capitais[uf]) { cidades = [capitais[uf]]; }
+        cidades.forEach(c => dl.innerHTML += `<option value="${c}">`);
+        if(t === 'origem' && uf === 'BA' && regionalID === '14-regional' && !document.getElementById(`cidade-origem`).value) { document.getElementById(`cidade-origem`).value = "TEIXEIRA DE FREITAS"; }
       };
 
       window.adicionarTrecho = () => {
@@ -219,8 +229,7 @@
         if(!cidOrg || !cidDst) return alert("Selecione as cidades.");
         window.roteiroAtual.push({ origem: `${document.getElementById('uf-origem').value} - ${cidOrg}`, destino: `${document.getElementById('uf-destino').value} - ${cidDst}` });
         renderRoteiro();
-        document.getElementById('uf-origem').value = document.getElementById('uf-destino').value;
-        carregarCidades('origem');
+        document.getElementById('uf-origem').value = document.getElementById('uf-destino').value; carregarCidades('origem');
         document.getElementById('cidade-origem').value = cidDst;
       };
 
@@ -244,63 +253,75 @@
         });
       }
 
-      // --- LOGICA DE CONFLITO ---
       function temConflito(novaSaida, novaChegada, ignorarId = null) {
-          const buffer = 5 * 60 * 1000;
           const iniN = new Date(novaSaida).getTime();
           const fimN = new Date(novaChegada).getTime();
+          for(let f of window.listaFolgas) {
+              const iniF = new Date(f.inicio + "T00:00:00").getTime();
+              const fimF = new Date(f.fim + "T23:59:59").getTime();
+              if(iniN <= fimF && fimN >= iniF) return { tipo: 'folga', motivo: f.motivo };
+          }
+          const buffer = 5 * 60 * 1000;
           for(let v of window.listaViagens) {
               if(ignorarId && v.id === ignorarId) continue;
               const iniE = new Date(v.saida).getTime();
               const fimE = new Date(v.chegada).getTime();
-              if(iniN < (fimE + buffer) && (fimN + buffer) > iniE) return v;
+              if(iniN < (fimE + buffer) && (fimN + buffer) > iniE) return { tipo: 'viagem', solicitante: v.solicitante };
           }
           return null;
       }
 
-      // --- SALVAR COM WHATSAPP FIX ---
       window.salvarNoFirebase = () => {
         const solicitante = document.getElementById("solicitante").value;
         const saida = document.getElementById("saida").value;
         const chegada = document.getElementById("chegada").value;
         const id = document.getElementById("edit-id").value;
         
+        const viagemExistente = window.listaViagens.find(v => v.id === id);
+        const dataCriacao = viagemExistente ? (viagemExistente.dataCriacao || new Date().toISOString()) : new Date().toISOString();
+
         if(!solicitante || !saida || !chegada) return alert("Preencha solicitante e horários!");
         
         const conflito = temConflito(saida, chegada, id);
-        if(conflito) return alert(`🚫 CONFLITO DE HORÁRIO!\nEste período já está reservado por: ${conflito.solicitante}`);
+        if(conflito) {
+            if(conflito.tipo === 'folga') {
+                alert(`🛑 INDISPONÍVEL!\nO motorista está indisponível: ${conflito.motivo}`);
+                if(regionalID === 'PORTO SEGURO' || regionalID === 'EUNAPOLIS') return;
+            } else { return alert(`🚫 CONFLITO!\nReservado por: ${conflito.solicitante}`); }
+        }
 
         const trajetoString = window.roteiroAtual.map(t => `${t.origem} ➝ ${t.destino}`).join("\n📍 ");
         const dados = {
           solicitante: solicitante, setor: document.getElementById("setor").value,
           saida: saida, chegada: chegada, motivo: document.getElementById("motivo").value,
           trajetoExibicao: trajetoString || "Trecho Direto", registradoPor: window.userEmail,
-          status: "Pendente", roteiroArray: window.roteiroAtual
+          status: "Pendente", roteiroArray: window.roteiroAtual,
+          dataCriacao: dataCriacao,
+          ultimaEdicao: id ? new Date().toISOString() : null
         };
         const root = (regionalID === '14-regional' ? '' : `unidades/${regionalID}/`) + 'viagens';
         
-        const msg = `Olá ${CONTATOS[regionalID].motorista}! 🚗 Nova viagem agendada.\n\n*Solicitante:* ${dados.solicitante}\n*Saída:* ${new Date(dados.saida).toLocaleString()}\n*Retorno:* ${new Date(dados.chegada).toLocaleString()}\n*Motivo:* ${dados.motivo}\n*Roteiro:*\n📍 ${dados.trajetoExibicao}`;
-        window.dadosWppTemp = msg;
+        let prefixoMsg = id ? "⚠️ *ALTERAÇÃO DE AGENDA*" : "🚗 *NOVA VIAGEM AGENDADA*";
+        window.dadosWppTemp = `${prefixoMsg}\n\n*Solicitante:* ${dados.solicitante}\n*Saída:* ${new Date(dados.saida).toLocaleString('pt-BR')}\n*Retorno:* ${new Date(dados.chegada).toLocaleString('pt-BR')}\n*Motivo:* ${dados.motivo}\n*Roteiro:*\n📍 ${dados.trajetoExibicao}\n\n_Pedido original em: ${new Date(dataCriacao).toLocaleDateString('pt-BR')}_`;
 
         if(id) {
             update(ref(db, `${root}/${id}`), dados).then(() => {
                 document.getElementById("btn-whatsapp-manual").classList.remove("hidden");
-                document.getElementById("btn-save").innerText = "💾 Salvar Ajustes";
-                alert("Ajustes salvos! Use o botão abaixo para notificar o motorista.");
+                document.getElementById("btn-save").style.opacity = "0.5";
+                alert("Salvo com sucesso! AGORA CLIQUE NO BOTÃO VERDE DO WHATSAPP.");
             });
         } else {
             push(ref(db, root), dados).then(() => {
-                if(confirm("Agendado! Notificar motorista no WhatsApp?")) {
-                    window.open(`https://wa.me/${CONTATOS[regionalID].tel}?text=${encodeURIComponent(msg)}`, '_blank');
-                }
-                setTimeout(() => location.reload(), 1000);
+                document.getElementById("btn-whatsapp-manual").classList.remove("hidden");
+                document.getElementById("btn-save").classList.add("hidden");
+                alert("Salvo com sucesso! AGORA CLIQUE NO BOTÃO VERDE DO WHATSAPP.");
             });
         }
       };
 
       window.abrirWhatsAppManual = () => {
           window.open(`https://wa.me/${CONTATOS[regionalID].tel}?text=${encodeURIComponent(window.dadosWppTemp)}`, '_blank');
-          setTimeout(() => location.reload(), 1500);
+          setTimeout(() => location.reload(), 1000);
       };
 
       window.atualizarTabelaGlobal = () => {
@@ -309,16 +330,18 @@
         window.listaViagens.sort((a,b) => new Date(b.saida) - new Date(a.saida)).forEach(v => {
           const status = v.status || "Pendente";
           const foiRealizada = new Date(v.chegada) < agora;
+          const foiAlterada = v.ultimaEdicao ? true : false;
           let btns = "";
           if(window.isAdmin || v.registradoPor === window.userEmail) btns += `<button class="btn-edit" onclick="prepararEdicao('${v.id}')">✏️</button>`;
           if(window.isMotorista && status !== "Confirmado") btns += `<button class="btn-confirm" onclick="confirmar('${v.id}')">✔</button>`;
-          if(window.isAdmin) btns += `<button class="btn-delete" style="background:var(--danger)" onclick="deletar('${v.id}')">🗑️</button>`;
-
+          if(window.isAdmin) btns += `<button style="background:var(--danger)" onclick="deletar('${v.id}')">🗑️</button>`;
+          const dataS = new Date(v.saida).toLocaleString('pt-BR', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
+          const dataC = new Date(v.chegada).toLocaleString('pt-BR', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
           tb.innerHTML += `<tr class="${foiRealizada ? 'viagem-concluida' : ''}" style="border-bottom: 1px solid #eee;">
-            <td style="padding:12px; text-align:center"><span class="status-badge ${status==='Confirmado'?'status-confirmado':'status-pendente'}">${status}</span></td>
-            <td style="padding:12px;"><strong>${new Date(v.saida).toLocaleString()}</strong></td>
-            <td style="padding:12px;">${new Date(v.chegada).toLocaleString()}</td>
-            <td style="padding:12px;"><strong>${v.solicitante}</strong></td>
+            <td style="padding:12px; text-align:center"><span class="status-badge ${status==='Confirmado'?'status-confirmado':'status-pendente'}">${status}</span>${foiAlterada ? '<span class="badge-alterado">Modificado</span>' : ''}</td>
+            <td style="padding:12px;"><strong>${dataS}</strong></td>
+            <td style="padding:12px;">${dataC}</td>
+            <td style="padding:12px;"><strong>${v.solicitante}</strong><br><small style="color:#888; font-size:0.75em">Pedido: ${new Date(v.dataCriacao).toLocaleDateString('pt-BR')}</small></td>
             <td style="padding:12px; font-size:0.85em; white-space: pre-line;">${v.trajetoExibicao}</td>
             <td style="padding:12px; text-align:center; white-space:nowrap;">${btns}</td>
           </tr>`;
@@ -338,16 +361,25 @@
           const v = window.listaViagens.find(x => x.id === id);
           update(ref(db, (regionalID === '14-regional' ? '' : `unidades/${regionalID}/`) + `viagens/${id}`), {status: "Confirmado"}); 
           const telSol = CONTATOS[regionalID].equipe[v.solicitante];
-          if(telSol && confirm("Confirmado! Avisar o solicitante no WhatsApp?")) {
-              window.open(`https://wa.me/${telSol}?text=${encodeURIComponent('✅ Sua viagem para ' + v.trajetoExibicao.replace(/\n/g, ' ') + ' foi confirmada.')}`, '_blank');
-          }
+          if(telSol && confirm("Confirmado! Avisar o solicitante no WhatsApp?")) { window.open(`https://wa.me/${telSol}?text=${encodeURIComponent('✅ Sua viagem para ' + v.trajetoExibicao.replace(/\n/g, ' ') + ' foi confirmada.')}`, '_blank'); }
       };
 
       window.deletar = (id) => { if(confirm("Excluir?")) remove(ref(db, (regionalID==='14-regional'?'':'unidades/'+regionalID+'/') + "viagens/" + id)); };
       window.cancelarEdicao = () => location.reload();
       window.fazerLogout = () => { signOut(auth).then(() => { localStorage.clear(); location.reload(); }); };
-      window.salvarFolga = () => { push(ref(db, (regionalID === '14-regional' ? '' : `unidades/${regionalID}/`) + 'folgas'), { inicio: document.getElementById('folga-inicio').value, fim: document.getElementById('folga-fim').value, motivo: document.getElementById('folga-motivo').value }); };
-      function renderFolgas() { const l = document.getElementById('lista-folgas-visual'); l.innerHTML = ""; window.listaFolgas.forEach(f => l.innerHTML += `<div class="folga-item"><strong>🚫 ${f.inicio} a ${f.fim}</strong>: ${f.motivo}</div>`); }
+      window.salvarFolga = () => { 
+        const inicio = document.getElementById('folga-inicio').value; const fim = document.getElementById('folga-fim').value; const motivo = document.getElementById('folga-motivo').value;
+        if(!inicio || !fim || !motivo) return alert("Preencha tudo!");
+        push(ref(db, (regionalID === '14-regional' ? '' : `unidades/${regionalID}/`) + 'folgas'), { inicio, fim, motivo }); 
+      };
+      window.deletarFolga = (id) => { if(confirm("Remover?")) remove(ref(db, (regionalID==='14-regional'?'':'unidades/'+regionalID+'/') + "folgas/" + id)); };
+      function renderFolgas() { 
+        const l = document.getElementById('lista-folgas-visual'); l.innerHTML = ""; 
+        window.listaFolgas.forEach(f => {
+            let btnDel = (window.isAdmin || window.isMotorista) ? `<button onclick="deletarFolga('${f.id}')" style="background:none; color:var(--danger); padding:0; margin-left:10px;">🗑️</button>` : "";
+            l.innerHTML += `<div class="folga-item"><strong>🚫 ${new Date(f.inicio + "T00:00:00").toLocaleDateString('pt-BR')} a ${new Date(f.fim + "T00:00:00").toLocaleDateString('pt-BR')}</strong>: ${f.motivo} ${btnDel}</div>`;
+        }); 
+      }
     </script>
   </body>
 </html>
