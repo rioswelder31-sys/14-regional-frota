@@ -3,9 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Frota DPE - Multi-Regional (V64.0)</title>
+    <title>Frota DPE - Multi-Regional (V65.0)</title>
     <style>
-      :root { --primary: #003366; --secondary: #f8f9fa; --success: #28a745; --whatsapp: #25d366; --danger: #dc3545; --warning: #ffc107; --dark-text: #333; --blocked: #721c24; --blocked-bg: #f8d7da; }
+      :root { --primary: #003366; --secondary: #f8f9fa; --success: #28a745; --whatsapp: #25d366; --danger: #dc3545; --warning: #ffc107; --dark-text: #333; --excel-color: #1d6f42; --print-color: #6c757d; --blocked: #721c24; --blocked-bg: #f8d7da; }
       body { font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #eef2f5; margin: 0; padding-bottom: 50px; color: var(--dark-text); }
       .container { max-width: 1150px; margin: 20px auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); }
       .header { background: var(--primary); color: white; padding: 15px 20px; border-radius: 10px 10px 0 0; margin: -20px -20px 20px -20px; }
@@ -53,6 +53,7 @@
 
     <div id="unit-screen" class="container">
       <h1 style="text-align: center; color: var(--primary);">Defensoria Pública da Bahia</h1>
+      <h3 style="text-align: center; color: #666; font-weight: normal;">Selecione sua Regional para acessar</h3>
       <div class="unit-grid">
         <div class="unit-card" onclick="selecionarUnidade('14-regional', '14ª Regional - Teixeira de Freitas')">
           <h2>14ª Regional</h2><p>Extremo Sul</p>
@@ -82,7 +83,7 @@
       <div class="header">
         <div class="header-content">
           <div><h2 id="app-unit-name" style="margin: 0; font-size: 1.5em">Frota DPE</h2><span id="status-conexao">Conectando...</span></div>
-          <div><span id="nome-usuario" style="font-weight: bold; margin-right: 15px"></span><button style="background:rgba(255,255,255,0.1); border:1px solid white;" onclick="fazerLogout()">Sair</button></div>
+          <div><span id="nome-usuario" style="font-weight: bold; margin-right: 15px"></span><button style="background:rgba(255,255,255,0.1); border:1px solid white; color:white; padding: 5px 10px; border-radius:4px; cursor:pointer;" onclick="fazerLogout()">Sair</button></div>
         </div>
       </div>
 
@@ -163,8 +164,9 @@
       const firebaseConfig = { apiKey: "AIzaSyDvGkxC9WkYICERhbIHcE9yComvh5AF2gw", authDomain: "frota14regional-8fecc.firebaseapp.com", databaseURL: "https://frota14regional-8fecc-default-rtdb.firebaseio.com", projectId: "frota14regional-8fecc" };
       const app = initializeApp(firebaseConfig); const db = getDatabase(app); const auth = getAuth(app);
 
-      let regionalID = localStorage.getItem('regionalID') || ""; 
-      let regionalNome = localStorage.getItem('regionalNome') || ""; 
+      // CORREÇÃO AQUI: Não carregar regionalID automaticamente do localStorage na inicialização
+      let regionalID = ""; 
+      let regionalNome = ""; 
       window.roteiroAtual = []; window.listaViagens = []; window.listaFolgas = []; window.dadosWppTemp = null;
 
       const CONTATOS = {
@@ -176,29 +178,67 @@
       const estados = ["AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT","PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO"];
       const capitais = {"AC":"RIO BRANCO","AL":"MACEIÓ","AM":"MANAUS","AP":"MACAPÁ","CE":"FORTALEZA","DF":"BRASÍLIA","ES":"VITÓRIA","GO":"GOIÂNIA","MA":"SÃO LUÍS","MG":"BELO HORIZONTE","MS":"CAMPO GRANDE","MT":"CUIABÁ","PA":"BELÉM","PB":"JOÃO PESSOA","PE":"RECIFE","PI":"TERESINA","PR":"CURITIBA","RJ":"RIO DE JANEIRO","RN":"NATAL","RO":"PORTO VELHO","RR":"BOA VISTA","RS":"PORTO ALEGRE","SC":"FLORIANÓPOLIS","SE":"ARACAJU","SP":"SÃO PAULO","TO":"PALMAS"};
       const cidadesES = ["SERRA", "VILA VELHA", "SÃO MATEUS", "CARIACICA", "VITÓRIA"];
-      const cidadesBA = ["ABARÉ","ACAJUTIBA","ALAGOINHAS","ALCOBAÇA","ALMADINA","AMARGOSA","AMÉLIA RODRIGUES","ANAGÉ","ANDARAÍ","ANGICAL","ANTAS","APORÁ","APUAREMA","ARAÇÁS","ARACI","ARAMARI","ARATACA","ARATUÍPE","AURELINO LEAL","BAIANÓPOLIS","BAIXA GRANDE","BANZÁE","BARRA","BARRA DA ESTIVA","BARRA DO CHOÇA","BARRA DO MENDES","BARRA DO ROCHA","BARREIRAS","BARRO ALTO","BARROCAS","BELMONTE","BELO CAMPO","BIRITINGA","BOA NOVA","BOA VISTA DO TUPIM","BOM JESUS DA LAPA","BOM JESUS DA SERRA","BONINAL","BONITO","BOQUIRA","BOTUPORÃ","BREJÕES","BREJOLÂNDIA","BROTAS DE MACAÚBAS","BRUMADO","BUERAREMA","BURITIRAMA","CAATIBA","CABACEIRAS DO PARAGUAÇU","CACHOEIRA","CACULÉ","CAÉM","CAETANOS","CAETITÉ","CAFARNAUM","CAIRU","CALDEIRÃO GRANDE","CAMACAN","CAMAÇARI","CAMAMU","CAMPO ALEGRE DE LOURDES","CAMPO FORMOSO","CANÁPOLIS","CANARANA","CANAVIEIRAS","CANDEAL","CANDEIAS","CANDIBA","CÂNDIDO SALES","CANSANÇÃO","CANUDOS","CAPELA DO ALTO ALEGRE","CAPIM GROSSO","CARAÍBAS","CARAVELAS","CARDEAL DA SILVA","CARINHANHA","CASA NOVA","CASTRO ALVES","CATU","CATURAMA","CENTRAL","CHORROCHÓ","CÍCERO DANTAS","CIPÓ","COARACI","COCOS","CONCEIÇÃO DA FEIRA","CONCEIÇÃO DO ALMEIDA","CONCEIÇÃO DO COITÉ","CONCEIÇÃO DO JACUÍPE","CONDE","CONDEÚBA","CORAÇÃO DE MARIA","CORDEIROS","CORIBE","CORONEL JOÃO SÁ","CORRENTINA","COTEGIPE","CRAVOLÂNDIA","CRISÓPOLIS","CRISTÓPOLIS","CRUZ DAS ALMAS","CURAÇÁ","DÁRIO MEIRA","DIAS D'ÁVILA","DOM BASÍLIO","ELÍSIO MEDRADO","ENCRUZILHADA","ENTRE RIOS","ÉRICO CARDOSO","ESPLANADA","EUCLIDES DA CUNHA","EUNÁPOLIS","FÁTIMA","FEIRA DE SANTANA","FILADÉLFIA","FIRMINO Alves","FLORESTA AZUL","FORMOSA DO RIO PRETO","GANDU","GAVIÃO","GENTIO DO OURO","GLÓRIA","GONGOGI","GOVERNADOR MANGABEIRA","GUANAMBI","GUARATINGA","HELIÓPOLIS","IAÇU","IBIASSUCÊ","IBICARAÍ","IBICOARA","IBICUÍ","IBIPEBA","IBIPITANGA","IBIQUERA","IBIRAPITANGA","IBIRAPUÃ","IBIRATAIA","IBITIARA","IBITITÁ","IBOTIRAMA","ICHU","IGAPORÃ","IGRAPIÚNA","IGUAÍ","ILHÉUS","INHAMBUPE","IPECAETÁ","IPIAÚ","IPIRÁ","IPUPIARA","IRAJUBA","IRAMAIA","IRAQUARA","IRARÁ","IRECÊ","ITABELA","ITABERABA","ITABUNA","ITACARÉ","ITAETÊ","ITAGI","ITAGIBÁ","ITAGIMIRIM","ITAJU DO COLÔNIA","ITAJUÍPE","ITAMARAJU","ITAMARI","ITAMBÉ","ITANAGRA","ITANHÉM","ITAPARICA","ITAPÉ","ITAPEBI","ITAPETINGA","ITAPICURU","ITAPPITANGA","ITAQUARA","ITARANTIM","ITATIM","ITIRUÇU","ITIÚBA","ITORORÓ","ITUAÇU","ITUBERÁ","IUIÚ","JABORANDI","JACARACI","JACOBINA","JAGUAQUARA","JAGUARARI","JAGUARIPE","JEQUIÉ","JEREMOABO","JIQUIRIÇÁ","JITAÚNA","JOÃO DOURADO","JUAZEIRO","JUCURUÇU","JUSSARA","JUSSARI","JUSSIAPE","LAFAIETE COUTINHO","LAGOA REAL","LAJE","LAJEDÃO","LAJEDINHO","LAMARÃO","LAPÃO","LAURO DE FREITAS","LENÇÓIS","LICÍNIO DE ALMEIDA","LIVRAMENTO DE NOSSA SENHORA","LUÍS EDUARDO MAGALHAES","MACAJUBA","MACARANI","MACAÚBAS","MACURURÉ","MADRE DE DEUS","MAETINGA","MAIQUINIQUE","MAIRI","MALHADA","MALHADA DE PEDRAS","MANOEL VITORINO","MANSIDÃO","MARACÁS","MARAGOGIPE","MARAÚ","MASCOTE","MATA DE SÃO JOÃO","MATINA","MEDEIROS NETO","MIGUEL CALMON","MILAGRES","MIRANGABA","MONTE SANTO","MORPARÁ","MORRO DO CHAPÉU","MORTUGABA","MUCUGÊ","MUCURI","MULUNGU DO MORRO","MUNDO NOVO","MUNIZ FERREIRA","MUQUÉM DO SÃO FRANCISCO","MURITIBA","MUTUÍPE","NAZARÉ","NILO PEÇANHA","NORDESTINA","NOVA CANAÃ","NOVA FÁTIMA","NOVA IBIA","NOVA SOURE","NOVA VIÇOSA","NOVO HORIZONTE","NOVO TRIUNFO","OLINDINA","OLIVEIRA DOS BREJINHOS","OURIÇANGAS","OUROLÂNDIA","PALMAS DE MONTE ALTO","PALMEIRAS","PARAMIRIM","PARATINGA","PARIPIRANGA","PAU BRASIL","PAULO AFONSO","PÉ DE SERRA","PEDRÃO","PEDRO ALEXANDRE","PIATÃ","PILÃO ARCADO","PINDAÍ","PINDOBAÇU","PINTADAS","PIRAÍ DO NORTE","PIRIPÁ","PIRITIBA","PLANALTINO","PLANALTO","POÇÕES","POJUCA","PONTO NOVO","PORTO SEGURO","POTIRAGUÁ","PRADO","PRESIDENTE DUTRA","QUEIMADAS","QUIJINGUE","QUIXABEIRA","RAFAEL JAMBEIRO","REMANSO","RETIROLÂNDIA","RIACHÃO DAS NEVES","RIACHÃO DO JACUÍPE","RIACHO DE SANTANA","RIBEIRA DO AMPARO","RIBEIRA DO POMBAL","RIBEIRÃO DO LARGO","RIO DE CONTAS","RIO DO ANTÔNIO","RIO DO PIRES","RIO REAL","RODELAS","RUY BARBOSA","SALINAS DA MARGARIDA","SALVADOR","SANTA BÁRBARA","SANTA BRÍGIDA","SANTA CRUZ CABRÁLIA","SANTA INÊS","SANTA LUZIA","SANTA MARIA DA VITÓRIA","SANTA RITA DE CÁSSIA","SANTA TERESINHA","SANTALUZ","SANTANA","SANTANÓPOLIS","SANTO AMARO","SANTO ANTÔNIO DE JESUS","SANTO ESTÊVÃO","SÃO DESIDÉRIO","SÃO DOMINGOS","SÃO FELIPE","SÃO FÉLIX","SÃO FRANCISCO DO CONDE","SÃO GABRIEL","SÃO GONÇALO DOS CAMPOS","SÃO JOSÉ DO JACUÍPE","SÃO SEBASTIÃO DO PASSÉ","SAPEACU","SÁTIRO DIAS","SAUBARA","SAÚDE","SEABRA","SEBASTIÃO LARANJEIRAS","SENHOR DO BONFIM","SENTO SÉ","SERRA DO RAMALHO","SERRA DOURADA","SERRA PRETA","SERRINHA","SERROLÂNDIA","SIMÕES FILHO","SÍTIO DO MATO","SÍTIO DO QUINTO","SOBRADINHO","SOUTO SOARES","TABOCAS DO BREJO VELHO","TANHAÇU","TANQUE NOVO","TANQUINHO","TAPEROÁ","TAPIRAMUTÁ","TEIXEIRA DE FREITAS","TEODORO SAMPAIO","TEOFILÂNDIA","TEOLÂNDIA","TERRA NOVA","TREMEDAL","TUCANO","UAUÁ","UBAÍRA","UBAITABA","UBATÃ","UIBAÍ","UMBURANAS","UNA","URANDI","URUÇUCA","UTINGA","VALENÇA","VALENTE","VÁRZEA DA ROÇA","VÁRZEA DO POÇO","VÁRZEA NOVA","VARZEDO","VERA CRUZ","VEREDA","VITÓRIA DA CONQUISTA","WAGNER","WANDERLEY","WENCESLAU GUIMARÃES","XIQUE-XIQUE"];
+      const cidadesBA = ["ABARÉ","ACAJUTIBA","ALAGOINHAS","ALCOBAÇA","ALMADINA","AMARGOSA","AMÉLIA RODRIGUES","ANAGÉ","ANDARAÍ","ANGICAL","ANTAS","APORÁ","APUAREMA","ARAÇÁS","ARACI","ARAMARI","ARATACA","ARATUÍPE","AURELINO LEAL","BAIANÓPOLIS","BAIXA GRANDE","BANZÁE","BARRA","BARRA DA ESTIVA","BARRA DO CHOÇA","BARRA DO MENDES","BARRA DO ROCHA","BARREIRAS","BARRO ALTO","BARROCAS","BELMONTE","BELO CAMPO","BIRITINGA","BOA NOVA","BOA VISTA DO TUPIM","BOM JESUS DA LAPA","BOM JESUS DA SERRA","BONINAL","BONITO","BOQUIRA","BOTUPORÃ","BREJÕES","BREJOLÂNDIA","BROTAS DE MACAÚBAS","BRUMADO","BUERAREMA","BURITIRAMA","CAATIBA","CABACEIRAS DO PARAGUAÇU","CACHOEIRA","CACULÉ","CAÉM","CAETANOS","CAETITÉ","CAFARNAUM","CAIRU","CALDEIRÃO GRANDE","CAMACAN","CAMAÇARI","CAMAMU","CAMPO ALEGRE DE LOURDES","CAMPO FORMOSO","CANÁPOLIS","CANARANA","CANAVIEIRAS","CANDEAL","CANDEIAS","CANDIBA","CÂNDIDO SALES","CANSANÇÃO","CANUDOS","CAPELA DO ALTO ALEGRE","CAPIM GROSSO","CARAÍBAS","CARAVELAS","CARDEAL DA SILVA","CARinHANHA","CASA NOVA","CASTRO ALVES","CATU","CATURAMA","CENTRAL","CHORROCHÓ","CÍCERO DANTAS","CIPÓ","COARACI","COCOS","CONCEIÇÃO DA FEIRA","CONCEIÇÃO DO ALMEIDA","CONCEIÇÃO DO COITÉ","CONCEIÇÃO DO JACUÍPE","CONDE","CONDEÚBA","CORAÇÃO DE MARIA","CORDEIROS","CORIBE","CORONEL JOÃO SÁ","CORRENTINA","COTEGIPE","CRAVOLÂNDIA","CRISÓPOLIS","CRISTÓPOLIS","CRUZ DAS ALMAS","CURAÇÁ","DÁRIO MEIRA","DIAS D'ÁVILA","DOM BASÍLIO","ELÍSIO MEDRADO","ENCRUZILHADA","ENTRE RIOS","ÉRICO CARDOSO","ESPLANADA","EUCLIDES DA CUNHA","EUNÁPOLIS","FÁTIMA","FEIRA DE SANTANA","FILADÉLFIA","FIRMINO Alves","FLORESTA AZUL","FORMOSA DO RIO PRETO","GANDU","GAVIÃO","GENTIO DO OURO","GLÓRIA","GONGOGI","GOVERNADOR MANGABEIRA","GUANAMBI","GUARATINGA","HELIÓPOLIS","IAÇU","IBIASSUCÊ","IBICARAÍ","IBICOARA","IBICUÍ","IBIPEBA","IBIPITANGA","IBIQUERA","IBIRAPITANGA","IBIRAPUÃ","IBIRATAIA","IBITIARA","IBITITÁ","IBOTIRAMA","ICHU","IGAPORÃ","IGRAPIÚNA","IGUAÍ","ILHÉUS","INHAMBUPE","IPECAETÁ","IPIAÚ","IPIRÁ","IPUPIARA","IRAJUBA","IRAMAIA","IRAQUARA","IRARÁ","IRECÊ","ITABELA","ITABERABA","ITABUNA","ITACARÉ","ITAETÊ","ITAGI","ITAGIBÁ","ITAGIMIRIM","ITAJU DO COLÔNIA","ITAJUÍPE","ITAMARAJU","ITAMARI","ITAMBÉ","ITANAGRA","ITANHÉM","ITAPARICA","ITAPÉ","ITAPEBI","ITAPETINGA","ITAPICURU","ITAPPITANGA","ITAQUARA","ITARANTIM","ITATIM","ITIRUÇU","ITIÚBA","ITORORÓ","ITUAÇU","ITUBERÁ","IUIÚ","JABORANDI","JACARACI","JACOBINA","JAGUAQUARA","JAGUARARI","JAGUARIPE","JEQUIÉ","JEREMOABO","JIQUIRIÇÁ","JITAÚNA","JOÃO DOURADO","JUAZEIRO","JUCURUÇU","JUSSARA","JUSSARI","JUSSIAPE","LAFAIETE COUTINHO","LAGOA REAL","LAJE","LAJEDÃO","LAJEDINHO","LAMARÃO","LAPÃO","LAURO DE FREITAS","LENÇÓIS","LICÍNIO DE ALMEIDA","LIVRAMENTO DE NOSSA SENHORA","LUÍS EDUARDO MAGALHAES","MACAJUBA","MACARANI","MACAÚBAS","MACURURÉ","MADRE DE DEUS","MAETINGA","MAIQUINIQUE","MAIRI","MALHADA","MALHADA DE PEDRAS","MANOEL VITORINO","MANSIDÃO","MARACÁS","MARAGOGIPE","MARAÚ","MASCOTE","MATA DE SÃO JOÃO","MATINA","MEDEIROS NETO","MIGUEL CALMON","MILAGRES","MIRANGABA","MONTE SANTO","MORPARÁ","MORRO DO CHAPÉU","MORTUGABA","MUCUGÊ","MUCURI","MULUNGU DO MORRO","MUNDO NOVO","MUNIZ FERREIRA","MUQUÉM DO SÃO FRANCISCO","MURITIBA","MUTUÍPE","NAZARÉ","NILO PEÇANHA","NORDESTINA","NOVA CANAÃ","NOVA FÁTIMA","NOVA IBIA","NOVA SOURE","NOVA VIÇOSA","NOVO HORIZONTE","NOVO TRIUNFO","OLINDINA","OLIVEIRA DOS BREJINHOS","OURIÇANGAS","OUROLÂNDIA","PALMAS DE MONTE ALTO","PALMEIRAS","PARAMIRIM","PARATINGA","PARIPIRANGA","PAU BRASIL","PAULO AFONSO","PÉ DE SERRA","PEDRÃO","PEDRO ALEXANDRE","PIATÃ","PILÃO ARCADO","PINDAÍ","PINDOBAÇU","PINTADAS","PIRAÍ DO NORTE","PIRIPÁ","PIRITIBA","PLANALTINO","PLANALTO","POÇÕES","POJUCA","PONTO NOVO","PORTO SEGURO","POTIRAGUÁ","PRADO","PRESIDENTE DUTRA","QUEIMADAS","QUIJINGUE","QUIXABEIRA","RAFAEL JAMBEIRO","REMANSO","RETIROLÂNDIA","RIACHÃO DAS NEVES","RIACHÃO DO JACUÍPE","RIACHO DE SANTANA","RIBEIRA DO AMPARO","RIBEIRA DO POMBAL","RIBEIRÃO DO LARGO","RIO DE CONTAS","RIO DO ANTÔNIO","RIO DO PIRES","RIO REAL","RODELAS","RUY BARBOSA","SALINAS DA MARGARIDA","SALVADOR","SANTA BÁRBARA","SANTA BRÍGIDA","SANTA CRUZ CABRÁLIA","SANTA INÊS","SANTA LUZIA","SANTA MARIA DA VITÓRIA","SANTA RITA DE CÁSSIA","SANTA TERESINHA","SANTALUZ","SANTANA","SANTANÓPOLIS","SANTO AMARO","SANTO ANTÔNIO DE JESUS","SANTO ESTÊVÃO","SÃO DESIDÉRIO","SÃO DOMINGOS","SÃO FELIPE","SÃO FÉLIX","SÃO FRANCISCO DO CONDE","SÃO GABRIEL","SÃO GONÇALO DOS CAMPOS","SÃO JOSÉ DO JACUÍPE","SÃO SEBASTIÃO DO PASSÉ","SAPEACU","SÁTIRO DIAS","SAUBARA","SAÚDE","SEABRA","SEBASTIÃO LARANJEIRAS","SENHOR DO BONFIM","SENTO SÉ","SERRA DO RAMALHO","SERRA DOURADA","SERRA PRETA","SERRINHA","SERROLÂNDIA","SIMÕES FILHO","SÍTIO DO MATO","SÍTIO DO QUINTO","SOBRADINHO","SOUTO SOARES","TABOCAS DO BREJO VELHO","TANHAÇU","TANQUE NOVO","TANQUINHO","TAPEROÁ","TAPIRAMUTÁ","TEIXEIRA DE FREITAS","TEODORO SAMPAIO","TEOFILÂNDIA","TEOLÂNDIA","TERRA NOVA","TREMEDAL","TUCANO","UAUÁ","UBAÍRA","UBAITABA","UBATÃ","UIBAÍ","UMBURANAS","UNA","URANDI","URUÇUCA","UTINGA","VALENÇA","VALENTE","VÁRZEA DA ROÇA","VÁRZEA DO POÇO","VÁRZEA NOVA","VARZEDO","VERA CRUZ","VEREDA","VITÓRIA DA CONQUISTA","WAGNER","WANDERLEY","WENCESLAU GUIMARÃES","XIQUE-XIQUE"];
 
+      // NAVEGAÇÃO E SELEÇÃO DE UNIDADE
       window.mostrarSub9 = () => { document.getElementById('unit-screen').classList.add('hidden'); document.getElementById('comarca-screen').classList.remove('hidden'); };
-      window.voltarRegionais = () => { document.querySelectorAll('.container').forEach(c => c.classList.add('hidden')); document.getElementById('unit-screen').classList.remove('hidden'); };
-      window.selecionarUnidade = (id, nome) => { regionalID = id; regionalNome = nome; localStorage.setItem('regionalID', id); localStorage.setItem('regionalNome', nome); document.querySelectorAll('.container').forEach(c => c.classList.add('hidden')); document.getElementById('login-screen').classList.remove('hidden'); document.getElementById('login-title').innerText = nome; };
+      
+      window.voltarRegionais = () => { 
+          document.querySelectorAll('.container').forEach(c => c.classList.add('hidden')); 
+          document.getElementById('unit-screen').classList.remove('hidden'); 
+      };
+
+      // CORREÇÃO: Função centralizada para definir unidade e ir para login
+      window.selecionarUnidade = (id, nome) => { 
+          regionalID = id; 
+          regionalNome = nome; 
+          // Salva no localStorage para uso futuro DENTRO da sessão logada
+          localStorage.setItem('regionalID', id); 
+          localStorage.setItem('regionalNome', nome); 
+          
+          // Esconde telas de seleção e mostra login
+          document.getElementById('unit-screen').classList.add('hidden');
+          document.getElementById('comarca-screen').classList.add('hidden');
+          document.getElementById('login-screen').classList.remove('hidden'); 
+          document.getElementById('login-title').innerText = nome; 
+      };
+
       window.realizarLogin = () => { signInWithEmailAndPassword(auth, document.getElementById("login-user").value, document.getElementById("login-pass").value).catch(() => alert("Dados inválidos.")); };
 
+      // LÓGICA DE INICIALIZAÇÃO E ESTADO DE AUTENTICAÇÃO
       onAuthStateChanged(auth, (user) => {
         if (user) {
+          // Se logado, garante que temos a regional definida (pega do storage se recarregou logado)
+          if (!regionalID) {
+              regionalID = localStorage.getItem('regionalID');
+              regionalNome = localStorage.getItem('regionalNome');
+          }
+          
+          // Se por algum erro não houver regional mesmo logado, força logout para escolher
+          if (!regionalID) { fazendoLogout(); return; }
+
           window.userEmail = user.email.toLowerCase();
           window.isAdmin = userEmail.includes("admin") || userEmail.includes("welder");
           window.isMotorista = userEmail.includes("motorista") || userEmail.includes("cleones") || userEmail.includes("ramona") || userEmail.includes("neyrailson");
+          
+          // Esconde todas as telas e mostra o App
           document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
           document.getElementById('app-screen').classList.remove('hidden');
           document.getElementById('app-unit-name').innerText = regionalNome;
           document.getElementById('nome-usuario').innerText = user.email;
+          
           if(window.isAdmin || window.isMotorista) document.getElementById('painel-add-folga').classList.remove('hidden');
+          
           onValue(ref(db, ".info/connected"), (snap) => {
             const status = document.getElementById("status-conexao");
             if (snap.val() === true) { status.innerText = "🟢 Online"; status.style.background = "var(--success)"; }
             else { status.innerText = "🔴 Offline"; status.style.background = "var(--danger)"; }
           });
           configurarUI(); iniciarEscutaBanco();
+        } else {
+          // Se NÃO logado, SEMPRE mostra a tela de seleção de unidades primeiro
+          document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+          document.getElementById('unit-screen').classList.remove('hidden');
         }
       });
 
@@ -308,13 +348,13 @@
             update(ref(db, `${root}/${id}`), dados).then(() => {
                 document.getElementById("btn-whatsapp-manual").classList.remove("hidden");
                 document.getElementById("btn-save").style.opacity = "0.5";
-                alert("Salvo com sucesso! AGORA CLIQUE NO BOTÃO VERDE DO WHATSAPP.");
+                alert("Salvo! CLIQUE NO BOTÃO VERDE DO WHATSAPP.");
             });
         } else {
             push(ref(db, root), dados).then(() => {
                 document.getElementById("btn-whatsapp-manual").classList.remove("hidden");
                 document.getElementById("btn-save").classList.add("hidden");
-                alert("Salvo com sucesso! AGORA CLIQUE NO BOTÃO VERDE DO WHATSAPP.");
+                alert("Salvo! CLIQUE NO BOTÃO VERDE DO WHATSAPP.");
             });
         }
       };
@@ -334,7 +374,7 @@
           let btns = "";
           if(window.isAdmin || v.registradoPor === window.userEmail) btns += `<button class="btn-edit" onclick="prepararEdicao('${v.id}')">✏️</button>`;
           if(window.isMotorista && status !== "Confirmado") btns += `<button class="btn-confirm" onclick="confirmar('${v.id}')">✔</button>`;
-          if(window.isAdmin) btns += `<button style="background:var(--danger)" onclick="deletar('${v.id}')">🗑️</button>`;
+          if(window.isAdmin) btns += `<button style="background:var(--danger); color:white; border:none; padding: 5px 10px; border-radius:4px; cursor:pointer;" onclick="deletar('${v.id}')">🗑️</button>`;
           const dataS = new Date(v.saida).toLocaleString('pt-BR', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
           const dataC = new Date(v.chegada).toLocaleString('pt-BR', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
           tb.innerHTML += `<tr class="${foiRealizada ? 'viagem-concluida' : ''}" style="border-bottom: 1px solid #eee;">
@@ -366,7 +406,17 @@
 
       window.deletar = (id) => { if(confirm("Excluir?")) remove(ref(db, (regionalID==='14-regional'?'':'unidades/'+regionalID+'/') + "viagens/" + id)); };
       window.cancelarEdicao = () => location.reload();
-      window.fazerLogout = () => { signOut(auth).then(() => { localStorage.clear(); location.reload(); }); };
+      
+      // Ajuste na função logout para limpar tudo e garantir volta à tela 1
+      window.fazerLogout = () => { 
+          signOut(auth).then(() => { 
+              localStorage.clear(); 
+              regionalID = ""; 
+              regionalNome = ""; 
+              location.reload(); 
+          }); 
+      };
+
       window.salvarFolga = () => { 
         const inicio = document.getElementById('folga-inicio').value; const fim = document.getElementById('folga-fim').value; const motivo = document.getElementById('folga-motivo').value;
         if(!inicio || !fim || !motivo) return alert("Preencha tudo!");
@@ -376,7 +426,7 @@
       function renderFolgas() { 
         const l = document.getElementById('lista-folgas-visual'); l.innerHTML = ""; 
         window.listaFolgas.forEach(f => {
-            let btnDel = (window.isAdmin || window.isMotorista) ? `<button onclick="deletarFolga('${f.id}')" style="background:none; color:var(--danger); padding:0; margin-left:10px;">🗑️</button>` : "";
+            let btnDel = (window.isAdmin || window.isMotorista) ? `<button onclick="deletarFolga('${f.id}')" style="background:none; color:var(--danger); padding:0; margin-left:10px; cursor:pointer; border:none;">🗑️</button>` : "";
             l.innerHTML += `<div class="folga-item"><strong>🚫 ${new Date(f.inicio + "T00:00:00").toLocaleDateString('pt-BR')} a ${new Date(f.fim + "T00:00:00").toLocaleDateString('pt-BR')}</strong>: ${f.motivo} ${btnDel}</div>`;
         }); 
       }
