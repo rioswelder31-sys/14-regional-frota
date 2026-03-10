@@ -278,6 +278,7 @@
         const chegada = document.getElementById("chegada").value;
         const id = document.getElementById("edit-id").value;
         if(!solicitante || !saida || !chegada) return alert("Preencha solicitante e horários!");
+        if(window.roteiroAtual.length === 0) return alert("Preencha o roteiro da viagem!");
         const conflito = temConflito(saida, chegada, id);
         if(conflito) {
             if(conflito.tipo === 'folga') { alert(`🛑 INDISPONÍVEL!\nO motorista está em folga: ${conflito.motivo}`); return; }
