@@ -4,9 +4,101 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Frota DPE - Multi-Regional (V81.0)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-      :root { --primary: #003366; --secondary: #f8f9fa; --success: #28a745; --whatsapp: #25d366; --danger: #dc3545; --warning: #ffc107; --dark-text: #333; --blocked: #721c24; --blocked-bg: #f8d7da; }
-      body { font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #eef2f5; margin: 0; padding-bottom: 50px; color: var(--dark-text); font-size: 1rem; }
+      :root { --primary: #009c3b; --secondary: #f8f9fa; --success: #28a745; --whatsapp: #25d366; --danger: #dc3545; --warning: #ffc107; --dark-text: #333; --blocked: #721c24; --blocked-bg: #f8d7da; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f3f4f6; color: #333; }
+      
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes slideInLeft {
+        from {
+          opacity: 0;
+          transform: translateX(-30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      .animate-fade-in-up {
+        animation: fadeInUp 0.6s ease-out;
+      }
+
+      .card-hover {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .card-hover:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
+      }
+
+      .btn-aceder {
+        background-color: var(--primary);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-block;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border: none;
+        font-size: 1rem;
+        width: 100%;
+      }
+
+      .btn-aceder:hover {
+        background-color: #001f4d;
+        transform: translateX(4px);
+      }
+
+      .footer-developer {
+        background-color: var(--primary);
+        color: white;
+        padding: 2rem 1rem;
+        text-align: center;
+        border-top: 4px solid #0052a3;
+      }
+
+      .developer-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        max-width: 1100px;
+        margin: 0 auto;
+        flex-wrap: wrap;
+        gap: 2rem;
+      }
+
+      .developer-info {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 0.95rem;
+      }
+
+      .developer-icon {
+        font-size: 1.5rem;
+        color: #4da6ff;
+      }
+
+      .copyright-info {
+        font-size: 0.875rem;
+        opacity: 0.9;
+      }
       .container { max-width: 1100px; margin: 15px auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); }
       .header { background: var(--primary); color: white; padding: 15px; border-radius: 8px 8px 0 0; margin: -20px -20px 20px -20px; }
       .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
@@ -28,7 +120,17 @@
       .driver-badge { background: #e8f0fe; padding: 12px 15px; border-radius: 4px; margin-bottom: 20px; border-left: 5px solid var(--primary); font-size: 0.95em; display: flex; justify-content: space-between; align-items: center; }
 
       /* Estilo Telas de Login/Registro conforme foto */
-      #login-screen, #comarca-screen, #register-screen { max-width: 450px; margin: 60px auto; padding: 40px; text-align: center; border-radius: 10px; border-top: 6px solid var(--primary); background: white; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
+      #login-screen, #comarca-screen, #register-screen { 
+        max-width: 450px; 
+        margin: 60px auto; 
+        padding: 40px; 
+        text-align: center; 
+        border-radius: 10px; 
+        border-top: 6px solid var(--primary); 
+        background: white; 
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        animation: fadeInUp 0.6s ease-out;
+      }
       .password-container { position: relative; width: 100%; margin-bottom: 10px; }
       .toggle-password { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #666; font-size: 1.3em; }
 
@@ -53,18 +155,67 @@
   </head>
   <body>
 
-    <div id="unit-screen" class="container">
-      <h1 style="text-align: center; color: var(--primary);">Defensoria Pública da Bahia</h1>
-      <div class="unit-grid">
-        <div class="unit-card" onclick="selecionarUnidade('14-regional', '14ª Regional - Teixeira de Freitas')"><h2>14ª Regional</h2><p>Extremo Sul</p></div>
-        <div class="unit-card" onclick="mostrarSub9()"><h2>9ª Regional</h2><p>Costa do Descobrimento</p></div>
+    <div id="unit-screen" class="hidden">
+      <div class="min-h-screen bg-gradient-to-b from-gray-100 to-gray-50 flex flex-col">
+        <!-- Hero Section -->
+        <div class="flex-1 flex items-center justify-center px-4 py-20">
+          <div class="max-w-5xl w-full animate-fade-in-up">
+            <!-- Logo/Icon -->
+            <div class="text-center mb-12">
+              <div class="text-6xl mb-6">🚗</div>
+              <h1 class="text-5xl font-bold text-gray-900 mb-4">Sistema de Gestão de Frota</h1>
+              <p class="text-xl text-gray-600">Defensoria Pública do Estado da Bahia</p>
+              <div class="w-24 h-1 bg-blue-600 mx-auto mt-6"></div>
+            </div>
+
+            <!-- Cards Grid -->
+            <div class="grid md:grid-cols-2 gap-8 mt-16">
+              <!-- Card 14ª Regional -->
+              <div class="card-hover bg-white rounded-lg shadow-lg overflow-hidden border-l-4 border-blue-700 p-8 transform transition-all duration-300" style="animation: fadeInUp 0.8s ease-out 0.1s both;">
+                <div class="text-6xl mb-4 text-blue-700">🏛️</div>
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">14ª Regional</h2>
+                <p class="text-gray-600 text-lg mb-8">Teixeira de Freitas & Extremo Sul</p>
+                <button class="btn-aceder text-center" onclick="selecionarUnidade('14-regional', '14ª Regional - Teixeira de Freitas')">
+                  Aceder Unidade →
+                </button>
+              </div>
+
+              <!-- Card 9ª Regional -->
+              <div class="card-hover bg-white rounded-lg shadow-lg overflow-hidden border-l-4 border-blue-700 p-8 transform transition-all duration-300" style="animation: fadeInUp 0.8s ease-out 0.2s both;">
+                <div class="text-6xl mb-4 text-blue-700">⚖️</div>
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">9ª Regional</h2>
+                <p class="text-gray-600 text-lg mb-8">Costa do Descobrimento</p>
+                <button class="btn-aceder text-center" onclick="mostrarSub9()">
+                  Aceder Unidade →
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer Developer -->
+        <footer class="footer-developer">
+          <div class="developer-section">
+            <div class="developer-info">
+              <span class="developer-icon">👨‍💻</span>
+              <div>
+                <div><strong>DESENVOLVEDOR DO SISTEMA</strong></div>
+                <div>Welder Rios / 14ª Regional</div>
+              </div>
+            </div>
+            <div class="copyright-info">
+              <div>SAD - Sistema de Agendamento Defensorial</div>
+              <div>© 2026 - Versão de Alta Performance</div>
+            </div>
+          </div>
+        </footer>
       </div>
     </div>
 
     <div id="comarca-screen" class="container hidden">
       <h2 style="color: var(--primary); text-align: center;">Selecione a Comarca</h2>
-      <button class="btn-primary" onclick="selecionarUnidade('PORTO SEGURO', '9ª Regional - Porto Seguro')">Porto Seguro</button>
-      <button class="btn-primary" onclick="selecionarUnidade('EUNAPOLIS', '9ª Regional - Eunápolis')">Eunápolis</button>
+      <button class="btn-primary" style="margin-bottom: 20px;" onclick="selecionarUnidade('PORTO SEGURO', '9ª Regional - Porto Seguro')">Porto Seguro</button>
+      <button class="btn-primary" style="margin-bottom: 20px;" onclick="selecionarUnidade('EUNAPOLIS', '9ª Regional - Eunápolis')">Eunápolis</button>
       <button class="btn-secondary" onclick="voltarRegionais()">⬅ Voltar</button>
     </div>
 
@@ -76,8 +227,8 @@
         <span class="toggle-password" onclick="togglePassword('login-pass')">👁️</span>
       </div>
       <p style="text-align: right; margin-bottom: 25px;"><a href="#" style="font-size: 0.9em; color: var(--primary); text-decoration: none;" onclick="recuperarSenha()">Esqueceu a senha?</a></p>
-      <button class="btn-primary" onclick="realizarLogin()">Entrar</button>
-      <button class="btn-secondary" onclick="irParaRegistro()">Não tem conta? Criar Agora</button>
+      <button class="btn-primary" style="margin-bottom: 20px;" onclick="realizarLogin()">Entrar</button>
+      <button class="btn-secondary" style="margin-bottom: 20px;" onclick="irParaRegistro()">Não tem conta? Criar Agora</button>
       <button class="btn-secondary" onclick="voltarRegionais()" style="background:#888;">⬅ Voltar</button>
     </div>
 
@@ -88,7 +239,7 @@
         <input type="password" id="reg-pass" placeholder="Crie uma senha (mín. 6 dígitos)" />
         <span class="toggle-password" onclick="togglePassword('reg-pass')">👁️</span>
       </div>
-      <button class="btn-primary" style="background:var(--success); margin-top:20px;" onclick="realizarCadastro()">Registrar e Entrar</button>
+      <button class="btn-primary" style="background:var(--success); margin-top:20px; margin-bottom: 20px;" onclick="realizarCadastro()">Registrar e Entrar</button>
       <button class="btn-secondary" onclick="voltarLogin()">⬅ Voltar para Login</button>
     </div>
 
@@ -150,6 +301,10 @@
       </div>
 
       <h3 style="margin-top: 40px; color: var(--primary);">📅 Agenda de Viagens</h3>
+      <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+        <button style="background: #17a2b8; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="imprimirAgenda()">🖨️ Imprimir</button>
+        <button style="background: #6f42c1; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="exportarCSV()">📥 Exportar CSV</button>
+      </div>
       <div style="overflow-x:auto;"><table style="width:100%; border-collapse: collapse; min-width: 900px;"><thead style="background:#004080; color:white;"><tr><th style="padding:12px;">Status</th><th style="padding:12px;">Saída</th><th style="padding:12px;">Retorno</th><th style="padding:12px;">Solicitante</th><th style="padding:12px;">Roteiro</th><th style="padding:12px; text-align:center;">Ações</th></tr></thead><tbody id="tb-corpo"></tbody></table></div>
     </div>
 
@@ -175,8 +330,8 @@
       window.togglePassword = (id) => { const i = document.getElementById(id); i.type = i.type === "password" ? "text" : "password"; };
       window.recuperarSenha = () => { const e = document.getElementById("login-user").value; if(!e) return alert("Digite o e-mail."); sendPasswordResetEmail(auth, e).then(() => alert("E-mail enviado!")); };
       window.mostrarSub9 = () => { document.getElementById('unit-screen').classList.add('hidden'); document.getElementById('comarca-screen').classList.remove('hidden'); };
-      window.voltarRegionais = () => { document.querySelectorAll('.container').forEach(c => c.classList.add('hidden')); document.getElementById('unit-screen').classList.remove('hidden'); };
-      window.selecionarUnidade = (id, nome) => { regionalID = id; regionalNome = nome; localStorage.setItem('regionalID', id); localStorage.setItem('regionalNome', nome); document.querySelectorAll('.container').forEach(c => c.classList.add('hidden')); document.getElementById('login-screen').classList.remove('hidden'); document.getElementById('login-title').innerText = nome; };
+      window.voltarRegionais = () => { document.querySelectorAll('[id$="-screen"]').forEach(c => c.classList.add('hidden')); document.getElementById('unit-screen').classList.remove('hidden'); };
+      window.selecionarUnidade = (id, nome) => { regionalID = id; regionalNome = nome; localStorage.setItem('regionalID', id); localStorage.setItem('regionalNome', nome); document.querySelectorAll('[id$="-screen"]').forEach(c => c.classList.add('hidden')); document.getElementById('login-screen').classList.remove('hidden'); document.getElementById('login-title').innerText = nome; };
       window.irParaRegistro = () => { document.getElementById('login-screen').classList.add('hidden'); document.getElementById('register-screen').classList.remove('hidden'); };
       window.voltarLogin = () => { document.getElementById('register-screen').classList.add('hidden'); document.getElementById('login-screen').classList.remove('hidden'); };
       window.realizarLogin = () => { signInWithEmailAndPassword(auth, document.getElementById("login-user").value, document.getElementById("login-pass").value).catch(e => alert(e.message)); };
@@ -192,7 +347,7 @@
           const isSilvana = window.userEmail.includes("silvana") && window.userEmail.includes("almeida");
           window.podeTudo = isWelder || (isEsther && regionalID === 'EUNAPOLIS') || (isSilvana && (regionalID === 'PORTO SEGURO' || regionalID === 'EUNAPOLIS'));
           window.isMotorista = userEmail.includes("motorista") || userEmail.includes("cleones") || userEmail.includes("ramona") || userEmail.includes("neyrailson");
-          document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+          document.querySelectorAll('[id$="-screen"]').forEach(c => c.classList.add('hidden'));
           document.getElementById('app-screen').classList.remove('hidden');
           document.getElementById('app-unit-name').innerText = regionalNome;
           document.getElementById('nome-usuario').innerText = user.email;
@@ -204,7 +359,7 @@
           if(window.podeTudo || window.isMotorista) document.getElementById('painel-add-folga').classList.remove('hidden');
           configurarUI(); iniciarEscutaBanco();
         } else {
-          document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+          document.querySelectorAll('[id$="-screen"]').forEach(c => c.classList.add('hidden'));
           document.getElementById('unit-screen').classList.remove('hidden');
         }
       });
@@ -247,6 +402,53 @@
       }
 
       window.limparRoteiro = () => { window.roteiroAtual = []; renderRoteiro(); };
+
+      window.abrirNoGoogleMaps = () => {
+        if (window.roteiroAtual.length === 0) {
+          alert("Adicione pelo menos um trecho ao roteiro para visualizar no mapa!");
+          return;
+        }
+        
+        // Extrai todas as cidades do roteiro em ordem
+        let cidades = [];
+        window.roteiroAtual.forEach((t, i) => {
+          const origem = t.origem.split(' - ')[1] || t.origem;
+          if (i === 0) cidades.push(origem);
+          const destino = t.destino.split(' - ')[1] || t.destino;
+          cidades.push(destino);
+        });
+        
+        // Remove duplicatas consecutivas
+        cidades = cidades.filter((c, i) => i === 0 || c !== cidades[i-1]);
+        
+        // Constrói URL do Google Maps com os pontos
+        const mapsUrl = `https://www.google.com/maps/dir/${cidades.map(c => encodeURIComponent(c)).join('/')}`;
+        window.open(mapsUrl, '_blank');
+      };
+
+      window.abrirRotaGoogleMaps = (id) => {
+        const v = window.listaViagens.find(x => x.id === id);
+        if (!v || !v.roteiroArray || v.roteiroArray.length === 0) {
+          alert("Nenhuma rota disponível para esta viagem!");
+          return;
+        }
+        
+        // Extrai todas as cidades do roteiro em ordem
+        let cidades = [];
+        v.roteiroArray.forEach((t, i) => {
+          const origem = t.origem.split(' - ')[1] || t.origem;
+          if (i === 0) cidades.push(origem);
+          const destino = t.destino.split(' - ')[1] || t.destino;
+          cidades.push(destino);
+        });
+        
+        // Remove duplicatas consecutivas
+        cidades = cidades.filter((c, i) => i === 0 || c !== cidades[i-1]);
+        
+        // Constrói URL do Google Maps com os pontos
+        const mapsUrl = `https://www.google.com/maps/dir/${cidades.map(c => encodeURIComponent(c)).join('/')}`;
+        window.open(mapsUrl, '_blank');
+      };
 
       function iniciarEscutaBanco() {
         const root = (regionalID === '14-regional' ? '' : `unidades/${regionalID}/`);
@@ -305,6 +507,7 @@
           let btns = "";
           if(temP) btns += `<button class="btn-edit" onclick="prepararEdicao('${v.id}')">✏️</button>`;
           if(window.isMotorista && v.status !== "Confirmado") btns += `<button class="btn-confirm" onclick="confirmar('${v.id}')">✔</button>`;
+          btns += `<button style="background:#16a085; color:white; width: auto; padding: 8px 12px; font-size: 0.9em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer;" onclick="abrirRotaGoogleMaps('${v.id}')">🗺️</button>`;
           if(temP) btns += `<button class="btn-delete" onclick="deletar('${v.id}')">🗑️</button>`;
           const status = v.status || "Pendente";
           const classeLinha = status === 'Confirmado' ? 'linha-confirmada' : '';
@@ -335,6 +538,38 @@
       window.salvarFolga = () => { push(ref(db, (regionalID==='14-regional'?'':'unidades/'+regionalID+'/') + 'folgas'), { inicio: document.getElementById('folga-inicio').value, fim: document.getElementById('folga-fim').value, motivo: document.getElementById('folga-motivo').value }); };
       window.deletarFolga = (id) => remove(ref(db, (regionalID==='14-regional'?'':'unidades/'+regionalID+'/') + "folgas/" + id));
       function renderFolgas() { const l = document.getElementById('lista-folgas-visual'); l.innerHTML = ""; window.listaFolgas.forEach(f => { l.innerHTML += `<div class="folga-item"><strong>🚫 ${new Date(f.inicio + "T00:00:00").toLocaleDateString('pt-BR')} a ${new Date(f.fim + "T00:00:00").toLocaleDateString('pt-BR')}</strong>: ${f.motivo} <button onclick="deletarFolga('${f.id}')" style="background:none; color:red; width:auto; border:none; cursor:pointer;">🗑️</button></div>`; }); }
+      
+      window.imprimirAgenda = () => {
+        const printWindow = window.open('', '', 'height=500,width=800');
+        let html = `<html><head><title>Agenda de Viagens - ${regionalNome}</title><style>body { font-family: Arial, sans-serif; margin: 20px; } table { width: 100%; border-collapse: collapse; } th, td { border: 1px solid #333; padding: 10px; text-align: left; } th { background-color: #009c3b; color: white; font-weight: bold; } tr:nth-child(even) { background-color: #f2f2f2; } h2 { color: #009c3b; } .header { margin-bottom: 20px; }</style></head><body>`;
+        html += `<div class="header"><h2>Agenda de Viagens</h2><p><strong>Regional:</strong> ${regionalNome}</p><p><strong>Data de Impressão:</strong> ${new Date().toLocaleString('pt-BR')}</p></div>`;
+        html += `<table><thead><tr><th>Status</th><th>Saída</th><th>Retorno</th><th>Solicitante</th><th>Roteiro</th></tr></thead><tbody>`;
+        window.listaViagens.forEach(v => {
+          html += `<tr><td>${v.status || 'Pendente'}</td><td>${new Date(v.saida).toLocaleString('pt-BR')}</td><td>${new Date(v.chegada).toLocaleString('pt-BR')}</td><td>${v.solicitante}</td><td>${v.trajetoExibicao.replace(/\n/g, ' | ')}</td></tr>`;
+        });
+        html += `</tbody></table></body></html>`;
+        printWindow.document.write(html);
+        printWindow.document.close();
+        printWindow.print();
+      };
+
+      window.exportarCSV = () => {
+        let csv = 'Status,Saída,Retorno,Solicitante,Roteiro\n';
+        window.listaViagens.forEach(v => {
+          const status = v.status || 'Pendente';
+          const saida = new Date(v.saida).toLocaleString('pt-BR');
+          const chegada = new Date(v.chegada).toLocaleString('pt-BR');
+          const roteiro = v.trajetoExibicao.replace(/\n/g, ' | ');
+          csv += `"${status}","${saida}","${chegada}","${v.solicitante}","${roteiro}"\n`;
+        });
+        
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `agenda-viagens-${new Date().toISOString().split('T')[0]}.csv`);
+        link.click();
+      };
     </script>
   </body>
 </html>
