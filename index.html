@@ -317,7 +317,7 @@
       const firebaseConfig = { apiKey: "AIzaSyDvGkxC9WkYICERhbIHcE9yComvh5AF2gw", authDomain: "frota14regional-8fecc.firebaseapp.com", databaseURL: "https://frota14regional-8fecc-default-rtdb.firebaseio.com", projectId: "frota14regional-8fecc" };
       const app = initializeApp(firebaseConfig); const db = getDatabase(app); const auth = getAuth(app);
 
-      let regionalID = ""; let regionalNome = ""; 
+      window.regionalID = ""; window.regionalNome = "";
       window.roteiroAtual = []; window.listaViagens = []; window.listaFolgas = []; window.dadosWppTemp = "";
 
       const CONTATOS = {
@@ -333,7 +333,7 @@
       window.mostrarSub9 = () => { document.getElementById('unit-screen').classList.add('hidden'); document.getElementById('comarca-screen').classList.remove('hidden'); };
       window.voltarParaTelaRegionais = () => { document.querySelectorAll('[id$="-screen"]').forEach(c => c.classList.add('hidden')); document.getElementById('unit-screen').classList.remove('hidden'); };
       window.voltarRegionais = () => { 
-        if (regionalID === 'PORTO SEGURO' || regionalID === 'EUNAPOLIS') {
+        if (window.regionalID === 'PORTO SEGURO' || window.regionalID === 'EUNAPOLIS') {
           document.querySelectorAll('[id$="-screen"]').forEach(c => c.classList.add('hidden')); 
           document.getElementById('comarca-screen').classList.remove('hidden');
         } else {
@@ -345,25 +345,25 @@
         document.querySelectorAll('[id$="-screen"]').forEach(c => c.classList.add('hidden')); 
         document.getElementById('unit-screen').classList.remove('hidden'); 
       };
-      window.selecionarUnidade = (id, nome) => { regionalID = id; regionalNome = nome; localStorage.setItem('regionalID', id); localStorage.setItem('regionalNome', nome); document.querySelectorAll('[id$="-screen"]').forEach(c => c.classList.add('hidden')); document.getElementById('login-screen').classList.remove('hidden'); document.getElementById('login-title').innerText = nome; };
+      window.selecionarUnidade = (id, nome) => { window.regionalID = id; window.regionalNome = nome; localStorage.setItem('regionalID', id); localStorage.setItem('regionalNome', nome); document.querySelectorAll('[id$="-screen"]').forEach(c => c.classList.add('hidden')); document.getElementById('login-screen').classList.remove('hidden'); document.getElementById('login-title').innerText = nome; };
       window.irParaRegistro = () => { document.getElementById('login-screen').classList.add('hidden'); document.getElementById('register-screen').classList.remove('hidden'); };
       window.voltarLogin = () => { document.getElementById('register-screen').classList.add('hidden'); document.getElementById('login-screen').classList.remove('hidden'); };
       window.realizarLogin = () => { signInWithEmailAndPassword(auth, document.getElementById("login-user").value, document.getElementById("login-pass").value).catch(e => alert(e.message)); };
       window.realizarCadastro = () => { createUserWithEmailAndPassword(auth, document.getElementById("reg-user").value, document.getElementById("reg-pass").value).then(() => alert("Conta criada!")).catch(e => alert(e.message)); };
-      window.fazerLogout = () => { signOut(auth).then(() => { localStorage.clear(); regionalID = ""; location.reload(); }); };
+      window.fazerLogout = () => { signOut(auth).then(() => { localStorage.clear(); window.regionalID = ""; location.reload(); }); };
 
       onAuthStateChanged(auth, (user) => {
         if (user) {
-          if (!regionalID) { regionalID = localStorage.getItem('regionalID'); regionalNome = localStorage.getItem('regionalNome'); }
+          if (!window.regionalID) { window.regionalID = localStorage.getItem('regionalID'); window.regionalNome = localStorage.getItem('regionalNome'); }
           window.userEmail = user.email.toLowerCase();
           const isWelder = window.userEmail.includes("welder") || window.userEmail.includes("admin");
           const isEsther = window.userEmail.includes("esther") && window.userEmail.includes("souza");
           const isSilvana = window.userEmail.includes("silvana") && window.userEmail.includes("almeida");
-          window.podeTudo = isWelder || (isEsther && regionalID === 'EUNAPOLIS') || (isSilvana && (regionalID === 'PORTO SEGURO' || regionalID === 'EUNAPOLIS'));
+          window.podeTudo = isWelder || (isEsther && window.regionalID === 'EUNAPOLIS') || (isSilvana && (window.regionalID === 'PORTO SEGURO' || window.regionalID === 'EUNAPOLIS'));
           window.isMotorista = userEmail.includes("motorista") || userEmail.includes("cleones") || userEmail.includes("ramona") || userEmail.includes("neyrailson");
           document.querySelectorAll('[id$="-screen"]').forEach(c => c.classList.add('hidden'));
           document.getElementById('app-screen').classList.remove('hidden');
-          document.getElementById('app-unit-name').innerText = regionalNome;
+          document.getElementById('app-unit-name').innerText = window.regionalNome;
           document.getElementById('nome-usuario').innerText = user.email;
           onValue(ref(db, ".info/connected"), (snap) => {
             const status = document.getElementById("status-conexao");
@@ -380,9 +380,9 @@
 
       function configurarUI() {
         const dlS = document.getElementById('lista-solicitantes'); dlS.innerHTML = "";
-        Object.keys(CONTATOS[regionalID].equipe).forEach(n => dlS.innerHTML += `<option value="${n}">`);
-        document.getElementById('nome-motorista').innerText = CONTATOS[regionalID].motorista;
-        document.getElementById('tel-motorista').innerText = `📱 ${CONTATOS[regionalID].tel}`;
+        Object.keys(CONTATOS[window.regionalID].equipe).forEach(n => dlS.innerHTML += `<option value="${n}">`);
+        document.getElementById('nome-motorista').innerText = CONTATOS[window.regionalID].motorista;
+        document.getElementById('tel-motorista').innerText = `📱 ${CONTATOS[window.regionalID].tel}`;
         const ufo = document.getElementById('uf-origem'); const ufd = document.getElementById('uf-destino');
         ufo.innerHTML = ""; ufd.innerHTML = "";
         const estados = ["AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT","PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO"];
@@ -396,7 +396,7 @@
         const caps = {"AC":"RIO BRANCO","AL":"MACEIÓ","AM":"MANAUS","AP":"MACAPÁ","CE":"FORTALEZA","DF":"BRASÍLIA","ES":"VITÓRIA","GO":"GOIÂNIA","MA":"SÃO LUÍS","MG":"BELO HORIZONTE","MS":"CAMPO GRANDE","MT":"CUIABÁ","PA":"BELÉM","PB":"JOÃO PESSOA","PE":"RECIFE","PI":"TERESINA","PR":"CURITIBA","RJ":"RIO DE JANEIRO","RN":"NATAL","RO":"PORTO VELHO","RR":"BOA VISTA","RS":"PORTO ALEGRE","SC":"FLORIANÓPOLIS","SE":"ARACAJU","SP":"SÃO PAULO","TO":"PALMAS"};
         let cidades = (uf === 'BA' ? cidadesBA : (uf === 'ES' ? ["VITÓRIA", "VILA VELHA", "SERRA", "LINHARES", "SÃO MATEUS", "CARIACICA"] : [caps[uf] || ""]));
         cidades.forEach(c => dl.innerHTML += `<option value="${c}">`);
-        if(t === 'origem' && uf === 'BA' && regionalID === '14-regional' && !document.getElementById(`cidade-origem`).value) { document.getElementById(`cidade-origem`).value = "TEIXEIRA DE FREITAS"; }
+        if(t === 'origem' && uf === 'BA' && window.regionalID === '14-regional' && !document.getElementById(`cidade-origem`).value) { document.getElementById(`cidade-origem`).value = "TEIXEIRA DE FREITAS"; }
       };
 
       window.adicionarTrecho = () => {
@@ -465,9 +465,13 @@
       };
 
       function iniciarEscutaBanco() {
-        const root = (regionalID === '14-regional' ? '' : `unidades/${regionalID}/`);
-        onValue(ref(db, root + "viagens"), (s) => { window.listaViagens = s.val() ? Object.keys(s.val()).map(k => ({...s.val()[k], id: k})) : []; atualizarTabelaGlobal(); });
-        onValue(ref(db, root + "folgas"), (s) => { window.listaFolgas = s.val() ? Object.keys(s.val()).map(k => ({...s.val()[k], id: k})) : []; renderFolgas(); });
+        const path14 = 'viagens';
+        const pathOutras = `unidades/${window.regionalID}/viagens`;
+        const viagensPath = window.regionalID === '14-regional' ? path14 : pathOutras;
+        const folgasPath = window.regionalID === '14-regional' ? 'folgas' : `unidades/${window.regionalID}/folgas`;
+        console.log('Iniciando escuta - Regional:', window.regionalID, 'Viagens path:', viagensPath);
+        onValue(ref(db, viagensPath), (s) => { window.listaViagens = s.val() ? Object.keys(s.val()).map(k => ({...s.val()[k], id: k})) : []; console.log('Viagens carregadas:', window.listaViagens); atualizarTabelaGlobal(); });
+        onValue(ref(db, folgasPath), (s) => { window.listaFolgas = s.val() ? Object.keys(s.val()).map(k => ({...s.val()[k], id: k})) : []; renderFolgas(); });
       }
 
       function temConflito(novaSaida, novaChegada, ignorarId = null) {
@@ -504,15 +508,17 @@
         const trajetoString = window.roteiroAtual.map(t => `🔹 ${t.origem} → ${t.destino}`).join("\n");
         const dados = { solicitante, setor: document.getElementById("setor").value, saida, chegada, motivo: document.getElementById("motivo").value, trajetoExibicao: trajetoString, registradoPor: window.userEmail, status: "Pendente", roteiroArray: window.roteiroAtual, dataCriacao: new Date().toISOString() };
         
-        const motoristaNome = CONTATOS[regionalID].motorista;
+        const motoristaNome = CONTATOS[window.regionalID].motorista;
         window.dadosWppTemp = `Olá ${motoristaNome}! 🔹 Nova viagem agendada.\n\n*Solicitante:* ${dados.solicitante}\n*Saída:* ${new Date(dados.saida).toLocaleString('pt-BR')}\n*Retorno:* ${new Date(dados.chegada).toLocaleString('pt-BR')}\n*Motivo:* ${dados.motivo}\n*Roteiro:*\n${dados.trajetoExibicao}`;
 
-        const root = (regionalID === '14-regional' ? '' : `unidades/${regionalID}/`) + 'viagens';
+        const path14 = 'viagens';
+        const pathOutras = `unidades/${window.regionalID}/viagens`;
+        const root = window.regionalID === '14-regional' ? path14 : pathOutras;
         if(id) update(ref(db, `${root}/${id}`), dados).then(() => { document.getElementById("btn-whatsapp-manual").classList.remove("hidden"); alert("Salvo!"); });
         else push(ref(db, root), dados).then(() => { document.getElementById("btn-whatsapp-manual").classList.remove("hidden"); document.getElementById("btn-save").classList.add("hidden"); alert("Salvo!"); });
       };
 
-      window.abrirWhatsAppManual = () => { window.open(`https://wa.me/${CONTATOS[regionalID].tel}?text=${encodeURIComponent(window.dadosWppTemp)}`, '_blank'); location.reload(); };
+      window.abrirWhatsAppManual = () => { window.open(`https://wa.me/${CONTATOS[window.regionalID].tel}?text=${encodeURIComponent(window.dadosWppTemp)}`, '_blank'); location.reload(); };
 
       window.atualizarTabelaGlobal = () => {
         const tb = document.getElementById("tb-corpo"); tb.innerHTML = "";
@@ -529,7 +535,8 @@
           if (status === 'Confirmado' && chegada < agora) {
             status = "Finalizado";
             // Atualizar no banco de dados
-            update(ref(db, (regionalID==='14-regional'?'':'unidades/'+regionalID+'/')+`viagens/${v.id}`), {status:"Finalizado"});
+            const path = window.regionalID === '14-regional' ? `viagens/${v.id}` : `unidades/${window.regionalID}/viagens/${v.id}`;
+            update(ref(db, path), {status:"Finalizado"});
           }
           const classeLinha = status === 'Finalizado' ? 'linha-confirmada' : '';
           const badgeCor = status === 'Confirmado' ? 'status-confirmado' : status === 'Finalizado' ? 'status-finalizado' : 'status-pendente';
@@ -548,29 +555,42 @@
       
       window.confirmar = (id) => {
           const v = window.listaViagens.find(x => x.id === id);
-          update(ref(db, (regionalID==='14-regional'?'':'unidades/'+regionalID+'/')+`viagens/${id}`), {status:"Confirmado"}).then(() => {
-              const telSol = CONTATOS[regionalID].equipe[v.solicitante];
+          const path = window.regionalID === '14-regional' ? `viagens/${id}` : `unidades/${window.regionalID}/viagens/${id}`;
+          update(ref(db, path), {status:"Confirmado"}).then(() => {
+              const telSol = CONTATOS[window.regionalID].equipe[v.solicitante];
               const msgConf = `🔹 *VIAGEM CONFIRMADA*\nOlá ${v.solicitante}, sua solicitação para ${v.trajetoExibicao.replace(/\n/g, ' ')} foi confirmada pelo motorista.`;
               if(telSol && confirm("Avisar solicitante?")) window.open(`https://wa.me/${telSol}?text=${encodeURIComponent(msgConf)}`, '_blank');
           });
       };
 
-      window.deletar = (id) => { if(confirm("Excluir?")) remove(ref(db, (regionalID==='14-regional'?'':'unidades/'+regionalID+'/') + "viagens/" + id)); };
-      window.salvarFolga = () => { push(ref(db, (regionalID==='14-regional'?'':'unidades/'+regionalID+'/') + 'folgas'), { inicio: document.getElementById('folga-inicio').value, fim: document.getElementById('folga-fim').value, motivo: document.getElementById('folga-motivo').value }); };
-      window.deletarFolga = (id) => remove(ref(db, (regionalID==='14-regional'?'':'unidades/'+regionalID+'/') + "folgas/" + id));
+      window.deletar = (id) => { if(confirm("Excluir?")) { const path = window.regionalID === '14-regional' ? 'viagens' : `unidades/${window.regionalID}/viagens`; remove(ref(db, path + '/' + id)); } };
+      window.salvarFolga = () => { const path = window.regionalID === '14-regional' ? 'folgas' : `unidades/${window.regionalID}/folgas`; push(ref(db, path), { inicio: document.getElementById('folga-inicio').value, fim: document.getElementById('folga-fim').value, motivo: document.getElementById('folga-motivo').value }); };
+      window.deletarFolga = (id) => { const path = window.regionalID === '14-regional' ? 'folgas' : `unidades/${window.regionalID}/folgas`; remove(ref(db, path + '/' + id)); };
       function renderFolgas() { const l = document.getElementById('lista-folgas-visual'); l.innerHTML = ""; window.listaFolgas.forEach(f => { l.innerHTML += `<div class="folga-item"><strong>🚫 ${new Date(f.inicio + "T00:00:00").toLocaleDateString('pt-BR')} a ${new Date(f.fim + "T00:00:00").toLocaleDateString('pt-BR')}</strong>: ${f.motivo} <button onclick="deletarFolga('${f.id}')" style="background:none; color:red; width:auto; border:none; cursor:pointer;">🗑️</button></div>`; }); }
       
       window.imprimirAgenda = () => {
+        console.log('Debug Imprimir - Região:', window.regionalID);
+        console.log('Debug Imprimir - ListaViagens:', window.listaViagens);
+        console.log('Debug Imprimir - Qty:', window.listaViagens ? window.listaViagens.length : 0);
+        if (!window.listaViagens || window.listaViagens.length === 0) {
+          alert('Nenhuma viagem registrada para imprimir!');
+          return;
+        }
         const printWindow = window.open('', '', 'height=500,width=800');
-        let html = `<html><head><title>Agenda de Viagens - ${regionalNome}</title><style>body { font-family: Arial, sans-serif; margin: 20px; } table { width: 100%; border-collapse: collapse; } th, td { border: 1px solid #333; padding: 10px; text-align: left; } th { background-color: #009c3b; color: white; font-weight: bold; } tr:nth-child(even) { background-color: #f2f2f2; } h2 { color: #009c3b; } .header { margin-bottom: 20px; }</style></head><body>`;
-        html += `<div class="header"><h2>Agenda de Viagens</h2><p><strong>Regional:</strong> ${regionalNome}</p><p><strong>Data de Impressão:</strong> ${new Date().toLocaleString('pt-BR')}</p></div>`;
+        if (!printWindow) {
+          alert('Popup foi bloqueado. Por favor, permita popups neste site.');
+          return;
+        }
+        let html = `<html><head><title>Agenda de Viagens - ${window.regionalNome}</title><style>body { font-family: Arial, sans-serif; margin: 20px; } table { width: 100%; border-collapse: collapse; } th, td { border: 1px solid #333; padding: 10px; text-align: left; } th { background-color: #009c3b; color: white; font-weight: bold; } tr:nth-child(even) { background-color: #f2f2f2; } h2 { color: #009c3b; } .header { margin-bottom: 20px; }</style></head><body>`;
+        html += `<div class="header"><h2>Agenda de Viagens</h2><p><strong>Regional:</strong> ${window.regionalNome}</p><p><strong>Data de Impressão:</strong> ${new Date().toLocaleString('pt-BR')}</p></div>`;
         html += `<table><thead><tr><th>Status</th><th>Saída</th><th>Retorno</th><th>Solicitante</th><th>Roteiro</th></tr></thead><tbody>`;
         window.listaViagens.forEach(v => {
           let status = v.status || 'Pendente';
           const agora = new Date();
           const chegada = new Date(v.chegada);
           if (status === 'Confirmado' && chegada < agora) status = 'Finalizado';
-          html += `<tr><td>${status}</td><td>${new Date(v.saida).toLocaleString('pt-BR')}</td><td>${new Date(v.chegada).toLocaleString('pt-BR')}</td><td>${v.solicitante}</td><td>${v.trajetoExibicao.replace(/\n/g, ' | ')}</td></tr>`;
+          const traj = v.trajetoExibicao ? v.trajetoExibicao.replace(/\n/g, ' | ') : '';
+          html += `<tr><td>${status}</td><td>${new Date(v.saida).toLocaleString('pt-BR')}</td><td>${new Date(v.chegada).toLocaleString('pt-BR')}</td><td>${v.solicitante}</td><td>${traj}</td></tr>`;
         });
         html += `</tbody></table></body></html>`;
         printWindow.document.write(html);
@@ -579,12 +599,19 @@
       };
 
       window.exportarCSV = () => {
+        console.log('Debug Exportar - Região:', window.regionalID);
+        console.log('Debug Exportar - ListaViagens:', window.listaViagens);
+        console.log('Debug Exportar - Qty:', window.listaViagens ? window.listaViagens.length : 0);
+        if (!window.listaViagens || window.listaViagens.length === 0) {
+          alert('Nenhuma viagem registrada para exportar!');
+          return;
+        }
         let csv = 'Status,Saída,Retorno,Solicitante,Roteiro\n';
         window.listaViagens.forEach(v => {
           const status = v.status || 'Pendente';
           const saida = new Date(v.saida).toLocaleString('pt-BR');
           const chegada = new Date(v.chegada).toLocaleString('pt-BR');
-          const roteiro = v.trajetoExibicao.replace(/\n/g, ' | ');
+          const roteiro = v.trajetoExibicao ? v.trajetoExibicao.replace(/\n/g, ' | ') : '';
           csv += `"${status}","${saida}","${chegada}","${v.solicitante}","${roteiro}"\n`;
         });
         
