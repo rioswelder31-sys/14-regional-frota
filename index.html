@@ -144,7 +144,10 @@
       .status-pendente { background-color: var(--warning); color: #333; }
       .status-confirmado { background-color: var(--success); color: white; }
       .status-finalizado { background-color: #6c757d; color: white; }
+      .status-rejeitado { background-color: var(--danger); color: white; }
       .linha-confirmada { background-color: #d4edda !important; color: #155724; }
+      .btn-confirm { background: var(--success); color: white; width: auto; padding: 8px 12px; font-size: 0.9em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer; }
+      .btn-reject { background: var(--danger); color: white; width: auto; padding: 8px 12px; font-size: 0.9em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer; }
 
       .unit-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 30px; }
       .unit-card { border: 2px solid #ddd; padding: 30px; border-radius: 10px; cursor: pointer; text-align: center; background: #fff; transition: 0.3s; }
@@ -508,43 +511,60 @@
         const trajetoString = window.roteiroAtual.map(t => `🔹 ${t.origem} → ${t.destino}`).join("\n");
         const dados = { solicitante, setor: document.getElementById("setor").value, saida, chegada, motivo: document.getElementById("motivo").value, trajetoExibicao: trajetoString, registradoPor: window.userEmail, status: "Pendente", roteiroArray: window.roteiroAtual, dataCriacao: new Date().toISOString() };
         
-        // Dentro da função salvarNoFirebase...
-
         const motoristaNome = CONTATOS[window.regionalID].motorista;
         const dataSaidaFormatada = new Date(dados.saida).toLocaleString('pt-BR');
         const dataRetornoFormatada = new Date(dados.chegada).toLocaleString('pt-BR');
 
-        // Link para o motorista responder rapidamente
-        const telSolicitante = CONTATOS[window.regionalID].equipe[dados.solicitante];
-        const linkConfirmar = encodeURIComponent(`✅ Confirmar Viagem: ${dados.solicitante} (${dataSaidaFormatada})`);
-        const linkRecusar = encodeURIComponent(`❌ Recusar Viagem: ${dados.solicitante} (${dataSaidaFormatada})`);
-
-        window.dadosWppTemp = `*SOLICITAÇÃO DE VIAGEM - ${window.regionalNome}*
------------------------------------------
-🚗 *Motorista:* ${motoristaNome}
-👤 *Solicitante:* ${dados.solicitante}
-📅 *Saída:* ${dataSaidaFormatada}
-🔙 *Retorno:* ${dataRetornoFormatada}
-📍 *Roteiro:*
-${dados.trajetoExibicao}
-📝 *Motivo:* ${dados.motivo}
-
------------------------------------------
-*RESPOSTA RÁPIDA:*
-Clique no link abaixo para responder:
-
-👍 *CONFIRMAR:* https://wa.me/${telSolicitante}?text=${linkConfirmar}
-
-👎 *RECUSAR:* https://wa.me/${telSolicitante}?text=${linkRecusar}`;
+        // Mensagem SIMPLES para o motorista (apenas notificação, sem links)
+        const msgMotorista = `🔔 *NOVO AGENDAMENTO RECEBIDO*\n\n${window.regionalNome}\n\n👤 *Solicitante:* ${dados.solicitante}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${dados.trajetoExibicao}\n📝 *Motivo:* ${dados.motivo}\n\n*Acesse o aplicativo para confirmar ou recusar a viagem.*`;
 
         const path14 = 'viagens';
         const pathOutras = `unidades/${window.regionalID}/viagens`;
         const root = window.regionalID === '14-regional' ? path14 : pathOutras;
-        if(id) update(ref(db, `${root}/${id}`), dados).then(() => { document.getElementById("btn-whatsapp-manual").classList.remove("hidden"); alert("Salvo!"); });
-        else push(ref(db, root), dados).then(() => { document.getElementById("btn-whatsapp-manual").classList.remove("hidden"); document.getElementById("btn-save").classList.add("hidden"); alert("Salvo!"); });
+        const telMotorista = CONTATOS[window.regionalID].tel;
+        const encodedMsgMotorista = encodeURIComponent(msgMotorista);
+        
+        if(id) {
+          update(ref(db, `${root}/${id}`), dados).then(() => { 
+            // Edição de viagem - notificar motorista sobre alteração
+            const msgEdicao = `🔄 *VIAGEM EDITADA*\n\n${window.regionalNome}\n\n👤 *Solicitante:* ${dados.solicitante}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${dados.trajetoExibicao}\n📝 *Motivo:* ${dados.motivo}\n\n*A viagem foi editada. Acesse o aplicativo para confirmar ou recusar.*`;
+            window.open(`https://wa.me/${telMotorista}?text=${encodeURIComponent(msgEdicao)}`, '_blank');
+            
+            // Limpar formulário e atualizar tabela
+            document.getElementById('edit-id').value = '';
+            document.getElementById('solicitante').value = '';
+            document.getElementById('saida').value = '';
+            document.getElementById('chegada').value = '';
+            document.getElementById('motivo').value = '';
+            window.roteiroAtual = [];
+            renderRoteiro();
+            document.getElementById("btn-save").classList.remove("hidden");
+            document.getElementById("btn-whatsapp-manual").classList.add("hidden");
+            window.atualizarTabelaGlobal();
+            alert("Viagem editada! Motorista será notificado das alterações.");
+          });
+        } else {
+          push(ref(db, root), dados).then(() => { 
+            // Enviar mensagem automática SIMPLES para o motorista
+            window.open(`https://wa.me/${telMotorista}?text=${encodedMsgMotorista}`, '_blank');
+            document.getElementById("btn-whatsapp-manual").classList.remove("hidden"); 
+            document.getElementById("btn-save").classList.add("hidden");
+            window.atualizarTabelaGlobal();
+            alert("Salvo! Motorista será notificado.");
+          });
+        }
       };
 
-      window.abrirWhatsAppManual = () => { window.open(`https://wa.me/${CONTATOS[window.regionalID].tel}?text=${encodeURIComponent(window.dadosWppTemp)}`, '_blank'); location.reload(); };
+      window.abrirWhatsAppManual = () => { 
+        const telSolicitante = CONTATOS[window.regionalID].equipe[document.getElementById("solicitante").value];
+        if(!telSolicitante) return alert("Telefone do solicitante não encontrado!");
+        const dataSaidaFormatada = new Date(document.getElementById("saida").value).toLocaleString('pt-BR');
+        const motoristaNome = CONTATOS[window.regionalID].motorista;
+        const trajetoExibicao = document.getElementById("roteiro-visual").innerText || "Roteiro não preenchido";
+        const msgSolicitante = `*SOLICITAÇÃO DE VIAGEM - ${window.regionalNome}*\n-----------------------------------------\n🚗 *Motorista:* ${motoristaNome}\n👤 *Solicitante:* ${document.getElementById("solicitante").value}\n📅 *Saída:* ${dataSaidaFormatada}\n📍 *Roteiro:* ${trajetoExibicao}\n\nSua viagem foi agendada! O motorista pode confirmar ou recusar quando acessar o aplicativo.`;
+        window.open(`https://wa.me/${telSolicitante}?text=${encodeURIComponent(msgSolicitante)}`, '_blank'); 
+        location.reload(); 
+      };
 
       window.atualizarTabelaGlobal = () => {
         const tb = document.getElementById("tb-corpo"); tb.innerHTML = "";
@@ -552,7 +572,10 @@ Clique no link abaixo para responder:
           const temP = window.podeTudo || v.registradoPor === window.userEmail;
           let btns = "";
           if(temP) btns += `<button class="btn-edit" onclick="prepararEdicao('${v.id}')">✏️</button>`;
-          if(window.isMotorista && v.status !== "Confirmado") btns += `<button class="btn-confirm" onclick="confirmar('${v.id}')">✔</button>`;
+          if(window.isMotorista && v.status !== "Confirmado" && v.status !== "Rejeitado") {
+            btns += `<button class="btn-confirm" onclick="confirmar('${v.id}')">✅ Confirmar</button>`;
+            btns += `<button class="btn-reject" onclick="rejeitar('${v.id}')">❌ Rejeitar</button>`;
+          }
           btns += `<button style="background:#16a085; color:white; width: auto; padding: 8px 12px; font-size: 0.9em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer;" onclick="abrirRotaGoogleMaps('${v.id}')">🗺️</button>`;
           if(temP) btns += `<button class="btn-delete" onclick="deletar('${v.id}')">🗑️</button>`;
           let status = v.status || "Pendente";
@@ -565,7 +588,7 @@ Clique no link abaixo para responder:
             update(ref(db, path), {status:"Finalizado"});
           }
           const classeLinha = status === 'Finalizado' ? 'linha-confirmada' : '';
-          const badgeCor = status === 'Confirmado' ? 'status-confirmado' : status === 'Finalizado' ? 'status-finalizado' : 'status-pendente';
+          const badgeCor = status === 'Confirmado' ? 'status-confirmado' : status === 'Finalizado' ? 'status-finalizado' : status === 'Rejeitado' ? 'status-rejeitado' : 'status-pendente';
           tb.innerHTML += `<tr class="${classeLinha}" style="border-bottom: 1px solid #eee;">
             <td style="padding:12px; text-align:center"><span class="status-badge ${badgeCor}">${status}</span></td>
             <td style="padding:12px;">${new Date(v.saida).toLocaleString('pt-BR')}</td>
@@ -581,12 +604,34 @@ Clique no link abaixo para responder:
       
       window.confirmar = (id) => {
           const v = window.listaViagens.find(x => x.id === id);
+          if(!v) return alert("Viagem não encontrada!");
           const path = window.regionalID === '14-regional' ? `viagens/${id}` : `unidades/${window.regionalID}/viagens/${id}`;
           update(ref(db, path), {status:"Confirmado"}).then(() => {
               const telSol = CONTATOS[window.regionalID].equipe[v.solicitante];
-              const msgConf = `🔹 *VIAGEM CONFIRMADA*\nOlá ${v.solicitante}, sua solicitação para ${v.trajetoExibicao.replace(/\n/g, ' ')} foi confirmada pelo motorista.`;
-              if(telSol && confirm("Avisar solicitante?")) window.open(`https://wa.me/${telSol}?text=${encodeURIComponent(msgConf)}`, '_blank');
-          });
+              const dataSaidaFormatada = new Date(v.saida).toLocaleString('pt-BR');
+              const msgConf = `✅ *VIAGEM CONFIRMADA*\n\n${window.regionalNome}\n\n👤 *Solicitante:* ${v.solicitante}\n📅 *Saída:* ${dataSaidaFormatada}\n📍 *Roteiro:* ${v.trajetoExibicao.replace(/\n/g, ' ')}\n\nSua viagem foi confirmada pelo motorista!`;
+              if(telSol) {
+                window.open(`https://wa.me/${telSol}?text=${encodeURIComponent(msgConf)}`, '_blank');
+              }
+              alert("Viagem confirmada! Solicitante será notificado.");
+              setTimeout(() => window.atualizarTabelaGlobal(), 500);
+          }).catch(err => alert("Erro ao confirmar: " + err.message));
+      };
+
+      window.rejeitar = (id) => {
+          const v = window.listaViagens.find(x => x.id === id);
+          if(!v) return alert("Viagem não encontrada!");
+          const path = window.regionalID === '14-regional' ? `viagens/${id}` : `unidades/${window.regionalID}/viagens/${id}`;
+          update(ref(db, path), {status:"Rejeitado"}).then(() => {
+              const telSol = CONTATOS[window.regionalID].equipe[v.solicitante];
+              const dataSaidaFormatada = new Date(v.saida).toLocaleString('pt-BR');
+              const msgRejeicao = `❌ *VIAGEM REJEITADA*\n\n${window.regionalNome}\n\n👤 *Solicitante:* ${v.solicitante}\n📅 *Saída:* ${dataSaidaFormatada}\n📍 *Roteiro:* ${v.trajetoExibicao.replace(/\n/g, ' ')}\n\nInfelizmente, sua viagem foi rejeitada pelo motorista. Tente agendar em outro horário.`;
+              if(telSol) {
+                window.open(`https://wa.me/${telSol}?text=${encodeURIComponent(msgRejeicao)}`, '_blank');
+              }
+              alert("Viagem rejeitada! Solicitante será notificado.");
+              setTimeout(() => window.atualizarTabelaGlobal(), 500);
+          }).catch(err => alert("Erro ao rejeitar: " + err.message));
       };
 
       window.deletar = (id) => { if(confirm("Excluir?")) { const path = window.regionalID === '14-regional' ? 'viagens' : `unidades/${window.regionalID}/viagens`; remove(ref(db, path + '/' + id)); } };
