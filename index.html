@@ -508,8 +508,34 @@
         const trajetoString = window.roteiroAtual.map(t => `🔹 ${t.origem} → ${t.destino}`).join("\n");
         const dados = { solicitante, setor: document.getElementById("setor").value, saida, chegada, motivo: document.getElementById("motivo").value, trajetoExibicao: trajetoString, registradoPor: window.userEmail, status: "Pendente", roteiroArray: window.roteiroAtual, dataCriacao: new Date().toISOString() };
         
+        // Dentro da função salvarNoFirebase...
+
         const motoristaNome = CONTATOS[window.regionalID].motorista;
-        window.dadosWppTemp = `Olá ${motoristaNome}! 🔹 Nova viagem agendada.\n\n*Solicitante:* ${dados.solicitante}\n*Saída:* ${new Date(dados.saida).toLocaleString('pt-BR')}\n*Retorno:* ${new Date(dados.chegada).toLocaleString('pt-BR')}\n*Motivo:* ${dados.motivo}\n*Roteiro:*\n${dados.trajetoExibicao}`;
+        const dataSaidaFormatada = new Date(dados.saida).toLocaleString('pt-BR');
+        const dataRetornoFormatada = new Date(dados.chegada).toLocaleString('pt-BR');
+
+        // Link para o motorista responder rapidamente
+        const telSolicitante = CONTATOS[window.regionalID].equipe[dados.solicitante];
+        const linkConfirmar = encodeURIComponent(`✅ Confirmar Viagem: ${dados.solicitante} (${dataSaidaFormatada})`);
+        const linkRecusar = encodeURIComponent(`❌ Recusar Viagem: ${dados.solicitante} (${dataSaidaFormatada})`);
+
+        window.dadosWppTemp = `*SOLICITAÇÃO DE VIAGEM - ${window.regionalNome}*
+-----------------------------------------
+🚗 *Motorista:* ${motoristaNome}
+👤 *Solicitante:* ${dados.solicitante}
+📅 *Saída:* ${dataSaidaFormatada}
+🔙 *Retorno:* ${dataRetornoFormatada}
+📍 *Roteiro:*
+${dados.trajetoExibicao}
+📝 *Motivo:* ${dados.motivo}
+
+-----------------------------------------
+*RESPOSTA RÁPIDA:*
+Clique no link abaixo para responder:
+
+👍 *CONFIRMAR:* https://wa.me/${telSolicitante}?text=${linkConfirmar}
+
+👎 *RECUSAR:* https://wa.me/${telSolicitante}?text=${linkRecusar}`;
 
         const path14 = 'viagens';
         const pathOutras = `unidades/${window.regionalID}/viagens`;
