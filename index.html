@@ -178,9 +178,9 @@
               <div class="card-hover bg-white rounded-lg shadow-lg overflow-hidden border-l-4 border-blue-700 p-8 transform transition-all duration-300" style="animation: fadeInUp 0.8s ease-out 0.1s both;">
                 <div class="text-6xl mb-4 text-blue-700">🏛️</div>
                 <h2 class="text-3xl font-bold text-gray-900 mb-2">14ª Regional</h2>
-                <p class="text-gray-600 text-lg mb-8">Teixeira de Freitas & Extremo Sul</p>
+                <p class="text-gray-600 text-lg mb-8">Teixeira de Freitas - Extremo Sul</p>
                 <button class="btn-aceder text-center" onclick="selecionarUnidade('14-regional', '14ª Regional - Teixeira de Freitas')">
-                  Aceder Unidade →
+                  Acessar Unidade →
                 </button>
               </div>
 
@@ -190,7 +190,7 @@
                 <h2 class="text-3xl font-bold text-gray-900 mb-2">9ª Regional</h2>
                 <p class="text-gray-600 text-lg mb-8">Costa do Descobrimento</p>
                 <button class="btn-aceder text-center" onclick="mostrarSub9()">
-                  Aceder Unidade →
+                  Acessar Unidade →
                 </button>
               </div>
             </div>
@@ -201,7 +201,7 @@
         <footer class="footer-developer">
           <div class="developer-section">
             <div class="developer-info">
-              <span class="developer-icon">👨‍💻</span>
+              <span class="developer-icon">👨🏾‍💻</span>
               <div>
                 <div><strong>DESENVOLVEDOR DO SISTEMA</strong></div>
                 <div>Welder Rios / 14ª Regional</div>
@@ -220,7 +220,7 @@
       <h2 style="color: var(--primary); text-align: center;">Selecione a Comarca</h2>
       <button class="btn-primary" style="margin-bottom: 20px;" onclick="selecionarUnidade('PORTO SEGURO', '9ª Regional - Porto Seguro')">Porto Seguro</button>
       <button class="btn-primary" style="margin-bottom: 20px;" onclick="selecionarUnidade('EUNAPOLIS', '9ª Regional - Eunápolis')">Eunápolis</button>
-      <button class="btn-secondary" onclick="voltarParaTelaRegionais()">⬅ Voltar</button>
+      <button class="btn-primary" style="background: white; color: #666; border: 1px solid #ddd;" onclick="voltarParaTelaRegionais()">⬅ Voltar</button>
     </div>
 
     <div id="login-screen" class="container hidden">
@@ -232,8 +232,8 @@
       </div>
       <p style="text-align: right; margin-bottom: 25px;"><a href="#" style="font-size: 0.9em; color: var(--primary); text-decoration: none;" onclick="recuperarSenha()">Esqueceu a senha?</a></p>
       <button class="btn-primary" style="margin-bottom: 20px;" onclick="realizarLogin()">Entrar</button>
-      <button class="btn-secondary" style="margin-bottom: 20px;" onclick="irParaRegistro()">Não tem conta? Criar Agora</button>
-      <button class="btn-secondary" onclick="voltarRegionais()" style="background:#888;">⬅ Voltar</button>
+      <button class="btn-primary" style="background: white; color: var(--primary); border: 2px solid var(--primary); margin-bottom: 20px;" onclick="irParaRegistro()">Não tem conta? Criar Agora</button>
+      <button class="btn-primary" style="background: white; color: #666; border: 1px solid #ddd; margin-bottom: 20px;" onclick="voltarRegionais()">⬅ Voltar</button>
     </div>
 
     <div id="register-screen" class="container hidden">
@@ -244,7 +244,7 @@
         <span class="toggle-password" onclick="togglePassword('reg-pass')">👁️</span>
       </div>
       <button class="btn-primary" style="background:var(--success); margin-top:20px; margin-bottom: 20px;" onclick="realizarCadastro()">Registrar e Entrar</button>
-      <button class="btn-secondary" onclick="voltarLogin()">⬅ Voltar para Login</button>
+      <button class="btn-primary" style="background: white; color: #666; border: 1px solid #ddd; margin-top: 10px;" onclick="voltarLogin()">⬅ Voltar para Login</button>
     </div>
 
     <div id="app-screen" class="container hidden">
