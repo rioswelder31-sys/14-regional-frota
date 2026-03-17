@@ -579,48 +579,33 @@
         const path14 = 'viagens';
         const pathOutras = `unidades/${window.regionalID}/viagens`;
         const root = window.regionalID === '14-regional' ? path14 : pathOutras;
-        const telMotorista = CONTATOS[window.regionalID].tel;
-        const encodedMsgMotorista = encodeURIComponent(msgMotorista);
         
         if(id) {
+          const telMotorista = CONTATOS[window.regionalID].tel;
           update(ref(db, `${root}/${id}`), dados).then(() => { 
             // Edição de viagem - notificar motorista sobre alteração
             const msgEdicao = `🔄 *VIAGEM EDITADA*\n\n${window.regionalNome}\n\n👤 *Solicitante:* ${dados.solicitante}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${dados.trajetoExibicao}\n📝 *Motivo:* ${dados.motivo}\n\n*A viagem foi editada. Acesse o aplicativo para confirmar ou recusar.*`;
             window.open(`https://wa.me/${telMotorista}?text=${encodeURIComponent(msgEdicao)}`, '_blank');
-            
-            // Limpar formulário e atualizar tabela
-            document.getElementById('edit-id').value = '';
-            document.getElementById('solicitante').value = '';
-            document.getElementById('saida').value = '';
-            document.getElementById('chegada').value = '';
-            document.getElementById('motivo').value = '';
-            window.roteiroAtual = [];
-            renderRoteiro();
-            document.getElementById("btn-save").classList.remove("hidden");
-            document.getElementById("btn-whatsapp-manual").classList.add("hidden");
-            window.atualizarTabelaGlobal();
             alert("Viagem editada! Motorista será notificado das alterações.");
+            location.reload();
           });
         } else {
           push(ref(db, root), dados).then(() => { 
-            // Enviar mensagem automática SIMPLES para o motorista
-            window.open(`https://wa.me/${telMotorista}?text=${encodedMsgMotorista}`, '_blank');
+            window.dadosWppTemp = msgMotorista;
             document.getElementById("btn-whatsapp-manual").classList.remove("hidden"); 
             document.getElementById("btn-save").classList.add("hidden");
             window.atualizarTabelaGlobal();
-            alert("Salvo! Motorista será notificado.");
+            alert("Salvo! Agora clique no botão para notificar o motorista.");
           });
         }
       };
 
       window.abrirWhatsAppManual = () => { 
-        const telSolicitante = CONTATOS[window.regionalID].equipe[document.getElementById("solicitante").value];
-        if(!telSolicitante) return alert("Telefone do solicitante não encontrado!");
-        const dataSaidaFormatada = new Date(document.getElementById("saida").value).toLocaleString('pt-BR');
-        const motoristaNome = CONTATOS[window.regionalID].motorista;
-        const trajetoExibicao = window.roteiroAtual.map(t => `🔹 ${t.origem} → ${t.destino}`).join("\n") || "Roteiro não preenchido";
-        const msgSolicitante = `*SOLICITAÇÃO DE VIAGEM - ${window.regionalNome}*\n-----------------------------------------\n🚗 *Motorista:* ${motoristaNome}\n👤 *Solicitante:* ${document.getElementById("solicitante").value}\n📅 *Saída:* ${dataSaidaFormatada}\n📍 *Roteiro:* ${trajetoExibicao}\n\nSua viagem foi agendada! O motorista pode confirmar ou recusar quando acessar o aplicativo.`;
-        window.open(`https://wa.me/${telSolicitante}?text=${encodeURIComponent(msgSolicitante)}`, '_blank'); 
+        if (!window.dadosWppTemp) return alert("Não há dados de notificação para enviar. Por favor, salve uma nova viagem primeiro.");
+        const telMotorista = CONTATOS[window.regionalID].tel;
+        const encodedMsg = encodeURIComponent(window.dadosWppTemp);
+        window.open(`https://wa.me/${telMotorista}?text=${encodedMsg}`, '_blank');
+        window.dadosWppTemp = "";
         location.reload(); 
       };
 
