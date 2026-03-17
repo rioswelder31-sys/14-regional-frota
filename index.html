@@ -495,8 +495,10 @@
         });
 
         filtroAno.innerHTML = '';
-        for (let i = anoAtual + 1; i >= anoAtual - 5; i--) {
-            filtroAno.innerHTML += `<option value="${i}" ${i === anoAtual ? 'selected' : ''}>${i}</option>`;
+        // O ano a ser selecionado por padrão. Se o ano atual for menor que 2025, seleciona 2025.
+        const anoPadrao = anoAtual < 2025 ? 2025 : anoAtual;
+        for (let i = 2030; i >= 2025; i--) { // Loop de 2030 a 2025
+            filtroAno.innerHTML += `<option value="${i}" ${i === anoPadrao ? 'selected' : ''}>${i}</option>`;
         }
       }
 
