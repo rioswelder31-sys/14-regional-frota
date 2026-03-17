@@ -307,6 +307,12 @@
       </div>
 
       <h3 style="margin-top: 40px; color: var(--primary);">📅 Agenda de Viagens</h3>
+      <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 15px; display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
+        <label for="filtro-mes" style="font-weight: 600; margin-bottom: 0;">Mês:</label>
+        <select id="filtro-mes" onchange="atualizarTabelaGlobal()" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></select>
+        <label for="filtro-ano" style="font-weight: 600; margin-bottom: 0;">Ano:</label>
+        <select id="filtro-ano" onchange="atualizarTabelaGlobal()" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></select>
+      </div>
       <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
         <button style="background: #17a2b8; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="imprimirAgenda()">🖨️ Imprimir</button>
         <button style="background: #6f42c1; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="exportarCSV()">📥 Exportar CSV</button>
@@ -316,7 +322,7 @@
 
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-      import { getDatabase, ref, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+      import { getDatabase, ref, push, onValue, remove, update, query, orderByChild, startAt } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
       import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
       const firebaseConfig = { apiKey: "AIzaSyDvGkxC9WkYICERhbIHcE9yComvh5AF2gw", authDomain: "frota14regional-8fecc.firebaseapp.com", databaseURL: "https://frota14regional-8fecc-default-rtdb.firebaseio.com", projectId: "frota14regional-8fecc" };
@@ -381,8 +387,8 @@
             if (snap.val() === true) { status.innerText = "🟢 Online"; status.style.background = "var(--success)"; }
             else { status.innerText = "🔴 Offline"; status.style.background = "var(--danger)"; }
           });
-          if(window.podeTudo || window.isMotorista) document.getElementById('painel-add-folga').classList.remove('hidden');
-          configurarUI(); iniciarEscutaBanco();
+          if(window.podeTudo || window.isMotorista) document.getElementById('painel-add-folga').classList.remove('hidden');          
+          configurarUI(); popularFiltrosDeData(); iniciarEscutaBanco();
         } else {
           document.querySelectorAll('[id$="-screen"]').forEach(c => c.classList.add('hidden'));
           document.getElementById('unit-screen').classList.remove('hidden');
@@ -475,13 +481,41 @@
         window.open(mapsUrl, '_blank');
       };
 
+      function popularFiltrosDeData() {
+        const filtroMes = document.getElementById('filtro-mes');
+        const filtroAno = document.getElementById('filtro-ano');
+        const hoje = new Date();
+        const anoAtual = hoje.getFullYear();
+        const mesAtual = hoje.getMonth();
+
+        const meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+        filtroMes.innerHTML = '';
+        meses.forEach((mes, index) => {
+            filtroMes.innerHTML += `<option value="${index}" ${index === mesAtual ? 'selected' : ''}>${mes}</option>`;
+        });
+
+        filtroAno.innerHTML = '';
+        for (let i = anoAtual + 1; i >= anoAtual - 5; i--) {
+            filtroAno.innerHTML += `<option value="${i}" ${i === anoAtual ? 'selected' : ''}>${i}</option>`;
+        }
+      }
+
       function iniciarEscutaBanco() {
         const path14 = 'viagens';
         const pathOutras = `unidades/${window.regionalID}/viagens`;
         const viagensPath = window.regionalID === '14-regional' ? path14 : pathOutras;
         const folgasPath = window.regionalID === '14-regional' ? 'folgas' : `unidades/${window.regionalID}/folgas`;
         console.log('Iniciando escuta - Regional:', window.regionalID, 'Viagens path:', viagensPath);
-        onValue(ref(db, viagensPath), (s) => { window.listaViagens = s.val() ? Object.keys(s.val()).map(k => ({...s.val()[k], id: k})) : []; console.log('Viagens carregadas:', window.listaViagens); atualizarTabelaGlobal(); });
+
+        // Otimização: Carregar apenas viagens do último mês em diante para evitar sobrecarga.
+        const umMesAtras = new Date();
+        umMesAtras.setMonth(umMesAtras.getMonth() - 1);
+        const dataInicioISO = umMesAtras.toISOString();
+        
+        const viagensQuery = query(ref(db, viagensPath), orderByChild('saida'), startAt(dataInicioISO));
+        console.log(`Iniciando escuta para viagens a partir de ${dataInicioISO}`);
+
+        onValue(viagensQuery, (s) => { window.listaViagens = s.val() ? Object.keys(s.val()).map(k => ({...s.val()[k], id: k})) : []; console.log('Viagens carregadas (filtrado):', window.listaViagens.length); atualizarTabelaGlobal(); });
         onValue(ref(db, folgasPath), (s) => { window.listaFolgas = s.val() ? Object.keys(s.val()).map(k => ({...s.val()[k], id: k})) : []; renderFolgas(); });
       }
 
@@ -575,8 +609,22 @@
       };
 
       window.atualizarTabelaGlobal = () => {
-        const tb = document.getElementById("tb-corpo"); tb.innerHTML = "";
-        window.listaViagens.sort((a,b) => new Date(b.saida) - new Date(a.saida)).forEach(v => {
+        const tb = document.getElementById("tb-corpo");
+        const mesSelecionado = parseInt(document.getElementById('filtro-mes').value, 10);
+        const anoSelecionado = parseInt(document.getElementById('filtro-ano').value, 10);
+
+        const viagensFiltradas = window.listaViagens.filter(v => {
+            const dataSaida = new Date(v.saida);
+            return dataSaida.getMonth() === mesSelecionado && dataSaida.getFullYear() === anoSelecionado;
+        });
+
+        tb.innerHTML = "";
+        if (viagensFiltradas.length === 0) {
+            tb.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 20px; font-style: italic;">Nenhuma viagem encontrada para este mês.</td></tr>';
+            return;
+        }
+
+        viagensFiltradas.sort((a,b) => new Date(b.saida) - new Date(a.saida)).forEach(v => {
           const temP = window.podeTudo || v.registradoPor === window.userEmail;
           let btns = "";
           if(temP) btns += `<button class="btn-edit" onclick="prepararEdicao('${v.id}')">✏️</button>`;
