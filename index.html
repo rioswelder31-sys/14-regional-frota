@@ -624,6 +624,40 @@
         location.reload(); 
       };
 
+      window.reenviarNotificacao = (id) => {
+        const v = window.listaViagens.find(x => x.id === id);
+        if (!v) return alert("Viagem não encontrada!");
+
+        const dataSaidaFormatada = new Date(v.saida).toLocaleString('pt-BR');
+        const dataRetornoFormatada = new Date(v.chegada).toLocaleString('pt-BR');
+
+        let msgReenvio;
+        if (v.status === 'Confirmado') {
+          msgReenvio = `🔄 *LEMBRETE DE VIAGEM CONFIRMADA*\n\n(Este é um lembrete para uma viagem que já foi confirmada)\n\n${window.regionalNome}\n\n👤 *Solicitante:* ${v.solicitante}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${v.trajetoExibicao}\n📝 *Motivo:* ${v.motivo || ''}\n\n*Esta viagem já está confirmada na agenda do motorista.*`;
+        } else {
+          msgReenvio = `🔄 *REENVIO DE SOLICITAÇÃO DE VIAGEM*\n\n(Esta é uma notificação reenviada para uma viagem já solicitada)\n\n${window.regionalNome}\n\n👤 *Solicitante:* ${v.solicitante}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${v.trajetoExibicao}\n📝 *Motivo:* ${v.motivo || ''}\n\n*Acesse o aplicativo para confirmar ou recusar a viagem.*`;
+        }
+
+        const telMotorista = CONTATOS[window.regionalID].tel;
+        const encodedMsg = encodeURIComponent(msgReenvio);
+        
+        window.open(`https://wa.me/${telMotorista}?text=${encodedMsg}`, '_blank');
+      };
+
+      window.reenviarConfirmacao = (id) => {
+        const v = window.listaViagens.find(x => x.id === id);
+        if (!v) return alert("Viagem não encontrada!");
+
+        const telSol = CONTATOS[window.regionalID].equipe[v.solicitante];
+        if (!telSol) return alert(`Telefone do solicitante '${v.solicitante}' não encontrado para enviar a notificação.`);
+
+        const dataSaidaFormatada = new Date(v.saida).toLocaleString('pt-BR');
+        const msgConfReenvio = `🔄 *REENVIO DE CONFIRMAÇÃO DE VIAGEM*\n\n(Esta é uma notificação reenviada para uma viagem já confirmada)\n\n${window.regionalNome}\n\n👤 *Solicitante:* ${v.solicitante}\n📅 *Saída:* ${dataSaidaFormatada}\n📍 *Roteiro:* ${v.trajetoExibicao.replace(/\n/g, ' ')}\n\nSua viagem foi confirmada pelo motorista!`;
+        
+        window.open(`https.wa.me/${telSol}?text=${encodeURIComponent(msgConfReenvio)}`, '_blank');
+        alert("Notificação de confirmação reenviada para o solicitante.");
+      };
+
       window.atualizarTabelaGlobal = () => {
         const tb = document.getElementById("tb-corpo");
         const viagensParaExibir = window.listaViagens;
@@ -640,9 +674,15 @@
           const temP = window.podeTudo || v.registradoPor === window.userEmail;
           let btns = "";
           if(temP) btns += `<button class="btn-edit" onclick="prepararEdicao('${v.id}')">✏️</button>`;
+          if(temP && (v.status === 'Pendente' || !v.status || v.status === 'Confirmado')) {
+            btns += `<button style="background:#3498db; color:white; width: auto; padding: 8px 12px; font-size: 0.9em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer;" onclick="reenviarNotificacao('${v.id}')" title="Reenviar notificação para o motorista">🔄</button>`;
+          }
           if(window.isMotorista && v.status !== "Confirmado" && v.status !== "Rejeitado") {
             btns += `<button class="btn-confirm" onclick="confirmar('${v.id}')">✅ Confirmar</button>`;
             btns += `<button class="btn-reject" onclick="rejeitar('${v.id}')">❌ Rejeitar</button>`;
+          }
+          if(window.isMotorista && v.status === "Confirmado") {
+            btns += `<button style="background:#27ae60; color:white; width: auto; padding: 8px 12px; font-size: 0.9em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer;" onclick="reenviarConfirmacao('${v.id}')" title="Reenviar confirmação para o solicitante">🔄 Reenviar Confirmação</button>`;
           }
           btns += `<button style="background:#16a085; color:white; width: auto; padding: 8px 12px; font-size: 0.9em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer;" onclick="abrirRotaGoogleMaps('${v.id}')">🗺️</button>`;
           if(temP) btns += `<button class="btn-delete" onclick="deletar('${v.id}')">🗑️</button>`;
