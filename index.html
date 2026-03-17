@@ -269,11 +269,6 @@
 
       <div class="main-form">
         <div class="driver-badge"><div>🚘 Motorista: <strong id="nome-motorista"></strong></div><span id="tel-motorista" style="font-weight: bold;"></span></div>
-        <h3 id="form-title" style="color: var(--primary)">📝 Novo Agendamento</h3>
-        <input type="hidden" id="edit-id" />
-        <div class="form-row">
-          <div class="col" style="flex: 2"><label>Solicitante:</label><input type="text" id="solicitante" list="lista-solicitantes" required /><datalist id="lista-solicitantes"></datalist></div>
-          <div class="col"><label>Setor:</label><input type="text" id="setor" value="Geral" /></div>
         <div id="form-content">
           <h3 id="form-title" style="color: var(--primary)">📝 Novo Agendamento</h3>
           <input type="hidden" id="edit-id" />
@@ -309,57 +304,6 @@
           <button id="btn-save" class="btn-primary" style="margin-top: 15px;" onclick="salvarNoFirebase()">✅ Salvar Solicitação</button>
           <button id="btn-whatsapp-manual" class="btn-wpp-notif hidden" onclick="abrirWhatsAppManual()">📱 Clique Aqui para Notificar o Motorista</button>
         </div>
-        
-        <div class="roteiro-box">
-            <div class="roteiro-controls">
-                <div style="flex: 1; display: flex; gap: 4px; min-width: 250px;">
-                    <select id="uf-origem" style="width:70px;" onchange="carregarCidades('origem')"></select>
-                    <input type="text" id="cidade-origem" list="list-origem" placeholder="Origem" style="flex: 1;">
-                </div>
-                <div style="flex: 1; display: flex; gap: 4px; min-width: 250px;">
-                    <select id="uf-destino" style="width:70px;" onchange="carregarCidades('destino')"></select>
-                    <input type="text" id="cidade-destino" list="list-destino" placeholder="Destino" style="flex: 1;">
-                </div>
-                <div style="display: flex; gap: 5px;">
-                    <button style="background:var(--primary); color:white; width: 70px; margin-bottom: 0;" onclick="adicionarTrecho()">Add</button>
-                    <button style="background:var(--danger); color:white; width: 80px; margin-bottom: 0;" onclick="limparRoteiro()">Limpar</button>
-                </div>
-      </div>
-
-      <h3 style="margin-top: 40px; color: var(--primary);">📅 Agenda de Viagens</h3>
-      <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
-        <button style="background: #17a2b8; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="imprimirAgenda()">🖨️ Imprimir</button>
-        <button style="background: #6f42c1; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="exportarCSV()">📥 Exportar CSV</button>
-      </div>
-      <div style="overflow-x:auto;"><table style="width:100%; border-collapse: collapse; min-width: 1100px;"><thead style="background:#004080; color:white;"><tr><th style="padding:12px;">Status</th><th style="padding:12px;">Saída</th><th style="padding:12px;">Retorno</th><th style="padding:12px;">Solicitante</th><th style="padding:12px;">Motivo</th><th style="padding:12px;">Roteiro</th><th style="padding:12px; text-align:center;">Ações</th></tr></thead><tbody id="tb-corpo"></tbody></table></div>
-    </div>
-
-    <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-      import { getDatabase, ref, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
-      import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-
-      const firebaseConfig = { apiKey: "AIzaSyDvGkxC9WkYICERhbIHcE9yComvh5AF2gw", authDomain: "frota14regional-8fecc.firebaseapp.com", databaseURL: "https://frota14regional-8fecc-default-rtdb.firebaseio.com", projectId: "frota14regional-8fecc" };
-      const app = initializeApp(firebaseConfig); const db = getDatabase(app); const auth = getAuth(app);
-
-      window.regionalID = ""; window.regionalNome = "";
-      window.roteiroAtual = []; window.listaViagens = []; window.listaFolgas = []; window.dadosWppTemp = "";
-
-      const CONTATOS = {
-        "14-regional": { motorista: "CLEONES DAMASCENO", tel: "5571996384423", equipe: { "Defensor Caio Cesar Nunes Cruz": "5527998764286", "Defensor Emerson Halsey Soares": "5571999678855", "Defensor Matheus Rocha Almeida": "5573991969670", "Defensor Matheus Silva Bastos": "5571983394060", "Defensora Ana Carolina Lugullo Maia de Araujo": "5521988052225", "Defensora Janaina dos Santos Araújo": "5532988060602", "Servidor Welder Oliveira Rios": "5573991853116", "Servidora Adriele Macário dos Santos": "5573999051485", "Servidora Sabrina Pereira de Oliveira": "5573991135887", "Servidor Victor Hugo": "5573991093944" } },
-        "PORTO SEGURO": { motorista: "Ramona Melgaço Sales", tel: "5571984542450", equipe: { "Servidor
-            </div>
-            <datalist id="list-origem"></datalist><datalist id="list-destino"></datalist>
-            <table class="roteiro-lista"><thead><tr style="background: #eee;"><th>De</th><th>Para</th></tr></thead><tbody id="roteiro-lista-body"></tbody></table>
-        </div>
-
-        <div class="form-row">
-          <div class="col"><label>Saída:</label><input type="datetime-local" id="saida" /></div>
-          <div class="col"><label>Retorno:</label><input type="datetime-local" id="chegada" /></div>
-        </div>
-        <label>Motivo:</label><textarea id="motivo" rows="2"></textarea>
-        <button id="btn-save" class="btn-primary" style="margin-top: 15px;" onclick="salvarNoFirebase()">✅ Salvar Solicitação</button>
-        <button id="btn-whatsapp-manual" class="btn-wpp-notif hidden" onclick="abrirWhatsAppManual()">📱 Clique Aqui para Notificar o Motorista</button>
       </div>
 
       <h3 style="margin-top: 40px; color: var(--primary);">📅 Agenda de Viagens</h3>
@@ -422,10 +366,16 @@
           const isSilvana = window.userEmail.includes("silvana") && window.userEmail.includes("almeida");
           window.podeTudo = isWelder || (isEsther && window.regionalID === 'EUNAPOLIS') || (isSilvana && (window.regionalID === 'PORTO SEGURO' || window.regionalID === 'EUNAPOLIS'));
           window.isMotorista = userEmail.includes("motorista") || userEmail.includes("cleones") || userEmail.includes("ramona") || userEmail.includes("neyrailson");
+          
           document.querySelectorAll('[id$="-screen"]').forEach(c => c.classList.add('hidden'));
           document.getElementById('app-screen').classList.remove('hidden');
           document.getElementById('app-unit-name').innerText = window.regionalNome;
           document.getElementById('nome-usuario').innerText = user.email;
+
+          if (window.isMotorista) {
+            document.getElementById('form-content').classList.add('hidden');
+          }
+
           onValue(ref(db, ".info/connected"), (snap) => {
             const status = document.getElementById("status-conexao");
             if (snap.val() === true) { status.innerText = "🟢 Online"; status.style.background = "var(--success)"; }
