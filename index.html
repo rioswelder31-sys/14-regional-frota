@@ -309,9 +309,9 @@
       <h3 style="margin-top: 40px; color: var(--primary);">📅 Agenda de Viagens</h3>
       <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 15px; display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
         <label for="filtro-mes" style="font-weight: 600; margin-bottom: 0;">Mês:</label>
-        <select id="filtro-mes" onchange="atualizarTabelaGlobal()" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></select>
+        <select id="filtro-mes" onchange="atualizarEscutaViagens()" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></select>
         <label for="filtro-ano" style="font-weight: 600; margin-bottom: 0;">Ano:</label>
-        <select id="filtro-ano" onchange="atualizarTabelaGlobal()" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></select>
+        <select id="filtro-ano" onchange="atualizarEscutaViagens()" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></select>
       </div>
       <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
         <button style="background: #17a2b8; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="imprimirAgenda()">🖨️ Imprimir</button>
@@ -322,13 +322,13 @@
 
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-      import { getDatabase, ref, push, onValue, remove, update, query, orderByChild, startAt } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+      import { getDatabase, ref, push, onValue, remove, update, query, orderByChild, startAt, endAt } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
       import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
       const firebaseConfig = { apiKey: "AIzaSyDvGkxC9WkYICERhbIHcE9yComvh5AF2gw", authDomain: "frota14regional-8fecc.firebaseapp.com", databaseURL: "https://frota14regional-8fecc-default-rtdb.firebaseio.com", projectId: "frota14regional-8fecc" };
       const app = initializeApp(firebaseConfig); const db = getDatabase(app); const auth = getAuth(app);
 
-      window.regionalID = ""; window.regionalNome = "";
+      window.regionalID = ""; window.regionalNome = ""; window.unsubscribeViagens = null;
       window.roteiroAtual = []; window.listaViagens = []; window.listaFolgas = []; window.dadosWppTemp = "";
 
       const CONTATOS = {
@@ -500,23 +500,37 @@
         }
       }
 
-      function iniciarEscutaBanco() {
+      window.atualizarEscutaViagens = () => {
+        if (window.unsubscribeViagens) {
+            window.unsubscribeViagens();
+        }
+        const mes = parseInt(document.getElementById('filtro-mes').value, 10);
+        const ano = parseInt(document.getElementById('filtro-ano').value, 10);
+        const dataInicio = new Date(ano, mes, 1);
+        const dataFim = new Date(ano, mes + 1, 0, 23, 59, 59, 999);
+        const dataInicioISO = dataInicio.toISOString();
+        const dataFimISO = dataFim.toISOString();
+
         const path14 = 'viagens';
         const pathOutras = `unidades/${window.regionalID}/viagens`;
         const viagensPath = window.regionalID === '14-regional' ? path14 : pathOutras;
+
+        console.log(`Atualizando escuta para viagens de ${dataInicioISO} a ${dataFimISO}`);
+        const viagensQuery = query(ref(db, viagensPath), orderByChild('saida'), startAt(dataInicioISO), endAt(dataFimISO));
+
+        window.unsubscribeViagens = onValue(viagensQuery, (s) => { 
+            window.listaViagens = s.val() ? Object.keys(s.val()).map(k => ({...s.val()[k], id: k})) : []; 
+            console.log(`Viagens carregadas para ${mes+1}/${ano}:`, window.listaViagens.length); 
+            atualizarTabelaGlobal();
+        });
+      }
+
+      function iniciarEscutaBanco() {
         const folgasPath = window.regionalID === '14-regional' ? 'folgas' : `unidades/${window.regionalID}/folgas`;
-        console.log('Iniciando escuta - Regional:', window.regionalID, 'Viagens path:', viagensPath);
-
-        // Otimização: Carregar apenas viagens do último mês em diante para evitar sobrecarga.
-        const umMesAtras = new Date();
-        umMesAtras.setMonth(umMesAtras.getMonth() - 1);
-        const dataInicioISO = umMesAtras.toISOString();
-        
-        const viagensQuery = query(ref(db, viagensPath), orderByChild('saida'), startAt(dataInicioISO));
-        console.log(`Iniciando escuta para viagens a partir de ${dataInicioISO}`);
-
-        onValue(viagensQuery, (s) => { window.listaViagens = s.val() ? Object.keys(s.val()).map(k => ({...s.val()[k], id: k})) : []; console.log('Viagens carregadas (filtrado):', window.listaViagens.length); atualizarTabelaGlobal(); });
+        console.log('Iniciando escuta - Regional:', window.regionalID);
         onValue(ref(db, folgasPath), (s) => { window.listaFolgas = s.val() ? Object.keys(s.val()).map(k => ({...s.val()[k], id: k})) : []; renderFolgas(); });
+        
+        atualizarEscutaViagens();
       }
 
       function temConflito(novaSaida, novaChegada, ignorarId = null) {
@@ -602,7 +616,7 @@
         if(!telSolicitante) return alert("Telefone do solicitante não encontrado!");
         const dataSaidaFormatada = new Date(document.getElementById("saida").value).toLocaleString('pt-BR');
         const motoristaNome = CONTATOS[window.regionalID].motorista;
-        const trajetoExibicao = document.getElementById("roteiro-visual").innerText || "Roteiro não preenchido";
+        const trajetoExibicao = window.roteiroAtual.map(t => `🔹 ${t.origem} → ${t.destino}`).join("\n") || "Roteiro não preenchido";
         const msgSolicitante = `*SOLICITAÇÃO DE VIAGEM - ${window.regionalNome}*\n-----------------------------------------\n🚗 *Motorista:* ${motoristaNome}\n👤 *Solicitante:* ${document.getElementById("solicitante").value}\n📅 *Saída:* ${dataSaidaFormatada}\n📍 *Roteiro:* ${trajetoExibicao}\n\nSua viagem foi agendada! O motorista pode confirmar ou recusar quando acessar o aplicativo.`;
         window.open(`https://wa.me/${telSolicitante}?text=${encodeURIComponent(msgSolicitante)}`, '_blank'); 
         location.reload(); 
@@ -610,21 +624,17 @@
 
       window.atualizarTabelaGlobal = () => {
         const tb = document.getElementById("tb-corpo");
-        const mesSelecionado = parseInt(document.getElementById('filtro-mes').value, 10);
-        const anoSelecionado = parseInt(document.getElementById('filtro-ano').value, 10);
-
-        const viagensFiltradas = window.listaViagens.filter(v => {
-            const dataSaida = new Date(v.saida);
-            return dataSaida.getMonth() === mesSelecionado && dataSaida.getFullYear() === anoSelecionado;
-        });
+        const viagensParaExibir = window.listaViagens;
 
         tb.innerHTML = "";
-        if (viagensFiltradas.length === 0) {
-            tb.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 20px; font-style: italic;">Nenhuma viagem encontrada para este mês.</td></tr>';
+        if (viagensParaExibir.length === 0) {
+            const mesSelecionado = document.getElementById('filtro-mes').options[document.getElementById('filtro-mes').selectedIndex].text;
+            const anoSelecionado = document.getElementById('filtro-ano').value;
+            tb.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 20px; font-style: italic;">Nenhuma viagem encontrada para ${mesSelecionado} de ${anoSelecionado}.</td></tr>`;
             return;
         }
 
-        viagensFiltradas.sort((a,b) => new Date(b.saida) - new Date(a.saida)).forEach(v => {
+        viagensParaExibir.sort((a,b) => new Date(b.saida) - new Date(a.saida)).forEach(v => {
           const temP = window.podeTudo || v.registradoPor === window.userEmail;
           let btns = "";
           if(temP) btns += `<button class="btn-edit" onclick="prepararEdicao('${v.id}')">✏️</button>`;
