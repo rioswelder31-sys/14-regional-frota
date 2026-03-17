@@ -269,6 +269,11 @@
 
       <div class="main-form">
         <div class="driver-badge"><div>🚘 Motorista: <strong id="nome-motorista"></strong></div><span id="tel-motorista" style="font-weight: bold;"></span></div>
+        <h3 id="form-title" style="color: var(--primary)">📝 Novo Agendamento</h3>
+        <input type="hidden" id="edit-id" />
+        <div class="form-row">
+          <div class="col" style="flex: 2"><label>Solicitante:</label><input type="text" id="solicitante" list="lista-solicitantes" required /><datalist id="lista-solicitantes"></datalist></div>
+          <div class="col"><label>Setor:</label><input type="text" id="setor" value="Geral" /></div>
         <div id="form-content">
           <h3 id="form-title" style="color: var(--primary)">📝 Novo Agendamento</h3>
           <input type="hidden" id="edit-id" />
@@ -304,6 +309,21 @@
           <button id="btn-save" class="btn-primary" style="margin-top: 15px;" onclick="salvarNoFirebase()">✅ Salvar Solicitação</button>
           <button id="btn-whatsapp-manual" class="btn-wpp-notif hidden" onclick="abrirWhatsAppManual()">📱 Clique Aqui para Notificar o Motorista</button>
         </div>
+        
+        <div class="roteiro-box">
+            <div class="roteiro-controls">
+                <div style="flex: 1; display: flex; gap: 4px; min-width: 250px;">
+                    <select id="uf-origem" style="width:70px;" onchange="carregarCidades('origem')"></select>
+                    <input type="text" id="cidade-origem" list="list-origem" placeholder="Origem" style="flex: 1;">
+                </div>
+                <div style="flex: 1; display: flex; gap: 4px; min-width: 250px;">
+                    <select id="uf-destino" style="width:70px;" onchange="carregarCidades('destino')"></select>
+                    <input type="text" id="cidade-destino" list="list-destino" placeholder="Destino" style="flex: 1;">
+                </div>
+                <div style="display: flex; gap: 5px;">
+                    <button style="background:var(--primary); color:white; width: 70px; margin-bottom: 0;" onclick="adicionarTrecho()">Add</button>
+                    <button style="background:var(--danger); color:white; width: 80px; margin-bottom: 0;" onclick="limparRoteiro()">Limpar</button>
+                </div>
       </div>
 
       <h3 style="margin-top: 40px; color: var(--primary);">📅 Agenda de Viagens</h3>
