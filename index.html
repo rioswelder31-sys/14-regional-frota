@@ -594,7 +594,7 @@
             <td style="padding:12px;">${new Date(v.saida).toLocaleString('pt-BR')}</td>
             <td style="padding:12px;">${new Date(v.chegada).toLocaleString('pt-BR')}</td>
             <td style="padding:12px;"><strong>${v.solicitante}</strong></td>
-            <td style="padding:12px; font-size:0.9em; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${v.motivo || ''}">${v.motivo || ''}</td>
+            <td style="padding:12px; font-size:0.9em; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;" title="Toque para ver o motivo completo" onclick="toggleMotivoVisibilidade(this)">${v.motivo || ''}</td>
             <td style="padding:12px; font-size:0.9em; white-space: pre-line;">${v.trajetoExibicao || ''}</td>
             <td style="padding:12px; text-align:center; white-space:nowrap;">${btns}</td>
           </tr>`;
@@ -640,6 +640,18 @@
       window.deletarFolga = (id) => { const path = window.regionalID === '14-regional' ? 'folgas' : `unidades/${window.regionalID}/folgas`; remove(ref(db, path + '/' + id)); };
       function renderFolgas() { const l = document.getElementById('lista-folgas-visual'); l.innerHTML = ""; window.listaFolgas.forEach(f => { l.innerHTML += `<div class="folga-item"><strong>🚫 ${new Date(f.inicio + "T00:00:00").toLocaleDateString('pt-BR')} a ${new Date(f.fim + "T00:00:00").toLocaleDateString('pt-BR')}</strong>: ${f.motivo} <button onclick="deletarFolga('${f.id}')" style="background:none; color:red; width:auto; border:none; cursor:pointer;">🗑️</button></div>`; }); }
       
+      window.toggleMotivoVisibilidade = (el) => {
+        if (el.style.whiteSpace === 'normal') {
+            el.style.whiteSpace = 'nowrap';
+            el.style.overflow = 'hidden';
+            el.style.textOverflow = 'ellipsis';
+        } else {
+            el.style.whiteSpace = 'normal';
+            el.style.overflow = 'visible';
+            el.style.textOverflow = 'clip';
+        }
+      };
+
       window.imprimirAgenda = () => {
         console.log('Debug Imprimir - Região:', window.regionalID);
         console.log('Debug Imprimir - ListaViagens:', window.listaViagens);
