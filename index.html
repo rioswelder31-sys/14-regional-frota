@@ -339,7 +339,9 @@
 
     <div id="register-screen" class="container hidden">
       <h2 style="color: var(--primary); margin-bottom: 25px;">Criar Nova Conta</h2>
+      <input type="text" id="reg-nome" placeholder="Seu nome completo" style="margin-bottom: 20px;" />
       <input type="email" id="reg-user" placeholder="Digite seu e-mail" style="margin-bottom: 20px;" />
+      <input type="tel" id="reg-tel" placeholder="Seu WhatsApp (Ex: 73991853116)" style="margin-bottom: 20px;" />
       <div class="password-container">
         <input type="password" id="reg-pass" placeholder="Crie uma senha (mín. 6 dígitos)" />
         <span class="toggle-password" onclick="togglePassword('reg-pass')">👁️</span>
@@ -546,15 +548,24 @@
 
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-      import { getDatabase, ref, push, onValue, remove, update, query, orderByChild, startAt, endAt } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+      import { getDatabase, ref, push, onValue, remove, update, query, orderByChild, startAt, endAt, set } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
       import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
       const firebaseConfig = { apiKey: "AIzaSyDvGkxC9WkYICERhbIHcE9yComvh5AF2gw", authDomain: "frota14regional-8fecc.firebaseapp.com", databaseURL: "https://frota14regional-8fecc-default-rtdb.firebaseio.com", projectId: "frota14regional-8fecc" };
       const app = initializeApp(firebaseConfig); const db = getDatabase(app); const auth = getAuth(app);
 
-      window.regionalID = ""; window.regionalNome = ""; window.unsubscribeViagens = null;
+      // Variáveis globais
+      window.regionalID = ""; window.regionalNome = ""; window.unsubscribeViagens = null; window.userEmail = "";
       window.roteiroAtual = []; window.listaViagens = []; window.listaFolgas = []; window.dadosWppTemp = "";
+      window.unidadeAtual = { motorista: {}, equipe: [] }; // Objeto para guardar dados da unidade (motorista, equipe)
 
+      /*
+       * O objeto CONTATOS foi removido.
+       * Agora, os dados do motorista e da equipe serão carregados diretamente do Firebase.
+       * É necessário criar essa estrutura no seu Firebase Realtime Database:
+       * /unidades/{regionalID}/motorista -> { nome: "Nome Motorista", tel: "5571..." }
+       * /unidades/{regionalID}/equipe/{userID} -> { nome: "Nome Servidor", email: "...", telefone: "..." }
+       */
       const CONTATOS = {
         "14-regional": { motorista: "CLEONES DAMASCENO", tel: "5571996384423", equipe: { "Defensor Caio Cesar Nunes Cruz": "5527998764286", "Defensor Emerson Halsey Soares": "5571999678855", "Defensor Matheus Rocha Almeida": "5573991969670", "Defensor Matheus Silva Bastos": "5571983394060", "Defensora Ana Carolina Lugullo Maia de Araujo": "5521988052225", "Defensora Janaina dos Santos Araújo": "5532988060602", "Servidor Welder Oliveira Rios": "5573991853116", "Servidora Adriele Macário dos Santos": "5573999051485", "Servidora Sabrina Pereira de Oliveira": "5573991135887", "Servidor Victor Hugo": "5573991093944" } },
         "PORTO SEGURO": { motorista: "Ramona Melgaço Sales", tel: "5571984542450", equipe: { "Servidor Welder Oliveira Rios": "5573991853116", "Psicóloga - Caroline Cardoso": "5573981120994", "Assistente Social - Júlio Felipe": "5573998200302", "Defensora Priscilla Berto Silva": "5573999315353", "Defensor Fábio Gonçalves Fonseca": "5527999226065", "Defensora Tatiana Câmara Assis Velho da Cunha": "5573991800081", "Defensor Guilherme Zuanazzi": "5574999304456", "Defensora Kamile Costa Alves": "5517991436479", "Defensor José Renato Bernardes da Costa": "5573999441303", "Servidora Silvana Almeida Cardoso": "5573998506151" } },
@@ -601,8 +612,37 @@
       window.irParaRegistro = () => { document.getElementById('login-screen').classList.add('hidden'); document.getElementById('register-screen').classList.remove('hidden'); };
       window.voltarLogin = () => { document.getElementById('register-screen').classList.add('hidden'); document.getElementById('login-screen').classList.remove('hidden'); };
       window.realizarLogin = () => { signInWithEmailAndPassword(auth, document.getElementById("login-user").value, document.getElementById("login-pass").value).catch(e => alert(e.message)); };
-      window.realizarCadastro = () => { createUserWithEmailAndPassword(auth, document.getElementById("reg-user").value, document.getElementById("reg-pass").value).then(() => alert("Conta criada!")).catch(e => alert(e.message)); };
+      
+      // Cadastro agora salva o perfil do usuário no banco de dados
+      window.realizarCadastro = () => {
+        const email = document.getElementById("reg-user").value;
+        const pass = document.getElementById("reg-pass").value;
+        const nome = document.getElementById("reg-nome").value;
+        const tel = document.getElementById("reg-tel").value;
+        if (!email || !pass || !nome || !tel) return alert("Por favor, preencha todos os campos.");
+        if (pass.length < 6) return alert("A senha deve ter no mínimo 6 caracteres.");
+
+        createUserWithEmailAndPassword(auth, email, pass)
+          .then((userCredential) => {
+              const user = userCredential.user;
+              const userProfile = { nome: nome, email: user.email, telefone: tel.replace(/\D/g, '') };
+              // Define o perfil do usuário no DB, dentro da equipe da regional selecionada
+              const equipePath = window.regionalID === '14-regional' ? `equipe/${user.uid}` : `unidades/${window.regionalID}/equipe/${user.uid}`;
+              return set(ref(db, equipePath), userProfile);
+          })
+          .then(() => alert("Conta criada com sucesso! Você será logado automaticamente."))
+          .catch(e => alert("Erro ao criar conta: " + e.message));
+      };
+
       window.fazerLogout = () => { signOut(auth).then(() => { localStorage.clear(); window.regionalID = ""; location.reload(); }); };
+
+      // Função para carregar dados da unidade (motorista e equipe) do Firebase
+      async function carregarDadosDaUnidade() {
+        const motoristaPath = window.regionalID === '14-regional' ? 'motorista' : `unidades/${window.regionalID}/motorista`;
+        const equipePath = window.regionalID === '14-regional' ? 'equipe' : `unidades/${window.regionalID}/equipe`;
+        onValue(ref(db, motoristaPath), (snap) => { window.unidadeAtual.motorista = snap.val() || { nome: 'N/D', tel: '' }; });
+        onValue(ref(db, equipePath), (snap) => { window.unidadeAtual.equipe = snap.val() ? Object.keys(snap.val()).map(uid => ({ uid, ...snap.val()[uid] })) : []; configurarUI(); });
+      }
 
       onAuthStateChanged(auth, (user) => {
         if (user) {
@@ -613,23 +653,27 @@
           const isSilvana = window.userEmail.includes("silvana") && window.userEmail.includes("almeida");
           window.podeTudo = isWelder || (isEsther && window.regionalID === 'EUNAPOLIS') || (isSilvana && (window.regionalID === 'PORTO SEGURO' || window.regionalID === 'EUNAPOLIS'));
           window.isMotorista = userEmail.includes("motorista") || userEmail.includes("cleones") || userEmail.includes("ramona") || userEmail.includes("neyrailson");
-          
+
           document.querySelectorAll('[id$="-screen"]').forEach(c => c.classList.add('hidden'));
           document.getElementById('app-screen').classList.remove('hidden');
           document.getElementById('app-unit-name').innerText = window.regionalNome;
           document.getElementById('nome-usuario').innerText = user.email;
 
-          if (window.isMotorista) {
-            document.getElementById('form-content').classList.add('hidden');
-          }
+          // Carrega os dados da unidade e depois inicia o resto da aplicação
+          carregarDadosDaUnidade().then(() => {
+              if (window.isMotorista) {
+                document.getElementById('form-content').classList.add('hidden');
+              }
 
-          onValue(ref(db, ".info/connected"), (snap) => {
-            const status = document.getElementById("status-conexao");
-            if (snap.val() === true) { status.innerText = "🟢 Online"; status.style.background = "var(--success)"; }
-            else { status.innerText = "🔴 Offline"; status.style.background = "var(--danger)"; }
+              onValue(ref(db, ".info/connected"), (snap) => {
+                const status = document.getElementById("status-conexao");
+                if (snap.val() === true) { status.innerText = "🟢 Online"; status.style.background = "var(--success)"; }
+                else { status.innerText = "🔴 Offline"; status.style.background = "var(--danger)"; }
+              });
+              if(window.podeTudo || window.isMotorista) document.getElementById('painel-add-folga').classList.remove('hidden');          
+              popularFiltrosDeData(); 
+              iniciarEscutaBanco();
           });
-          if(window.podeTudo || window.isMotorista) document.getElementById('painel-add-folga').classList.remove('hidden');          
-          configurarUI(); popularFiltrosDeData(); iniciarEscutaBanco();
         } else {
           document.querySelectorAll('[id$="-screen"]').forEach(c => c.classList.add('hidden'));
           document.getElementById('unit-screen').classList.remove('hidden');
@@ -637,10 +681,15 @@
       });
 
       function configurarUI() {
-        const dlS = document.getElementById('lista-solicitantes'); dlS.innerHTML = "";
-        Object.keys(CONTATOS[window.regionalID].equipe).forEach(n => dlS.innerHTML += `<option value="${n}">`);
-        document.getElementById('nome-motorista').innerText = CONTATOS[window.regionalID].motorista;
-        document.getElementById('tel-motorista').innerText = `📱 ${CONTATOS[window.regionalID].tel}`;
+        const dlS = document.getElementById('lista-solicitantes'); 
+        dlS.innerHTML = "";
+        window.unidadeAtual.equipe.forEach(membro => dlS.innerHTML += `<option value="${membro.nome}">`);
+        const usuarioLogado = window.unidadeAtual.equipe.find(m => m.email === window.userEmail);
+        if (usuarioLogado) document.getElementById('solicitante').value = usuarioLogado.nome;
+
+        document.getElementById('nome-motorista').innerText = window.unidadeAtual.motorista.nome;
+        document.getElementById('tel-motorista').innerText = `📱 ${window.unidadeAtual.motorista.tel}`;
+
         const ufo = document.getElementById('uf-origem'); const ufd = document.getElementById('uf-destino');
         ufo.innerHTML = ""; ufd.innerHTML = "";
         const estados = ["AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT","PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO"];
@@ -789,18 +838,22 @@
               if(ignorarId && v.id === ignorarId) continue;
               const iniE = new Date(v.saida).getTime();
               const fimE = new Date(v.chegada).getTime();
-              if (iniN < (fimE + buffer) && fimN > (iniE - buffer)) return { tipo: 'viagem', solicitante: v.solicitante };
+              if (iniN < (fimE + buffer) && fimN > (iniE - buffer)) return { tipo: 'viagem', solicitante: v.solicitanteNome };
           }
           return null;
       }
 
       window.salvarNoFirebase = () => {
-        const solicitante = document.getElementById("solicitante").value;
+        const solicitanteNome = document.getElementById("solicitante").value;
         const saida = document.getElementById("saida").value;
         const chegada = document.getElementById("chegada").value;
         const id = document.getElementById("edit-id").value;
-        if(!solicitante || !saida || !chegada) return alert("Preencha solicitante e horários!");
+        if(!solicitanteNome || !saida || !chegada) return alert("Preencha solicitante e horários!");
         if(window.roteiroAtual.length === 0) return alert("Preencha o roteiro da viagem!");
+
+        const solicitante = window.unidadeAtual.equipe.find(m => m.nome === solicitanteNome);
+        if (!solicitante) return alert("Solicitante inválido. Por favor, selecione um nome da lista ou cadastre-se se for um novo usuário.");
+
         const conflito = temConflito(saida, chegada, id);
         if(conflito) {
             if(conflito.tipo === 'folga') { alert(`🛑 INDISPONÍVEL!\nO motorista está em folga: ${conflito.motivo}`); return; }
@@ -808,24 +861,29 @@
         }
 
         const trajetoString = window.roteiroAtual.map(t => `🔹 ${t.origem} → ${t.destino}`).join("\n");
-        const dados = { solicitante, setor: document.getElementById("setor").value, saida, chegada, motivo: document.getElementById("motivo").value, trajetoExibicao: trajetoString, registradoPor: window.userEmail, status: "Pendente", roteiroArray: window.roteiroAtual, dataCriacao: new Date().toISOString() };
+        const dados = { 
+          solicitanteNome: solicitante.nome, 
+          solicitanteUID: solicitante.uid,
+          setor: document.getElementById("setor").value, saida, chegada, motivo: document.getElementById("motivo").value, 
+          trajetoExibicao: trajetoString, registradoPor: window.userEmail, status: "Pendente", 
+          roteiroArray: window.roteiroAtual, dataCriacao: new Date().toISOString() 
+        };
         
-        const motoristaNome = CONTATOS[window.regionalID].motorista;
+        const motoristaNome = window.unidadeAtual.motorista.nome;
         const dataSaidaFormatada = new Date(dados.saida).toLocaleString('pt-BR');
         const dataRetornoFormatada = new Date(dados.chegada).toLocaleString('pt-BR');
 
-        // Mensagem SIMPLES para o motorista (apenas notificação, sem links)
-        const msgMotorista = `🔔 *NOVO AGENDAMENTO RECEBIDO*\n\n${window.regionalNome}\n\n👤 *Solicitante:* ${dados.solicitante}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${dados.trajetoExibicao}\n📝 *Motivo:* ${dados.motivo}\n\n*Acesse o aplicativo para confirmar ou recusar a viagem.*`;
+        const msgMotorista = `🔔 *NOVO AGENDAMENTO RECEBIDO*\n\n${window.regionalNome}\n\n👤 *Solicitante:* ${dados.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${dados.trajetoExibicao}\n📝 *Motivo:* ${dados.motivo}\n\n*Acesse o aplicativo para confirmar ou recusar a viagem.*`;
 
         const path14 = 'viagens';
         const pathOutras = `unidades/${window.regionalID}/viagens`;
         const root = window.regionalID === '14-regional' ? path14 : pathOutras;
         
         if(id) {
-          const telMotorista = CONTATOS[window.regionalID].tel;
+          const telMotorista = window.unidadeAtual.motorista.tel;
           update(ref(db, `${root}/${id}`), dados).then(() => { 
             // Edição de viagem - notificar motorista sobre alteração
-            const msgEdicao = `🔄 *VIAGEM EDITADA*\n\n${window.regionalNome}\n\n👤 *Solicitante:* ${dados.solicitante}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${dados.trajetoExibicao}\n📝 *Motivo:* ${dados.motivo}\n\n*A viagem foi editada. Acesse o aplicativo para confirmar ou recusar.*`;
+            const msgEdicao = `🔄 *VIAGEM EDITADA*\n\n${window.regionalNome}\n\n👤 *Solicitante:* ${dados.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${dados.trajetoExibicao}\n📝 *Motivo:* ${dados.motivo}\n\n*A viagem foi editada. Acesse o aplicativo para confirmar ou recusar.*`;
             window.open(`https://wa.me/${telMotorista}?text=${encodeURIComponent(msgEdicao)}`, '_blank');
             alert("Viagem editada! Motorista será notificado das alterações.");
             location.reload();
@@ -843,7 +901,7 @@
 
       window.abrirWhatsAppManual = () => { 
         if (!window.dadosWppTemp) return alert("Não há dados de notificação para enviar. Por favor, salve uma nova viagem primeiro.");
-        const telMotorista = CONTATOS[window.regionalID].tel;
+        const telMotorista = window.unidadeAtual.motorista.tel;
         const encodedMsg = encodeURIComponent(window.dadosWppTemp);
         window.open(`https://wa.me/${telMotorista}?text=${encodedMsg}`, '_blank');
         window.dadosWppTemp = "";
@@ -859,12 +917,12 @@
 
         let msgReenvio;
         if (v.status === 'Confirmado') {
-          msgReenvio = `🔄 *LEMBRETE DE VIAGEM CONFIRMADA*\n\n(Este é um lembrete para uma viagem que já foi confirmada)\n\n${window.regionalNome}\n\n👤 *Solicitante:* ${v.solicitante}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${v.trajetoExibicao}\n📝 *Motivo:* ${v.motivo || ''}\n\n*Esta viagem já está confirmada na agenda do motorista.*`;
+          msgReenvio = `🔄 *LEMBRETE DE VIAGEM CONFIRMADA*\n\n(Este é um lembrete para uma viagem que já foi confirmada)\n\n${window.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${v.trajetoExibicao}\n📝 *Motivo:* ${v.motivo || ''}\n\n*Esta viagem já está confirmada na agenda do motorista.*`;
         } else {
-          msgReenvio = `🔄 *REENVIO DE SOLICITAÇÃO DE VIAGEM*\n\n(Esta é uma notificação reenviada para uma viagem já solicitada)\n\n${window.regionalNome}\n\n👤 *Solicitante:* ${v.solicitante}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${v.trajetoExibicao}\n📝 *Motivo:* ${v.motivo || ''}\n\n*Acesse o aplicativo para confirmar ou recusar a viagem.*`;
+          msgReenvio = `🔄 *REENVIO DE SOLICITAÇÃO DE VIAGEM*\n\n(Esta é uma notificação reenviada para uma viagem já solicitada)\n\n${window.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${v.trajetoExibicao}\n📝 *Motivo:* ${v.motivo || ''}\n\n*Acesse o aplicativo para confirmar ou recusar a viagem.*`;
         }
 
-        const telMotorista = CONTATOS[window.regionalID].tel;
+        const telMotorista = window.unidadeAtual.motorista.tel;
         const encodedMsg = encodeURIComponent(msgReenvio);
         
         window.open(`https://wa.me/${telMotorista}?text=${encodedMsg}`, '_blank');
@@ -874,13 +932,13 @@
         const v = window.listaViagens.find(x => x.id === id);
         if (!v) return alert("Viagem não encontrada!");
 
-        const telSol = CONTATOS[window.regionalID].equipe[v.solicitante];
-        if (!telSol) return alert(`Telefone do solicitante '${v.solicitante}' não encontrado para enviar a notificação.`);
+        const solicitante = window.unidadeAtual.equipe.find(m => m.uid === v.solicitanteUID);
+        if (!solicitante || !solicitante.telefone) return alert(`Telefone do solicitante '${v.solicitanteNome}' não encontrado para enviar a notificação.`);
 
         const dataSaidaFormatada = new Date(v.saida).toLocaleString('pt-BR');
-        const msgConfReenvio = `🔄 *REENVIO DE CONFIRMAÇÃO DE VIAGEM*\n\n(Esta é uma notificação reenviada para uma viagem já confirmada)\n\n${window.regionalNome}\n\n👤 *Solicitante:* ${v.solicitante}\n📅 *Saída:* ${dataSaidaFormatada}\n📍 *Roteiro:* ${v.trajetoExibicao.replace(/\n/g, ' ')}\n\nSua viagem foi confirmada pelo motorista!`;
+        const msgConfReenvio = `🔄 *REENVIO DE CONFIRMAÇÃO DE VIAGEM*\n\n(Esta é uma notificação reenviada para uma viagem já confirmada)\n\n${window.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n📍 *Roteiro:* ${v.trajetoExibicao.replace(/\n/g, ' ')}\n\nSua viagem foi confirmada pelo motorista!`;
         
-        window.open(`https://api.whatsapp.com/send?phone=${telSol}&text=${encodeURIComponent(msgConfReenvio)}`, '_blank');
+        window.open(`https://api.whatsapp.com/send?phone=55${solicitante.telefone}&text=${encodeURIComponent(msgConfReenvio)}`, '_blank');
         alert("Notificação de confirmação reenviada para o solicitante.");
       };
 
@@ -930,7 +988,7 @@
             <td style="padding:12px; text-align:center"><span class="status-badge ${badgeCor}">${status}</span></td>
             <td style="padding:12px;">${new Date(v.saida).toLocaleString('pt-BR')}</td>
             <td style="padding:12px;">${new Date(v.chegada).toLocaleString('pt-BR')}</td>
-            <td style="padding:12px;"><strong>${v.solicitante}</strong></td>
+            <td style="padding:12px;"><strong>${v.solicitanteNome}</strong></td>
             <td style="padding:12px; font-size:0.9em; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;" title="Toque para ver o motivo completo" onclick="toggleMotivoVisibilidade(this)">${v.motivo || ''}</td>
             <td style="padding:12px; font-size:0.9em; white-space: pre-line;">${v.trajetoExibicao || ''}</td>
             <td style="padding:12px; text-align:center; white-space:nowrap;">${btns}</td>
@@ -938,18 +996,19 @@
         });
       };
 
-      window.prepararEdicao = (id) => { const v = window.listaViagens.find(x => x.id === id); document.getElementById('edit-id').value = id; document.getElementById('solicitante').value = v.solicitante; document.getElementById('saida').value = v.saida; document.getElementById('chegada').value = v.chegada; document.getElementById('motivo').value = v.motivo; window.roteiroAtual = v.roteiroArray || []; renderRoteiro(); window.scrollTo(0,0); };
+      window.prepararEdicao = (id) => { const v = window.listaViagens.find(x => x.id === id); document.getElementById('edit-id').value = id; document.getElementById('solicitante').value = v.solicitanteNome; document.getElementById('saida').value = v.saida; document.getElementById('chegada').value = v.chegada; document.getElementById('motivo').value = v.motivo; window.roteiroAtual = v.roteiroArray || []; renderRoteiro(); window.scrollTo(0,0); };
       
       window.confirmar = (id) => {
           const v = window.listaViagens.find(x => x.id === id);
           if(!v) return alert("Viagem não encontrada!");
           const path = window.regionalID === '14-regional' ? `viagens/${id}` : `unidades/${window.regionalID}/viagens/${id}`;
           update(ref(db, path), {status:"Confirmado"}).then(() => {
-              const telSol = CONTATOS[window.regionalID].equipe[v.solicitante];
+              const solicitante = window.unidadeAtual.equipe.find(m => m.uid === v.solicitanteUID);
+              const telSol = solicitante ? solicitante.telefone : null;
               const dataSaidaFormatada = new Date(v.saida).toLocaleString('pt-BR');
-              const msgConf = `✅ *VIAGEM CONFIRMADA*\n\n${window.regionalNome}\n\n👤 *Solicitante:* ${v.solicitante}\n📅 *Saída:* ${dataSaidaFormatada}\n📍 *Roteiro:* ${v.trajetoExibicao.replace(/\n/g, ' ')}\n\nSua viagem foi confirmada pelo motorista!`;
+              const msgConf = `✅ *VIAGEM CONFIRMADA*\n\n${window.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n📍 *Roteiro:* ${v.trajetoExibicao.replace(/\n/g, ' ')}\n\nSua viagem foi confirmada pelo motorista!`;
               if(telSol) {
-                window.open(`https://wa.me/${telSol}?text=${encodeURIComponent(msgConf)}`, '_blank');
+                window.open(`https://wa.me/55${telSol}?text=${encodeURIComponent(msgConf)}`, '_blank');
               }
               alert("Viagem confirmada! Solicitante será notificado.");
               setTimeout(() => window.atualizarTabelaGlobal(), 500);
@@ -961,11 +1020,12 @@
           if(!v) return alert("Viagem não encontrada!");
           const path = window.regionalID === '14-regional' ? `viagens/${id}` : `unidades/${window.regionalID}/viagens/${id}`;
           update(ref(db, path), {status:"Rejeitado"}).then(() => {
-              const telSol = CONTATOS[window.regionalID].equipe[v.solicitante];
+              const solicitante = window.unidadeAtual.equipe.find(m => m.uid === v.solicitanteUID);
+              const telSol = solicitante ? solicitante.telefone : null;
               const dataSaidaFormatada = new Date(v.saida).toLocaleString('pt-BR');
-              const msgRejeicao = `❌ *VIAGEM REJEITADA*\n\n${window.regionalNome}\n\n👤 *Solicitante:* ${v.solicitante}\n📅 *Saída:* ${dataSaidaFormatada}\n📍 *Roteiro:* ${v.trajetoExibicao.replace(/\n/g, ' ')}\n\nInfelizmente, sua viagem foi rejeitada pelo motorista. Tente agendar em outro horário.`;
+              const msgRejeicao = `❌ *VIAGEM REJEITADA*\n\n${window.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n📍 *Roteiro:* ${v.trajetoExibicao.replace(/\n/g, ' ')}\n\nInfelizmente, sua viagem foi rejeitada pelo motorista. Tente agendar em outro horário.`;
               if(telSol) {
-                window.open(`https://wa.me/${telSol}?text=${encodeURIComponent(msgRejeicao)}`, '_blank');
+                window.open(`https://wa.me/55${telSol}?text=${encodeURIComponent(msgRejeicao)}`, '_blank');
               }
               alert("Viagem rejeitada! Solicitante será notificado.");
               setTimeout(() => window.atualizarTabelaGlobal(), 500);
@@ -1012,7 +1072,7 @@
           if (status === 'Confirmado' && chegada < agora) status = 'Finalizado';
           const motivo = v.motivo || '';
           const traj = v.trajetoExibicao ? v.trajetoExibicao.replace(/\n/g, ' | ') : '';
-          html += `<tr><td>${status}</td><td>${new Date(v.saida).toLocaleString('pt-BR')}</td><td>${new Date(v.chegada).toLocaleString('pt-BR')}</td><td>${v.solicitante}</td><td>${motivo}</td><td>${traj}</td></tr>`;
+          html += `<tr><td>${status}</td><td>${new Date(v.saida).toLocaleString('pt-BR')}</td><td>${new Date(v.chegada).toLocaleString('pt-BR')}</td><td>${v.solicitanteNome}</td><td>${motivo}</td><td>${traj}</td></tr>`;
         });
         html += `</tbody></table></body></html>`;
         printWindow.document.write(html);
@@ -1035,7 +1095,7 @@
           const chegada = new Date(v.chegada).toLocaleString('pt-BR');
           const motivo = v.motivo ? v.motivo.replace(/"/g, '""').replace(/\n/g, ' ') : '';
           const roteiro = v.trajetoExibicao ? v.trajetoExibicao.replace(/\n/g, ' | ') : '';
-          csv += `"${status}","${saida}","${chegada}","${v.solicitante}","${motivo}","${roteiro}"\n`;
+          csv += `"${status}","${saida}","${chegada}","${v.solicitanteNome}","${motivo}","${roteiro}"\n`;
         });
         
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
