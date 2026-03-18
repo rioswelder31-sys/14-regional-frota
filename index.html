@@ -155,6 +155,107 @@
       .hidden { display: none !important; }
       @keyframes pulse-wpp { 0% { transform: scale(1); } 70% { transform: scale(1.02); } 100% { transform: scale(1); } }
       .btn-wpp-notif { background: var(--whatsapp); color: white; animation: pulse-wpp 2s infinite; font-size: 1.1em; padding: 15px; }
+
+      /* Floating Help Button */
+      #help-fab {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 60px;
+        height: 60px;
+        background-color: white;
+        color: var(--primary);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 1000;
+        transition: transform 0.2s ease-in-out;
+        border: 2px solid var(--primary);
+      }
+      #help-fab:hover {
+        transform: scale(1.1);
+        background-color: #f0f0f0;
+      }
+
+      /* Help Modal */
+      #help-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.6);
+        z-index: 1001;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      #help-modal-content {
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        max-width: 800px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+        position: relative;
+        animation: fadeInUp 0.4s ease-out;
+      }
+      #help-modal-close {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #888;
+        cursor: pointer;
+        line-height: 1;
+      }
+      #help-modal-close:hover { color: #333; }
+      #help-modal-content h3 { color: var(--primary); margin-bottom: 15px; font-size: 1.8rem; }
+      #help-modal-content h4 { margin-top: 20px; margin-bottom: 10px; font-size: 1.3rem; border-bottom: 2px solid #eee; padding-bottom: 5px; }
+      #help-modal-content p, #help-modal-content ul { line-height: 1.6; margin-bottom: 10px; }
+      #help-modal-content ul { padding-left: 20px; }
+      #help-modal-content strong { color: #333; }
+
+      /* Accordion Styles */
+      .accordion-item {
+        border-bottom: 1px solid #eee;
+      }
+      .accordion-question {
+        width: 100%;
+        background: none;
+        border: none;
+        text-align: left;
+        padding: 15px 10px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        color: #333;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: background-color 0.2s;
+      }
+      .accordion-question:hover {
+        background-color: #f9f9f9;
+      }
+      .accordion-question::after {
+        content: '+';
+        font-size: 1.5rem;
+        color: var(--primary);
+        transition: transform 0.2s ease-in-out;
+        font-weight: bold;
+      }
+      .accordion-question.active::after { content: '−'; }
+      .accordion-answer { padding: 0 15px; background-color: #fafafa; max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+      .accordion-answer p { padding: 15px 0; margin: 0; line-height: 1.6; }
     </style>
   </head>
   <body>
@@ -320,6 +421,129 @@
       <div style="overflow-x:auto;"><table style="width:100%; border-collapse: collapse; min-width: 1100px;"><thead style="background:#004080; color:white;"><tr><th style="padding:12px;">Status</th><th style="padding:12px;">Saída</th><th style="padding:12px;">Retorno</th><th style="padding:12px;">Solicitante</th><th style="padding:12px;">Motivo</th><th style="padding:12px;">Roteiro</th><th style="padding:12px; text-align:center;">Ações</th></tr></thead><tbody id="tb-corpo"></tbody></table></div>
     </div>
 
+    <div id="help-fab" onclick="toggleHelpModal(true)">?</div>
+
+    <div id="help-modal" class="hidden" onclick="if (event.target === this) toggleHelpModal(false)">
+      <div id="help-modal-content">
+        <span id="help-modal-close" onclick="toggleHelpModal(false)">&times;</span>
+        <h3>📑 MANUAL ATUALIZADO: SAD V81.0</h3>
+        <p style="text-align: center; font-style: italic; margin-bottom: 20px;">Sistema de Agendamento Defensorial - DPE Bahia</p>
+        
+        <h4>1. 🔐 ACESSO E CONTA (AUTOATENDIMENTO)</h4>
+        <ul>
+          <li><strong>Criar Conta:</strong> Não precisa mais solicitar ao RH. Clique em [Criar Agora] na tela de login, use seu e-mail institucional e defina uma senha.</li>
+          <li><strong>Esqueci a Senha:</strong> O sistema envia um link de redefinição direto para o seu e-mail funcional.</li>
+        </ul>
+    
+        <h4>2. 📝 O NOVO FLUXO DE AGENDAMENTO</h4>
+        <ul>
+          <li><strong>Solicitante:</strong> Escolha seu nome (o sistema já vincula seu Zap).</li>
+          <li><strong>Roteiro por Trechos:</strong> Selecione Origem ➔ Destino e clique em [Add].</li>
+          <li><strong>Exemplo:</strong> Para ir de Teixeira a Itanhém com parada em Medeiros, adicione o primeiro trecho até Medeiros e o segundo até Itanhém.</li>
+          <li><strong>Botão [Limpar]:</strong> Errou o roteiro? Clique em Limpar para recomeçar a lista de cidades.</li>
+        </ul>
+    
+        <h4>3. 🔄 NOVIDADE: BOTÃO DE REENVIO (ANTIPERDA)</h4>
+        <p>Agora, na Agenda de Viagens, você tem um controle maior sobre a comunicação:</p>
+        <ul>
+          <li><strong>Para o Motorista:</strong> Se o motorista não visualizou a solicitação 🟡 Pendente, clique no botão [🔄 Reenviar]. O sistema gera uma nova notificação com todos os dados para o Zap dele.</li>
+          <li><strong>Para o Solicitante:</strong> Se a viagem já está 🟢 Confirmada, mas o servidor esqueceu os detalhes, o motorista ou o admin podem clicar em [🔄 Reenviar Confirmação] para mandar os dados de saída e roteiro direto para o Zap do solicitante.</li>
+        </ul>
+    
+        <h4>4. 🛡️ REGRAS DE SEGURANÇA (ALGORITMO)</h4>
+        <ul>
+          <li><strong>O Buffer de 5 Minutos:</strong> O sistema calcula o tempo de desembarque. Se uma viagem termina às 10:00, a próxima só pode ser salva a partir das 10:05.</li>
+          <li><strong>Bloqueio de Folgas:</strong> Se o motorista cadastrar uma folga ou o carro estiver em manutenção, o sistema impedirá qualquer agendamento naquele período, exibindo o motivo do bloqueio.</li>
+        </ul>
+    
+        <h4>5. 🚛 PAINEL DO MOTORISTA & GPS</h4>
+        <ul>
+          <li><strong>Decisão:</strong> O motorista tem botões exclusivos de ✅ Confirmar ou ❌ Rejeitar.</li>
+          <li><strong>Mapa Inteligente:</strong> Ao clicar no ícone 🗺️ Mapa, o Google Maps abre automaticamente com todos os pontos do roteiro traçados na ordem correta.</li>
+        </ul>
+    
+        <h4>6. 📊 RELATÓRIOS E GESTÃO</h4>
+        <ul>
+          <li><strong>Filtros Dinâmicos:</strong> Selecione o Mês e o Ano para visualizar o histórico.</li>
+          <li><strong>🖨️ Imprimir:</strong> Gera uma cópia da agenda para o mural físico da Regional.</li>
+          <li><strong>📥 Exportar CSV:</strong> Baixa o histórico em Excel para controle de quilometragem.</li>
+        </ul>
+        <hr style="margin: 20px 0;">
+        <p style="font-size: 0.9em;"><strong>Desenvolvedor:</strong> Welder Rios (14ª Regional)<br><strong>Tecnologia:</strong> Firebase Realtime Database & Alta Performance.</p>
+
+        <h3 style="margin-top: 30px; border-top: 2px solid #eee; padding-top: 20px;">Perguntas Frequentes</h3>
+        
+        <div class="accordion">
+          <div class="accordion-item">
+            <button class="accordion-question" onclick="toggleAccordion(this)">Como faço uma viagem com várias paradas?</button>
+            <div class="accordion-answer">
+              <p><strong>R:</strong> O sistema é baseado em trechos. Selecione a primeira Origem e o primeiro Destino e clique em [Add]. Em seguida, o destino atual vira a nova origem; escolha o próximo destino e clique em [Add] novamente. Repita até concluir o roteiro.</p>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-question" onclick="toggleAccordion(this)">O botão [Add] não está funcionando, o que eu faço?</button>
+            <div class="accordion-answer">
+              <p><strong>R:</strong> Verifique se você selecionou tanto a cidade de origem quanto a de destino. O botão só valida o trecho se ambos os campos estiverem preenchidos.</p>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-question" onclick="toggleAccordion(this)">Para que serve o botão [Limpar]?</button>
+            <div class="accordion-answer">
+              <p><strong>R:</strong> Ele apaga todo o roteiro construído no agendamento atual para que você possa recomeçar do zero, caso tenha adicionado uma cidade errada.</p>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-question" onclick="toggleAccordion(this)">Por que recebi a mensagem de "Conflito de Horário"?</button>
+            <div class="accordion-answer">
+              <p><strong>R:</strong> Isso acontece porque já existe uma viagem (Pendente ou Confirmada) ocupando esse horário ou porque o horário solicitado desrespeita o Buffer de 5 minutos entre viagens. Verifique a Agenda de Viagens para ver quem reservou o horário.</p>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-question" onclick="toggleAccordion(this)">O sistema diz que o motorista está indisponível. O que significa?</button>
+            <div class="accordion-answer">
+              <p><strong>R:</strong> Significa que o motorista ou o administrador cadastrou uma Folga ou Manutenção para aquele período (Férias, Licença, Oficina, etc.). O sistema bloqueia automaticamente qualquer agendamento nessas datas.</p>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-question" onclick="toggleAccordion(this)">Salvei a viagem, o motorista já está sabendo?</button>
+            <div class="accordion-answer">
+              <p><strong>R:</strong> Não. O motorista só recebe o alerta se você clicar no botão pulsante [Notificar Motorista] após salvar. Isso abrirá o seu WhatsApp com a mensagem pronta para envio.</p>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-question" onclick="toggleAccordion(this)">O motorista não respondeu. Como mando os dados de novo?</button>
+            <div class="accordion-answer">
+              <p><strong>R:</strong> Na tabela "Agenda de Viagens", localize sua solicitação e clique no botão [🔄 Reenviar]. O sistema gerará uma nova notificação para o WhatsApp do motorista.</p>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-question" onclick="toggleAccordion(this)">Como o motorista sabe o caminho da viagem?</button>
+            <div class="accordion-answer">
+              <p><strong>R:</strong> No painel do motorista, ele deve clicar no ícone 🗺️ (Mapa). O SAD abrirá o Google Maps com todas as paradas que você adicionou no roteiro, já na ordem correta.</p>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-question" onclick="toggleAccordion(this)">O que acontece quando o motorista clica em Confirmar ou Rejeitar?</button>
+            <div class="accordion-answer">
+              <p><strong>R:</strong> O status na agenda muda instantaneamente e o sistema abre o WhatsApp do motorista para enviar uma confirmação (ou aviso de recusa) automática para o seu telefone.</p>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-question" onclick="toggleAccordion(this)">Esqueci minha senha, como recupero?</button>
+            <div class="accordion-answer">
+              <p><strong>R:</strong> Na tela de login, insira seu e-mail e clique em "Esqueceu a senha?". Um link de redefinição será enviado para o seu e-mail institucional.</p>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-question" onclick="toggleAccordion(this)">Como tiro um relatório das minhas viagens do mês?</button>
+            <div class="accordion-answer">
+              <p><strong>R:</strong> Use os filtros de Mês e Ano acima da tabela de viagens e clique em [📥 Exportar CSV]. O sistema baixará um arquivo Excel com todos os dados filtrados.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
       import { getDatabase, ref, push, onValue, remove, update, query, orderByChild, startAt, endAt } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
@@ -340,6 +564,23 @@
       const cidadesBA = ["ABARÉ","ACAJUTIBA","ALAGOINHAS","ALCOBAÇA","ALMADINA","AMARGOSA","AMÉLIA RODRIGUES","ANAGÉ","ANDARAÍ","ANGICAL","ANTAS","APORÁ","APUAREMA","ARAÇÁS","ARACI","ARAMARI","ARATACA","ARATUÍPE","AURELINO LEAL","BAIANÓPOLIS","BAIXA GRANDE","BANZÁE","BARRA","BARRA DA ESTIVA","BARRA DO CHOÇA","BARRA DO MENDES","BARRA DO ROCHA","BARREIRAS","BARRO ALTO","BARROCAS","BELMONTE","BELO CAMPO","BIRITINGA","BOA NOVA","BOA VISTA DO TUPIM","BOM JESUS DA LAPA","BOM JESUS DA SERRA","BONINAL","BONITO","BOQUIRA","BOTUPORÃ","BREJÕES","BREJOLÂNDIA","BROTAS DE MACAÚBAS","BRUMADO","BUERAREMA","BURITIRAMA","CAATIBA","CABACEIRAS DO PARAGUAÇU","CACHOEIRA","CACULÉ","CAÉM","CAETANOS","CAETITÉ","CAFARNAUM","CAIRU","CALDEIRÃO GRANDE","CAMACAN","CAMAÇARI","CAMAMU","CAMPO ALEGRE DE LOURDES","CAMPO FORMOSO","CANÁPOLIS","CANARANA","CANAVIEIRAS","CANDEAL","CANDEIAS","CANDIBA","CÂNDIDO SALES","CANSANÇÃO","CANUDOS","CAPELA DO ALTO ALEGRE","CAPIM GROSSO","CARAÍBAS","CARAVELAS","CARDEAL DA SILVA","CARINHANHA","CASA NOVA","CASTRO ALVES","CATU","CATURAMA","CENTRAL","CHORROCHÓ","CÍCERO DANTAS","CIPÓ","COARACI","COCOS","CONCEIÇÃO DA FEIRA","CONCEIÇÃO DO ALMEIDA","CONCEIÇÃO DO COITÉ","CONCEIÇÃO DO JACUÍPE","CONDE","CONDEÚBA","CORAÇÃO DE MARIA","CORDEIROS","CORIBE","CORONEL JOÃO SÁ","CORRENTINA","COTEGIPE","CRAVOLÂNDIA","CRISÓPOLIS","CRISTÓPOLIS","CRUZ DAS ALMAS","CURAÇÁ","DÁRIO MEIRA","DIAS D'ÁVILA","DOM BASÍLIO","ELÍSIO MEDRADO","ENCRUZILHADA","ENTRE RIOS","ÉRICO CARDOSO","ESPLANADA","EUCLIDES DA CUNHA","EUNÁPOLIS","FÁTIMA","FEIRA DE SANTANA","FILADÉLFIA","FIRMINO Alves","FLORESTA AZUL","FORMOSA DO RIO PRETO","GANDU","GAVIÃO","GENTIO DO OURO","GLÓRIA","GONGOGI","GOVERNADOR MANGABEIRA","GUANAMBI","GUARATINGA","HELIÓPOLIS","IAÇU","IBIASSUCÊ","IBICARAÍ","IBICOARA","IBICUÍ","IBIPEBA","IBIPITANGA","IBIQUERA","IBIRAPITANGA","IBIRAPUÃ","IBIRATAIA","IBITIARA","IBitITÁ","IBOTIRAMA","ICHU","IGAPORÃ","IGRAPIÚNA","IGUAÍ","ILHÉUS","INHAMBUPE","IPECAETÁ","IPIAÚ","IPIRÁ","IPUPIARA","IRAJUBA","IRAMAIA","IRAQUARA","IRARÁ","IRECÊ","ITABELA","ITABERABA","ITABUNA","ITACARÉ","ITAETÊ","ITAGI","ITAGIBÁ","ITAGIMIRIM","ITAJU DO COLÔNIA","ITAJUÍPE","ITAMARAJU","ITAMARI","ITAMBÉ","ITANAGRA","ITANHÉM","ITAPARICA","ITAPÉ","ITAPEBI","ITAPETINGA","ITAPICURU","ITAPPITANGA","ITAQUARA","ITARANTIM","ITATIM","ITIRUÇU","ITIÚBA","ITORORÓ","ITUAÇU","ITUBERÁ","IUIÚ","JABORANDI","JACARACI","JACOBINA","JAGUAQUARA","JAGUARARI","JAGUARIPE","JEQUIÉ","JEREMOABO","JIQUIRIÇÁ","JITAÚNA","JOÃO DOURADO","JUAZEIRO","JUCURUÇU","JUSSARA","JUSSARI","JUSSIAPE","LAFAIETE COUTINHO","LAGOA REAL","LAJE","LAJEDÃO","LAJEDINHO","LAMARÃO","LAPÃO","LAURO DE FREITAS","LENÇÓIS","LICÍNIO DE ALMEIDA","LIVRAMENTO DE NOSSA SENHORA","LUÍS EDUARDO MAGALHAES","MACAJUBA","MACARANI","MACAÚBAS","MACURURÉ","MADRE DE DEUS","MAETINGA","MAIQUINIQUE","MAIRI","MALHADA","MALHADA DE PEDRAS","MANOEL VITORINO","MANSIDÃO","MARACÁS","MARAGOGIPE","MARAÚ","MASCOTE","MATA DE SÃO JOÃO","MATINA","MEDEIROS NETO","MIGUEL CALMON","MILAGRES","MIRANGABA","MONTE SANTO","MORPARÁ","MORRO DO CHAPÉU","MORTUGABA","MUCUGÊ","MUCURI","MULUNGU DO MORRO","MUNDO NOVO","MUNIZ FERREIRA","MUQUÉM DO SÃO FRANCISCO","MURITIBA","MUTUÍPE","NAZARÉ","NILO PEÇANHA","NORDESTINA","NOVA CANAÃ","NOVA FÁTIMA","NOVA IBIA","NOVA SOURE","NOVA VIÇOSA","NOVO HORIZONTE","NOVO TRIUNFO","OLINDINA","OLIVEIRA DOS BREJINHOS","OURIÇANGAS","OUROLÂNDIA","PALMAS DE MONTE ALTO","PALMEIRAS","PARAMIRIM","PARATINGA","PARIPIRANGA","PAU BRASIL","PAULO AFONSO","PÉ DE SERRA","PEDRÃO","PEDRO ALEXANDRE","PIATÃ","PILÃO ARCADO","PINDAÍ","PINDOBAÇU","PINTADAS","PIRAÍ DO Norte","PIRIPÁ","PIRITIBA","PLANALTINO","PLANALTO","POÇÕES","POJUCA","PONTO NOVO","PORTO SEGURO","POTIRAGUÁ","PRADO","PRESIDENTE DUTRA","QUEIMADAS","QUIJINGUE","QUIXABEIRA","RAFAEL JAMBEIRO","REMANSO","RETIROLÂNDIA","RIACHÃO DAS NEVES","RIACHÃO DO JACUÍPE","RIACHO DE SANTANA","RIBEIRA DO AMPARO","RIBEIRA DO POMBAL","RIBEIRÃO DO LARGO","RIO DE CONTAS","RIO DO ANTÔNIO","RIO DO PIRES","RIO REAL","RODELAS","RUY BARBOSA","SALINAS DA MARGARIDA","SALVADOR","SANTA BÁRBARA","SANTA BRÍGIDA","SANTA CRUZ CABRÁLIA","SANTA INÊS","SANTA LUZIA","SANTA MARIA DA VITÓRIA","SANTA RITA DE CÁSSIA","SANTA TERESINHA","SANTALUZ","SANTANA","SANTANÓPOLIS","SANTO AMARO","SANTO ANTÔNIO DE JESUS","SANTO ESTÊVÃO","SÃO DESIDÉRIO","SÃO DOMINGOS","SÃO FELIPE","SÃO FÉLIX","SÃO FRANCISCO DO CONDE","SÃO GABRIEL","SÃO GONÇALO DOS CAMPOS","SÃO JOSÉ DO JACUÍPE","SÃO SEBASTIÃO DO PASSÉ","SAPEACU","SÁTIRO DIAS","SAUBARA","SAÚDE","SEABRA","SEBASTIÃO LARANJEIRAS","SENHOR DO BONFIM","SENTO SÉ","SERRA DO RAMALHO","SERRA DOURADA","SERRA PRETA","SERRAS PRETAS","SERROLÂNDIA","SIMÕES FILHO","SÍTIO DO MATO","SÍTIO DO QUINTO","SOBRADINHO","SOUTO SOARES","TABOCAS DO BREJO VELHO","TANHAÇU","TANQUE NOVO","TANQUINHO","TAPEROÁ","TAPIRAMUTÁ","TEIXEIRA DE FREITAS","TEODORO SAMPAIO","TEOFILÂNDIA","TEOLÂNDIA","TERRA NOVA","TREMEDAL","TUCANO","UAUÁ","UBAÍRA","UBAITABA","UBATÃ","UIBAÍ","UMBURANAS","UNA","URANDI","URUÇUCA","UTINGA","VALENÇA","VALENTE","VÁRZEA DA ROÇA","VÁRZEA DO POÇO","VÁRZEA NOVA","VARZEDO","VERA CRUZ","VEREDA","VITÓRIA DA CONQUISTA","WAGNER","WANDERLEY","WENCESLAU GUIMARÃES","XIQUE-XIQUE"];
 
       window.togglePassword = (id) => { const i = document.getElementById(id); i.type = i.type === "password" ? "text" : "password"; };
+      window.toggleHelpModal = (show) => {
+        const modal = document.getElementById('help-modal');
+        if (show) {
+          modal.classList.remove('hidden');
+        } else {
+          modal.classList.add('hidden');
+        }
+      };
+      window.toggleAccordion = (element) => {
+        element.classList.toggle('active');
+        const answer = element.nextElementSibling;
+        if (answer.style.maxHeight) {
+          answer.style.maxHeight = null;
+        } else {
+          answer.style.maxHeight = answer.scrollHeight + "px";
+        }
+      };
       window.recuperarSenha = () => { const e = document.getElementById("login-user").value; if(!e) return alert("Digite o e-mail."); sendPasswordResetEmail(auth, e).then(() => alert("E-mail enviado!")); };
       window.mostrarSub9 = () => { document.getElementById('unit-screen').classList.add('hidden'); document.getElementById('comarca-screen').classList.remove('hidden'); };
       window.voltarParaTelaRegionais = () => { document.querySelectorAll('[id$="-screen"]').forEach(c => c.classList.add('hidden')); document.getElementById('unit-screen').classList.remove('hidden'); };
