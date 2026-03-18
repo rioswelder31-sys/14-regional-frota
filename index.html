@@ -897,30 +897,33 @@
         }
 
         viagensParaExibir.sort((a,b) => new Date(b.saida) - new Date(a.saida)).forEach(v => {
-          const temP = window.podeTudo || v.registradoPor === window.userEmail;
-          let btns = "";
-          if(temP) btns += `<button class="btn-edit" onclick="prepararEdicao('${v.id}')">✏️ Editar</button>`;
-          if(temP && (v.status === 'Pendente' || !v.status || v.status === 'Confirmado')) {
-            btns += `<button style="background:#3498db; color:white; width: auto; padding: 8px 12px; font-size: 0.9em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer;" onclick="reenviarNotificacao('${v.id}')" title="Reenviar notificação para o motorista">🔄 Reenviar</button>`;
-          }
-          if(window.isMotorista && v.status !== "Confirmado" && v.status !== "Rejeitado") {
-            btns += `<button class="btn-confirm" onclick="confirmar('${v.id}')">✅ Confirmar</button>`;
-            btns += `<button class="btn-reject" onclick="rejeitar('${v.id}')">❌ Rejeitar</button>`;
-          }
-          if(window.isMotorista && v.status === "Confirmado") {
-            btns += `<button style="background:#27ae60; color:white; width: auto; padding: 8px 12px; font-size: 0.9em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer;" onclick="reenviarConfirmacao('${v.id}')" title="Reenviar confirmação para o solicitante">🔄 Reenviar Confirmação</button>`;
-          }
-          btns += `<button style="background:#16a085; color:white; width: auto; padding: 8px 12px; font-size: 0.9em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer;" onclick="abrirRotaGoogleMaps('${v.id}')" title="Abrir rota no Google Maps">🗺️ Mapa</button>`;
-          if(temP) btns += `<button class="btn-delete" onclick="deletar('${v.id}')">🗑️ Excluir</button>`;
           let status = v.status || "Pendente";
           const agora = new Date();
           const chegada = new Date(v.chegada);
           if (status === 'Confirmado' && chegada < agora) {
             status = "Finalizado";
-            // Atualizar no banco de dados
             const path = window.regionalID === '14-regional' ? `viagens/${v.id}` : `unidades/${window.regionalID}/viagens/${v.id}`;
             update(ref(db, path), {status:"Finalizado"});
           }
+
+          const temP = window.podeTudo || v.registradoPor === window.userEmail;
+          let btns = "";
+          if(temP && status !== 'Finalizado') btns += `<button class="btn-edit" onclick="prepararEdicao('${v.id}')">✏️ Editar</button>`;
+          if(temP && (status === 'Pendente' || status === 'Confirmado')) {
+            btns += `<button style="background:#3498db; color:white; width: auto; padding: 8px 12px; font-size: 0.9em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer;" onclick="reenviarNotificacao('${v.id}')" title="Reenviar notificação para o motorista">🔄 Reenviar</button>`;
+          }
+          if(window.isMotorista && status === 'Pendente') {
+            btns += `<button class="btn-confirm" onclick="confirmar('${v.id}')">✅ Confirmar</button>`;
+            btns += `<button class="btn-reject" onclick="rejeitar('${v.id}')">❌ Rejeitar</button>`;
+          }
+          if(window.isMotorista && status === "Confirmado") {
+            btns += `<button style="background:#27ae60; color:white; width: auto; padding: 8px 12px; font-size: 0.9em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer;" onclick="reenviarConfirmacao('${v.id}')" title="Reenviar confirmação para o solicitante">🔄 Reenviar Confirmação</button>`;
+          }
+          if(status !== 'Finalizado') {
+            btns += `<button style="background:#16a085; color:white; width: auto; padding: 8px 12px; font-size: 0.9em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer;" onclick="abrirRotaGoogleMaps('${v.id}')" title="Abrir rota no Google Maps">🗺️ Mapa</button>`;
+          }
+          if(temP && status !== 'Finalizado') btns += `<button class="btn-delete" onclick="deletar('${v.id}')">🗑️ Excluir</button>`;
+          
           const classeLinha = status === 'Finalizado' ? 'linha-confirmada' : '';
           const badgeCor = status === 'Confirmado' ? 'status-confirmado' : status === 'Finalizado' ? 'status-finalizado' : status === 'Rejeitado' ? 'status-rejeitado' : 'status-pendente';
           tb.innerHTML += `<tr class="${classeLinha}" style="border-bottom: 1px solid #eee;">
