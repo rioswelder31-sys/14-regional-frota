@@ -644,8 +644,35 @@
       async function carregarDadosDaUnidade() {
         const motoristaPath = window.regionalID === '14-regional' ? 'motorista' : `unidades/${window.regionalID}/motorista`;
         const equipePath = window.regionalID === '14-regional' ? 'equipe' : `unidades/${window.regionalID}/equipe`;
-        onValue(ref(db, motoristaPath), (snap) => { window.unidadeAtual.motorista = snap.val() || { nome: 'N/D', tel: '' }; });
-        onValue(ref(db, equipePath), (snap) => { window.unidadeAtual.equipe = snap.val() ? Object.keys(snap.val()).map(uid => ({ uid, ...snap.val()[uid] })) : []; configurarUI(); });
+        onValue(ref(db, motoristaPath), (snap) => { 
+          const motoristaFirebase = snap.val();
+          if (motoristaFirebase && motoristaFirebase.nome) {
+            window.unidadeAtual.motorista = motoristaFirebase;
+          } else {
+            window.unidadeAtual.motorista.nome = CONTATOS[window.regionalID]?.motorista || 'N/D';
+            window.unidadeAtual.motorista.tel = CONTATOS[window.regionalID]?.tel || '';
+          }
+          configurarUI(); // Garante que a UI seja atualizada com os dados do motorista
+        });
+        onValue(ref(db, equipePath), (snap) => { 
+          const equipeFirebase = snap.val() ? Object.keys(snap.val()).map(uid => ({ uid, ...snap.val()[uid] })) : [];
+          const equipeAntigaObj = CONTATOS[window.regionalID]?.equipe || {};
+          const nomesFirebase = new Set(equipeFirebase.map(m => m.nome));
+
+          // Converte a lista antiga para o novo formato, normalizando o telefone (sem o 55)
+          const equipeAntigaArray = Object.keys(equipeAntigaObj).map(nome => {
+            let telefone = equipeAntigaObj[nome].replace(/\D/g, '');
+            if (telefone.startsWith('55')) telefone = telefone.substring(2);
+            return { uid: `antigo_${nome.replace(/\s/g, '')}`, nome: nome, telefone: telefone };
+          });
+
+          // Combina as listas, priorizando os dados do Firebase e evitando duplicados pelo nome
+          const equipeCombinada = [...equipeFirebase];
+          equipeAntigaArray.forEach(membroAntigo => { if (!nomesFirebase.has(membroAntigo.nome)) equipeCombinada.push(membroAntigo); });
+          window.unidadeAtual.equipe = equipeCombinada;
+          configurarUI();
+          atualizarTabelaGlobal(); // Garante que a tabela seja redesenhada quando a equipe carregar
+        });
       }
 
       onAuthStateChanged(auth, (user) => {
@@ -691,8 +718,8 @@
         const usuarioLogado = window.unidadeAtual.equipe.find(m => m.email === window.userEmail);
         if (usuarioLogado) document.getElementById('solicitante').value = usuarioLogado.nome;
 
-        document.getElementById('nome-motorista').innerText = window.unidadeAtual.motorista.nome;
-        document.getElementById('tel-motorista').innerText = `📱 ${window.unidadeAtual.motorista.tel}`;
+        document.getElementById('nome-motorista').innerText = window.unidadeAtual.motorista.nome || 'N/D';
+        document.getElementById('tel-motorista').innerText = window.unidadeAtual.motorista.tel ? `📱 ${window.unidadeAtual.motorista.tel}` : '';
 
         const ufo = document.getElementById('uf-origem'); const ufd = document.getElementById('uf-destino');
         ufo.innerHTML = ""; ufd.innerHTML = "";
@@ -829,6 +856,17 @@
         atualizarEscutaViagens();
       }
 
+      function getNomeSolicitante(v) {
+        if (v.solicitanteNome) return v.solicitanteNome;
+        if (v.solicitanteUID) {
+          const solicitante = window.unidadeAtual.equipe.find(m => m.uid === v.solicitanteUID);
+          if (solicitante) return solicitante.nome;
+        }
+        // Fallback para registros muito antigos que podem ter apenas o campo 'solicitante'
+        if (v.solicitante) return v.solicitante; 
+        return null; // Retorna null para que o || 'N/D' funcione
+      }
+
       function temConflito(novaSaida, novaChegada, ignorarId = null) {
           const buffer = 5 * 60 * 1000;
           const iniN = new Date(novaSaida).getTime();
@@ -842,7 +880,7 @@
               if(ignorarId && v.id === ignorarId) continue;
               const iniE = new Date(v.saida).getTime();
               const fimE = new Date(v.chegada).getTime();
-              if (iniN < (fimE + buffer) && fimN > (iniE - buffer)) return { tipo: 'viagem', solicitante: v.solicitanteNome };
+              if (iniN < (fimE + buffer) && fimN > (iniE - buffer)) return { tipo: 'viagem', solicitante: getNomeSolicitante(v) || 'Desconhecido' };
           }
           return null;
       }
@@ -986,13 +1024,15 @@
           }
           if(temP && status !== 'Finalizado') btns += `<button class="btn-delete" onclick="deletar('${v.id}')">🗑️ Excluir</button>`;
           
+          const nomeParaExibir = getNomeSolicitante(v);
+
           const classeLinha = status === 'Finalizado' ? 'linha-confirmada' : '';
           const badgeCor = status === 'Confirmado' ? 'status-confirmado' : status === 'Finalizado' ? 'status-finalizado' : status === 'Rejeitado' ? 'status-rejeitado' : 'status-pendente';
           tb.innerHTML += `<tr class="${classeLinha}" style="border-bottom: 1px solid #eee;">
             <td style="padding:12px; text-align:center"><span class="status-badge ${badgeCor}">${status}</span></td>
             <td style="padding:12px;">${new Date(v.saida).toLocaleString('pt-BR')}</td>
             <td style="padding:12px;">${new Date(v.chegada).toLocaleString('pt-BR')}</td>
-            <td style="padding:12px;"><strong>${v.solicitanteNome}</strong></td>
+            <td style="padding:12px;"><strong>${nomeParaExibir || 'N/D'}</strong></td>
             <td style="padding:12px; font-size:0.9em; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;" title="Toque para ver o motivo completo" onclick="toggleMotivoVisibilidade(this)">${v.motivo || ''}</td>
             <td style="padding:12px; font-size:0.9em; white-space: pre-line;">${v.trajetoExibicao || ''}</td>
             <td style="padding:12px; text-align:center; white-space:nowrap;">${btns}</td>
@@ -1000,7 +1040,10 @@
         });
       };
 
-      window.prepararEdicao = (id) => { const v = window.listaViagens.find(x => x.id === id); document.getElementById('edit-id').value = id; document.getElementById('solicitante').value = v.solicitanteNome; document.getElementById('saida').value = v.saida; document.getElementById('chegada').value = v.chegada; document.getElementById('motivo').value = v.motivo; window.roteiroAtual = v.roteiroArray || []; renderRoteiro(); window.scrollTo(0,0); };
+      window.prepararEdicao = (id) => { 
+        const v = window.listaViagens.find(x => x.id === id);
+        document.getElementById('edit-id').value = id; document.getElementById('solicitante').value = getNomeSolicitante(v) || ''; document.getElementById('saida').value = v.saida; document.getElementById('chegada').value = v.chegada; document.getElementById('motivo').value = v.motivo; window.roteiroAtual = v.roteiroArray || []; renderRoteiro(); window.scrollTo(0,0); 
+      };
       
       window.confirmar = (id) => {
           const v = window.listaViagens.find(x => x.id === id);
