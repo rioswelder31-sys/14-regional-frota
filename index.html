@@ -183,7 +183,7 @@
       }
 
       /* Help Modal */
-      #help-modal {
+      #help-modal, #profile-modal {
         position: fixed;
         top: 0;
         left: 0;
@@ -195,6 +195,21 @@
         align-items: center;
         justify-content: center;
         padding: 20px;
+      }
+      #profile-modal-content {
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        max-width: 500px;
+        width: 100%;
+        position: relative;
+        animation: fadeInUp 0.4s ease-out;
+      }
+      #profile-modal-close {
+        position: absolute; top: 10px; right: 15px; font-size: 2.5rem; font-weight: bold; color: #888; cursor: pointer; line-height: 1;
+      }
+      #profile-modal-content label {
+        font-weight: 600; color: #555; font-size: 0.95em; margin-bottom: 8px; display: block;
       }
       #help-modal-content {
         background: white;
@@ -354,7 +369,10 @@
       <div class="header">
         <div class="header-content">
           <div><h2 id="app-unit-name">Frota DPE</h2><span id="status-conexao">Conectando...</span></div>
-          <div><span id="nome-usuario" style="font-weight: bold; margin-right: 15px"></span><button style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px;" onclick="fazerLogout()">Sair</button></div>
+          <div>
+            <span id="nome-usuario" style="font-weight: bold; margin-right: 15px"></span>
+            <button style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px; margin-right: 8px;" onclick="toggleProfileModal(true)">Meu Perfil</button>
+            <button style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px;" onclick="fazerLogout()">Sair</button></div>
         </div>
       </div>
 
@@ -550,6 +568,22 @@
       </div>
     </div>
 
+    <div id="profile-modal" class="hidden" onclick="if (event.target === this) toggleProfileModal(false)">
+      <div id="profile-modal-content">
+        <span id="profile-modal-close" onclick="toggleProfileModal(false)">&times;</span>
+        <h3 style="color: var(--primary); margin-bottom: 25px;">Meu Perfil</h3>
+        <div style="margin-bottom: 20px;">
+          <label for="profile-nome">Nome Completo:</label>
+          <input type="text" id="profile-nome" />
+        </div>
+        <div style="margin-bottom: 25px;">
+          <label for="profile-tel">WhatsApp (somente números):</label>
+          <input type="tel" id="profile-tel" placeholder="Ex: 73999999999" />
+        </div>
+        <button class="btn-primary" onclick="salvarPerfil()">Salvar Alterações</button>
+      </div>
+    </div>
+
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
       import { getDatabase, ref, push, onValue, remove, update, query, orderByChild, startAt, endAt, set } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
@@ -596,6 +630,26 @@
           answer.style.maxHeight = answer.scrollHeight + "px";
         }
       };
+      window.toggleProfileModal = (show) => {
+        const modal = document.getElementById('profile-modal');
+        if (show) {
+          const currentUser = auth.currentUser;
+          if (!currentUser) return;
+          let userProfile;
+          if (window.isMotorista) {
+            userProfile = { nome: window.unidadeAtual.motorista.nome, telefone: window.unidadeAtual.motorista.tel };
+          } else {
+            userProfile = window.unidadeAtual.equipe.find(m => m.uid === currentUser.uid);
+          }
+          if (userProfile) {
+            document.getElementById('profile-nome').value = userProfile.nome;
+            document.getElementById('profile-tel').value = userProfile.telefone || '';
+          } // Se o perfil não for encontrado, o modal abrirá com campos vazios, permitindo a criação.
+          modal.classList.remove('hidden');
+        } else {
+          modal.classList.add('hidden');
+        }
+      };
       window.recuperarSenha = () => { const e = document.getElementById("login-user").value; if(!e) return alert("Digite o e-mail."); sendPasswordResetEmail(auth, e).then(() => alert("E-mail enviado!")); };
       window.mostrarSub9 = () => { document.getElementById('unit-screen').classList.add('hidden'); document.getElementById('comarca-screen').classList.remove('hidden'); };
       window.voltarParaTelaRegionais = () => { document.querySelectorAll('[id$="-screen"]').forEach(c => c.classList.add('hidden')); document.getElementById('unit-screen').classList.remove('hidden'); };
@@ -639,6 +693,42 @@
       };
 
       window.fazerLogout = () => { signOut(auth).then(() => { localStorage.clear(); window.regionalID = ""; location.reload(); }); };
+
+      window.salvarPerfil = () => {
+        const novoNome = document.getElementById('profile-nome').value;
+        const novoTel = document.getElementById('profile-tel').value.replace(/\D/g, '');
+        if (!novoNome || !novoTel) return alert("Por favor, preencha seu nome e telefone.");
+
+        const user = auth.currentUser;
+        if (!user) return alert("Sessão expirada. Faça login novamente.");
+
+        let updatePath, dadosAtualizados;
+        if (window.isMotorista) {
+          updatePath = window.regionalID === '14-regional' ? 'motorista' : `unidades/${window.regionalID}/motorista`;
+          dadosAtualizados = { nome: novoNome, tel: novoTel };
+        } else {
+          updatePath = window.regionalID === '14-regional' ? `equipe/${user.uid}` : `unidades/${window.regionalID}/equipe/${user.uid}`;
+          dadosAtualizados = { nome: novoNome, telefone: novoTel, email: user.email };
+        }
+
+        update(ref(db, updatePath), dadosAtualizados).then(() => {
+          alert("Perfil atualizado com sucesso!");
+          if (window.isMotorista) {
+            window.unidadeAtual.motorista.nome = novoNome;
+            window.unidadeAtual.motorista.tel = novoTel;
+          } else {
+            const userIndex = window.unidadeAtual.equipe.findIndex(m => m.uid === user.uid);
+            if (userIndex > -1) {
+              window.unidadeAtual.equipe[userIndex].nome = novoNome;
+              window.unidadeAtual.equipe[userIndex].telefone = novoTel;
+            } else {
+              // Se o usuário não estava na lista (legado), adicione-o agora.
+              window.unidadeAtual.equipe.push({ uid: user.uid, ...dadosAtualizados });
+            }
+          }
+          configurarUI(); toggleProfileModal(false);
+        }).catch(error => alert("Erro ao atualizar o perfil: " + error.message));
+      };
 
       // Função para carregar dados da unidade (motorista e equipe) do Firebase
       async function carregarDadosDaUnidade() {
@@ -827,6 +917,10 @@
         if (window.unsubscribeViagens) {
             window.unsubscribeViagens();
         }
+        // Mostra o indicador de carregamento
+        const tb = document.getElementById("tb-corpo");
+        tb.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 20px; font-style: italic; color: #555;">🔄 Carregando viagens...</td></tr>`;
+
         const mes = parseInt(document.getElementById('filtro-mes').value, 10);
         const ano = parseInt(document.getElementById('filtro-ano').value, 10);
         const dataInicio = new Date(ano, mes, 1);
