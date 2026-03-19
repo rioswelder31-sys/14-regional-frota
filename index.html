@@ -282,11 +282,11 @@
           <div class="max-w-5xl w-full animate-fade-in-up">
             <!-- Logo/Icon -->
             <div class="text-center mb-12">
-              <div class="text-6xl mb-6">🚗</div>
-              <h1 class="text-5xl font-bold text-gray-900 mb-4">Sistema de Gestão de Frota</h1>
-              <p class="text-xl text-gray-600">Defensoria Pública do Estado da Bahia</p>
-              <div class="w-24 h-1 bg-blue-600 mx-auto mt-6"></div>
-            </div>
+  <img src="logo-dpe.png" alt="Logo Defensoria Pública Bahia" class="mx-auto h-24 md:h-28 mb-6 object-contain" />
+  <h1 class="text-5xl font-bold text-gray-900 mb-4">Sistema de Gestão de Frota</h1>
+  <p class="text-xl text-gray-600">Defensoria Pública do Estado da Bahia</p>
+  <div class="w-24 h-1 bg-blue-600 mx-auto mt-6"></div>
+</div>
 
             <!-- Cards Grid -->
             <div class="grid md:grid-cols-2 gap-8 mt-16">
@@ -368,11 +368,20 @@
     <div id="app-screen" class="container hidden">
       <div class="header">
         <div class="header-content">
-          <div><h2 id="app-unit-name">Frota DPE</h2><span id="status-conexao">Conectando...</span></div>
-          <div>
-            <span id="nome-usuario" style="font-weight: bold; margin-right: 15px"></span>
-            <button style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px; margin-right: 8px;" onclick="toggleProfileModal(true)">Meu Perfil</button>
-            <button style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px;" onclick="fazerLogout()">Sair</button></div>
+          <div style="display: flex; align-items: center; gap: 15px;">
+            <img src="logo-dpe.png" alt="Logo DPE" style="height: 45px; background-color: white; padding: 5px; border-radius: 6px; object-fit: contain;" />
+            
+            <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px;">
+              <h2 id="app-unit-name" style="margin: 0; line-height: 1;">Frota DPE</h2>
+              <span id="status-conexao" style="margin-left: 0;">Conectando...</span>
+            </div>
+          </div>
+          
+          <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <span id="nome-usuario" style="font-weight: bold; margin-right: 7px;"></span>
+            <button style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px;" onclick="toggleProfileModal(true)">Meu Perfil</button>
+            <button style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px;" onclick="fazerLogout()">Sair</button>
+          </div>
         </div>
       </div>
 
