@@ -4,6 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Frota DPE - Multi-Regional (V81.0)</title>
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#009c3b" />
+    <link rel="apple-touch-icon" href="logo-dpe-192.png" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
       :root { --primary: #009c3b; --secondary: #f8f9fa; --success: #28a745; --whatsapp: #25d366; --danger: #dc3545; --warning: #ffc107; --dark-text: #333; --blocked: #721c24; --blocked-bg: #f8d7da; }
@@ -626,11 +629,6 @@
        * /unidades/{regionalID}/motorista -> { nome: "Nome Motorista", tel: "71..." }
        * /unidades/{regionalID}/equipe/{userID} -> { nome: "Nome Servidor", email: "...", telefone: "73..." }
        */
-      const CONTATOS = {
-        "14-regional": { motorista: "CLEONES DAMASCENO", tel: "5571996384423", equipe: { "Defensor Caio Cesar Nunes Cruz": "5527998764286", "Defensor Emerson Halsey Soares": "5571999678855", "Defensor Matheus Rocha Almeida": "5573991969670", "Defensor Matheus Silva Bastos": "5571983394060", "Defensora Ana Carolina Lugullo Maia de Araujo": "5521988052225", "Defensora Janaina dos Santos Araújo": "5532988060602", "Servidor Welder Oliveira Rios": "5573991853116", "Servidora Adriele Macário dos Santos": "5573999051485", "Servidora Sabrina Pereira de Oliveira": "5573991135887", "Servidor Victor Hugo": "5573991093944" } },
-        "PORTO SEGURO": { motorista: "Ramona Melgaço Sales", tel: "5571984542450", equipe: { "Servidor Welder Oliveira Rios": "5573991853116", "Psicóloga - Caroline Cardoso": "5573981120994", "Assistente Social - Júlio Felipe": "5573998200302", "Defensora Priscilla Berto Silva": "5573999315353", "Defensor Fábio Gonçalves Fonseca": "5527999226065", "Defensora Tatiana Câmara Assis Velho da Cunha": "5573991800081", "Defensor Guilherme Zuanazzi": "5574999304456", "Defensora Kamile Costa Alves": "5517991436479", "Defensor José Renato Bernardes da Costa": "5573999441303", "Servidora Silvana Almeida Cardoso": "5573998506151" } },
-        "EUNAPOLIS": { motorista: "Neyrailson Souza de Queiroz", tel: "5571999998075", equipe: { "Servidor Welder Oliveira Rios": "5573991853116", "Assistente Social - Mávila da Silva Reis": "5573999089961", "Defensor Henrique da Costa Sennem Bandeira": "5521982818579", "Defensor Victor Rego": "5511997229899", "Defensora Mariana Biderman Soares de Azevedo": "5511941250540", "Defensora Samira de Souza Palaoro": "5527981239910", "Defensor Fábio Sebastião Soares de Oliveira": "5573991133343" } }
-      };
 
       const cidadesBA = ["ABARÉ","ACAJUTIBA","ALAGOINHAS","ALCOBAÇA","ALMADINA","AMARGOSA","AMÉLIA RODRIGUES","ANAGÉ","ANDARAÍ","ANGICAL","ANTAS","APORÁ","APUAREMA","ARAÇÁS","ARACI","ARAMARI","ARATACA","ARATUÍPE","AURELINO LEAL","BAIANÓPOLIS","BAIXA GRANDE","BANZÁE","BARRA","BARRA DA ESTIVA","BARRA DO CHOÇA","BARRA DO MENDES","BARRA DO ROCHA","BARREIRAS","BARRO ALTO","BARROCAS","BELMONTE","BELO CAMPO","BIRITINGA","BOA NOVA","BOA VISTA DO TUPIM","BOM JESUS DA LAPA","BOM JESUS DA SERRA","BONINAL","BONITO","BOQUIRA","BOTUPORÃ","BREJÕES","BREJOLÂNDIA","BROTAS DE MACAÚBAS","BRUMADO","BUERAREMA","BURITIRAMA","CAATIBA","CABACEIRAS DO PARAGUAÇU","CACHOEIRA","CACULÉ","CAÉM","CAETANOS","CAETITÉ","CAFARNAUM","CAIRU","CALDEIRÃO GRANDE","CAMACAN","CAMAÇARI","CAMAMU","CAMPO ALEGRE DE LOURDES","CAMPO FORMOSO","CANÁPOLIS","CANARANA","CANAVIEIRAS","CANDEAL","CANDEIAS","CANDIBA","CÂNDIDO SALES","CANSANÇÃO","CANUDOS","CAPELA DO ALTO ALEGRE","CAPIM GROSSO","CARAÍBAS","CARAVELAS","CARDEAL DA SILVA","CARINHANHA","CASA NOVA","CASTRO ALVES","CATU","CATURAMA","CENTRAL","CHORROCHÓ","CÍCERO DANTAS","CIPÓ","COARACI","COCOS","CONCEIÇÃO DA FEIRA","CONCEIÇÃO DO ALMEIDA","CONCEIÇÃO DO COITÉ","CONCEIÇÃO DO JACUÍPE","CONDE","CONDEÚBA","CORAÇÃO DE MARIA","CORDEIROS","CORIBE","CORONEL JOÃO SÁ","CORRENTINA","COTEGIPE","CRAVOLÂNDIA","CRISÓPOLIS","CRISTÓPOLIS","CRUZ DAS ALMAS","CURAÇÁ","DÁRIO MEIRA","DIAS D'ÁVILA","DOM BASÍLIO","ELÍSIO MEDRADO","ENCRUZILHADA","ENTRE RIOS","ÉRICO CARDOSO","ESPLANADA","EUCLIDES DA CUNHA","EUNÁPOLIS","FÁTIMA","FEIRA DE SANTANA","FILADÉLFIA","FIRMINO Alves","FLORESTA AZUL","FORMOSA DO RIO PRETO","GANDU","GAVIÃO","GENTIO DO OURO","GLÓRIA","GONGOGI","GOVERNADOR MANGABEIRA","GUANAMBI","GUARATINGA","HELIÓPOLIS","IAÇU","IBIASSUCÊ","IBICARAÍ","IBICOARA","IBICUÍ","IBIPEBA","IBIPITANGA","IBIQUERA","IBIRAPITANGA","IBIRAPUÃ","IBIRATAIA","IBITIARA","IBitITÁ","IBOTIRAMA","ICHU","IGAPORÃ","IGRAPIÚNA","IGUAÍ","ILHÉUS","INHAMBUPE","IPECAETÁ","IPIAÚ","IPIRÁ","IPUPIARA","IRAJUBA","IRAMAIA","IRAQUARA","IRARÁ","IRECÊ","ITABELA","ITABERABA","ITABUNA","ITACARÉ","ITAETÊ","ITAGI","ITAGIBÁ","ITAGIMIRIM","ITAJU DO COLÔNIA","ITAJUÍPE","ITAMARAJU","ITAMARI","ITAMBÉ","ITANAGRA","ITANHÉM","ITAPARICA","ITAPÉ","ITAPEBI","ITAPETINGA","ITAPICURU","ITAPPITANGA","ITAQUARA","ITARANTIM","ITATIM","ITIRUÇU","ITIÚBA","ITORORÓ","ITUAÇU","ITUBERÁ","IUIÚ","JABORANDI","JACARACI","JACOBINA","JAGUAQUARA","JAGUARARI","JAGUARIPE","JEQUIÉ","JEREMOABO","JIQUIRIÇÁ","JITAÚNA","JOÃO DOURADO","JUAZEIRO","JUCURUÇU","JUSSARA","JUSSARI","JUSSIAPE","LAFAIETE COUTINHO","LAGOA REAL","LAJE","LAJEDÃO","LAJEDINHO","LAMARÃO","LAPÃO","LAURO DE FREITAS","LENÇÓIS","LICÍNIO DE ALMEIDA","LIVRAMENTO DE NOSSA SENHORA","LUÍS EDUARDO MAGALHAES","MACAJUBA","MACARANI","MACAÚBAS","MACURURÉ","MADRE DE DEUS","MAETINGA","MAIQUINIQUE","MAIRI","MALHADA","MALHADA DE PEDRAS","MANOEL VITORINO","MANSIDÃO","MARACÁS","MARAGOGIPE","MARAÚ","MASCOTE","MATA DE SÃO JOÃO","MATINA","MEDEIROS NETO","MIGUEL CALMON","MILAGRES","MIRANGABA","MONTE SANTO","MORPARÁ","MORRO DO CHAPÉU","MORTUGABA","MUCUGÊ","MUCURI","MULUNGU DO MORRO","MUNDO NOVO","MUNIZ FERREIRA","MUQUÉM DO SÃO FRANCISCO","MURITIBA","MUTUÍPE","NAZARÉ","NILO PEÇANHA","NORDESTINA","NOVA CANAÃ","NOVA FÁTIMA","NOVA IBIA","NOVA SOURE","NOVA VIÇOSA","NOVO HORIZONTE","NOVO TRIUNFO","OLINDINA","OLIVEIRA DOS BREJINHOS","OURIÇANGAS","OUROLÂNDIA","PALMAS DE MONTE ALTO","PALMEIRAS","PARAMIRIM","PARATINGA","PARIPIRANGA","PAU BRASIL","PAULO AFONSO","PÉ DE SERRA","PEDRÃO","PEDRO ALEXANDRE","PIATÃ","PILÃO ARCADO","PINDAÍ","PINDOBAÇU","PINTADAS","PIRAÍ DO Norte","PIRIPÁ","PIRITIBA","PLANALTINO","PLANALTO","POÇÕES","POJUCA","PONTO NOVO","PORTO SEGURO","POTIRAGUÁ","PRADO","PRESIDENTE DUTRA","QUEIMADAS","QUIJINGUE","QUIXABEIRA","RAFAEL JAMBEIRO","REMANSO","RETIROLÂNDIA","RIACHÃO DAS NEVES","RIACHÃO DO JACUÍPE","RIACHO DE SANTANA","RIBEIRA DO AMPARO","RIBEIRA DO POMBAL","RIBEIRÃO DO LARGO","RIO DE CONTAS","RIO DO ANTÔNIO","RIO DO PIRES","RIO REAL","RODELAS","RUY BARBOSA","SALINAS DA MARGARIDA","SALVADOR","SANTA BÁRBARA","SANTA BRÍGIDA","SANTA CRUZ CABRÁLIA","SANTA INÊS","SANTA LUZIA","SANTA MARIA DA VITÓRIA","SANTA RITA DE CÁSSIA","SANTA TERESINHA","SANTALUZ","SANTANA","SANTANÓPOLIS","SANTO AMARO","SANTO ANTÔNIO DE JESUS","SANTO ESTÊVÃO","SÃO DESIDÉRIO","SÃO DOMINGOS","SÃO FELIPE","SÃO FÉLIX","SÃO FRANCISCO DO CONDE","SÃO GABRIEL","SÃO GONÇALO DOS CAMPOS","SÃO JOSÉ DO JACUÍPE","SÃO SEBASTIÃO DO PASSÉ","SAPEACU","SÁTIRO DIAS","SAUBARA","SAÚDE","SEABRA","SEBASTIÃO LARANJEIRAS","SENHOR DO BONFIM","SENTO SÉ","SERRA DO RAMALHO","SERRA DOURADA","SERRA PRETA","SERRAS PRETAS","SERROLÂNDIA","SIMÕES FILHO","SÍTIO DO MATO","SÍTIO DO QUINTO","SOBRADINHO","SOUTO SOARES","TABOCAS DO BREJO VELHO","TANHAÇU","TANQUE NOVO","TANQUINHO","TAPEROÁ","TAPIRAMUTÁ","TEIXEIRA DE FREITAS","TEODORO SAMPAIO","TEOFILÂNDIA","TEOLÂNDIA","TERRA NOVA","TREMEDAL","TUCANO","UAUÁ","UBAÍRA","UBAITABA","UBATÃ","UIBAÍ","UMBURANAS","UNA","URANDI","URUÇUCA","UTINGA","VALENÇA","VALENTE","VÁRZEA DA ROÇA","VÁRZEA DO POÇO","VÁRZEA NOVA","VARZEDO","VERA CRUZ","VEREDA","VITÓRIA DA CONQUISTA","WAGNER","WANDERLEY","WENCESLAU GUIMARÃES","XIQUE-XIQUE"];
 
@@ -710,7 +708,10 @@
               const equipePath = AppState.regionalID === '14-regional' ? `${DB_PATHS.EQUIPE}/${user.uid}` : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.EQUIPE}/${user.uid}`;
               return set(ref(db, equipePath), userProfile);
           })
-          .then(() => alert("Conta criada com sucesso! Você será logado automaticamente."))
+          .then(() => {
+            registrarLog('Criação de Conta', `Novo usuário: ${nome} (${email})`);
+            alert("Conta criada com sucesso! Você será logado automaticamente.");
+          })
           .catch(e => alert("Erro ao criar conta: " + e.message));
       };
 
@@ -734,6 +735,7 @@
         }
 
         update(ref(db, updatePath), dadosAtualizados).then(() => {
+          registrarLog('Atualização de Perfil', `Usuário ${AppState.user.email} atualizou o perfil.`);
           alert("Perfil atualizado com sucesso!");
           if (AppState.user.isMotorista) {
             AppState.unidade.motorista.nome = novoNome;
@@ -761,27 +763,12 @@
           if (motoristaFirebase && motoristaFirebase.nome) {
             AppState.unidade.motorista = motoristaFirebase;
           } else {
-            AppState.unidade.motorista.nome = CONTATOS[AppState.regionalID]?.motorista || 'N/D';
-            AppState.unidade.motorista.tel = CONTATOS[AppState.regionalID]?.tel || '';
+            AppState.unidade.motorista = { nome: 'N/D', tel: '' };
           }
           configurarUI(); // Garante que a UI seja atualizada com os dados do motorista
         });
         onValue(ref(db, equipePath), (snap) => { 
-          const equipeFirebase = snap.val() ? Object.keys(snap.val()).map(uid => ({ uid, ...snap.val()[uid] })) : [];
-          const equipeAntigaObj = CONTATOS[AppState.regionalID]?.equipe || {};
-          const nomesFirebase = new Set(equipeFirebase.map(m => m.nome));
-
-          // Converte a lista antiga para o novo formato, normalizando o telefone (sem o 55)
-          const equipeAntigaArray = Object.keys(equipeAntigaObj).map(nome => {
-            let telefone = equipeAntigaObj[nome].replace(/\D/g, '');
-            if (telefone.startsWith('55')) telefone = telefone.substring(2);
-            return { uid: `antigo_${nome.replace(/\s/g, '')}`, nome: nome, telefone: telefone };
-          });
-
-          // Combina as listas, priorizando os dados do Firebase e evitando duplicados pelo nome
-          const equipeCombinada = [...equipeFirebase];
-          equipeAntigaArray.forEach(membroAntigo => { if (!nomesFirebase.has(membroAntigo.nome)) equipeCombinada.push(membroAntigo); });
-          AppState.unidade.equipe = equipeCombinada;
+          AppState.unidade.equipe = snap.val() ? Object.keys(snap.val()).map(uid => ({ uid, ...snap.val()[uid] })) : [];
           configurarUI();
           atualizarTabelaGlobal(); // Garante que a tabela seja redesenhada quando a equipe carregar
         });
@@ -1052,7 +1039,8 @@
         const root = AppState.regionalID === '14-regional' ? DB_PATHS.VIAGENS : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.VIAGENS}`;
         
         if(id) {
-          update(ref(db, `${root}/${id}`), dados).then(() => { 
+          update(ref(db, `${root}/${id}`), dados).then(() => {
+            registrarLog('Edição de Viagem', `Viagem ID ${id} para ${dados.solicitanteNome} foi editada.`);
             alert("Viagem editada! O motorista será notificado das alterações.");
             const telMotorista = AppState.unidade.motorista.tel;
             const msgEdicao = `🔄 *VIAGEM EDITADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${dados.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${dados.trajetoExibicao}\n📝 *Motivo:* ${dados.motivo}\n\n*A viagem foi editada. Acesse o aplicativo para confirmar ou recusar.*`;
@@ -1060,7 +1048,8 @@
             resetForm();
           });
         } else {
-          push(ref(db, root), dados).then(() => { 
+          push(ref(db, root), dados).then((newRef) => {
+            registrarLog('Criação de Viagem', `Nova viagem ID ${newRef.key} para ${dados.solicitanteNome} foi criada.`);
             AppState.dadosWppTemp = msgMotorista;
             document.getElementById("btn-whatsapp-manual").classList.remove("hidden"); 
             document.getElementById("btn-save").classList.add("hidden");
@@ -1145,20 +1134,45 @@
                 const tr = document.createElement('tr');
                 tr.className = classeLinha;
                 tr.style.borderBottom = '1px solid #eee';
-                
-                tr.innerHTML = `
-                    <td style="padding:12px; text-align:center"><span class="status-badge ${badgeCor}">${status}</span></td>
-                    <td style="padding:12px;">${new Date(v.saida).toLocaleString('pt-BR')}</td>
-                    <td style="padding:12px;">${new Date(v.chegada).toLocaleString('pt-BR')}</td>
-                    <td style="padding:12px;"><strong>${nomeParaExibir || 'N/D'}</strong></td>
-                    <td style="padding:12px; font-size:0.9em; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;" title="Toque para ver o motivo completo">${v.motivo || ''}</td>
-                    <td style="padding:12px; font-size:0.9em; white-space: pre-line;">${v.trajetoExibicao || ''}</td>
-                    <td style="padding:12px; text-align:center; white-space:nowrap;">${createActionButtons(v, status)}</td>
-                `;
 
-                tr.querySelector('td[title*="motivo"]').addEventListener('click', function() {
-                    toggleMotivoVisibilidade(this);
-                });
+                // Célula Status (Seguro, pois não contém dados do usuário)
+                const tdStatus = tr.insertCell();
+                tdStatus.style.cssText = 'padding:12px; text-align:center';
+                tdStatus.innerHTML = `<span class="status-badge ${badgeCor}">${status}</span>`;
+
+                // Célula Saída
+                const tdSaida = tr.insertCell();
+                tdSaida.style.padding = '12px';
+                tdSaida.textContent = new Date(v.saida).toLocaleString('pt-BR');
+
+                // Célula Retorno
+                const tdRetorno = tr.insertCell();
+                tdRetorno.style.padding = '12px';
+                tdRetorno.textContent = new Date(v.chegada).toLocaleString('pt-BR');
+
+                // Célula Solicitante
+                const tdSolicitante = tr.insertCell();
+                tdSolicitante.style.padding = '12px';
+                const strongSolicitante = document.createElement('strong');
+                strongSolicitante.textContent = nomeParaExibir || 'N/D';
+                tdSolicitante.appendChild(strongSolicitante);
+
+                // Célula Motivo (usando textContent para segurança)
+                const tdMotivo = tr.insertCell();
+                tdMotivo.style.cssText = 'padding:12px; font-size:0.9em; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;';
+                tdMotivo.title = 'Toque para ver o motivo completo';
+                tdMotivo.textContent = v.motivo || '';
+                tdMotivo.addEventListener('click', () => toggleMotivoVisibilidade(tdMotivo));
+
+                // Célula Roteiro (usando textContent para segurança)
+                const tdRoteiro = tr.insertCell();
+                tdRoteiro.style.cssText = 'padding:12px; font-size:0.9em; white-space: pre-line;';
+                tdRoteiro.textContent = v.trajetoExibicao || '';
+
+                // Célula Ações (Seguro, pois o HTML é gerado internamente)
+                const tdAcoes = tr.insertCell();
+                tdAcoes.style.cssText = 'padding:12px; text-align:center; white-space:nowrap;';
+                tdAcoes.innerHTML = createActionButtons(v, status);
 
                 fragment.appendChild(tr);
             });
@@ -1190,7 +1204,8 @@
           const v = AppState.viagens.find(x => x.id === id);
           if(!v) return alert("Viagem não encontrada!");
           const path = AppState.regionalID === '14-regional' ? `${DB_PATHS.VIAGENS}/${id}` : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.VIAGENS}/${id}`;
-          update(ref(db, path), {status: STATUS.CONFIRMADO}).then(() => {
+          update(ref(db, path), {status: STATUS.CONFIRMADO}).then(() => {              
+              registrarLog('Confirmação de Viagem', `Viagem ID ${id} de ${v.solicitanteNome} foi confirmada.`);
               const solicitante = AppState.unidade.equipe.find(m => m.uid === v.solicitanteUID);
               const telSol = solicitante ? solicitante.telefone : null;
               const dataSaidaFormatada = new Date(v.saida).toLocaleString('pt-BR');
@@ -1206,7 +1221,8 @@
           const v = AppState.viagens.find(x => x.id === id);
           if(!v) return alert("Viagem não encontrada!");
           const path = AppState.regionalID === '14-regional' ? `${DB_PATHS.VIAGENS}/${id}` : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.VIAGENS}/${id}`;
-          update(ref(db, path), {status: STATUS.REJEITADO}).then(() => {
+          update(ref(db, path), {status: STATUS.REJEITADO}).then(() => {              
+              registrarLog('Rejeição de Viagem', `Viagem ID ${id} de ${v.solicitanteNome} foi rejeitada.`);
               const solicitante = AppState.unidade.equipe.find(m => m.uid === v.solicitanteUID);
               const telSol = solicitante ? solicitante.telefone : null;
               const dataSaidaFormatada = new Date(v.saida).toLocaleString('pt-BR');
@@ -1218,9 +1234,31 @@
           }).catch(err => alert("Erro ao rejeitar: " + err.message));
       };
 
-      window.deletar = (id) => { if(confirm("Excluir?")) { const path = AppState.regionalID === '14-regional' ? DB_PATHS.VIAGENS : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.VIAGENS}`; remove(ref(db, path + '/' + id)); } };
-      window.salvarFolga = () => { const path = AppState.regionalID === '14-regional' ? DB_PATHS.FOLGAS : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.FOLGAS}`; push(ref(db, path), { inicio: document.getElementById('folga-inicio').value, fim: document.getElementById('folga-fim').value, motivo: document.getElementById('folga-motivo').value }); };
-      window.deletarFolga = (id) => { const path = AppState.regionalID === '14-regional' ? DB_PATHS.FOLGAS : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.FOLGAS}`; remove(ref(db, path + '/' + id)); };
+      window.deletar = (id) => { 
+        if(confirm("Tem certeza que deseja excluir esta viagem?")) { 
+          const v = AppState.viagens.find(x => x.id === id);
+          const path = AppState.regionalID === '14-regional' ? DB_PATHS.VIAGENS : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.VIAGENS}`; 
+          remove(ref(db, path + '/' + id)).then(() => {
+            if (v) {
+              registrarLog('Exclusão de Viagem', `Viagem de ${v.solicitanteNome} (Saída: ${new Date(v.saida).toLocaleString('pt-BR')}) foi excluída.`);
+            }
+          });
+        } 
+      };
+      window.salvarFolga = () => { 
+        const path = AppState.regionalID === '14-regional' ? DB_PATHS.FOLGAS : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.FOLGAS}`; 
+        const dadosFolga = { inicio: document.getElementById('folga-inicio').value, fim: document.getElementById('folga-fim').value, motivo: document.getElementById('folga-motivo').value };
+        push(ref(db, path), dadosFolga).then(() => {
+          registrarLog('Criação de Folga/Bloqueio', `Período de ${new Date(dadosFolga.inicio + "T00:00:00").toLocaleDateString('pt-BR')} a ${new Date(dadosFolga.fim + "T00:00:00").toLocaleDateString('pt-BR')} foi criado. Motivo: ${dadosFolga.motivo}`);
+        });
+      };
+      window.deletarFolga = (id) => { 
+        const folga = AppState.folgas.find(f => f.id === id);
+        const path = AppState.regionalID === '14-regional' ? DB_PATHS.FOLGAS : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.FOLGAS}`; 
+        remove(ref(db, path + '/' + id)).then(() => {
+          if (folga) registrarLog('Exclusão de Folga/Bloqueio', `Período de ${new Date(folga.inicio + "T00:00:00").toLocaleDateString('pt-BR')} a ${new Date(folga.fim + "T00:00:00").toLocaleDateString('pt-BR')} foi excluído. Motivo: ${folga.motivo}`);
+        });
+      };
       function renderFolgas() { 
         const container = document.getElementById('lista-folgas-visual'); 
         container.innerHTML = ""; 
@@ -1228,7 +1266,18 @@
         AppState.folgas.forEach(f => { 
           const div = document.createElement('div');
           div.className = 'folga-item';
-          div.innerHTML = `<strong>🚫 ${new Date(f.inicio + "T00:00:00").toLocaleDateString('pt-BR')} a ${new Date(f.fim + "T00:00:00").toLocaleDateString('pt-BR')}</strong>: ${f.motivo} <button onclick="deletarFolga('${f.id}')" style="background:none; color:red; width:auto; border:none; cursor:pointer;">🗑️</button>`;
+
+          const strong = document.createElement('strong');
+          strong.textContent = `🚫 ${new Date(f.inicio + "T00:00:00").toLocaleDateString('pt-BR')} a ${new Date(f.fim + "T00:00:00").toLocaleDateString('pt-BR')}`;
+          div.appendChild(strong);
+          div.appendChild(document.createTextNode(`: ${f.motivo} `));
+          if (AppState.user.podeTudo || AppState.user.isMotorista) {
+            const button = document.createElement('button');
+            button.style.cssText = "background:none; color:red; width:auto; border:none; cursor:pointer;";
+            button.innerHTML = '🗑️'; // Emoji é seguro
+            button.onclick = () => deletarFolga(f.id);
+            div.appendChild(button);
+          }
           fragment.appendChild(div);
         }); 
         container.appendChild(fragment);
@@ -1302,6 +1351,19 @@
         link.setAttribute('download', `agenda-viagens-${new Date().toISOString().split('T')[0]}.csv`);
         link.click();
       };
+    </script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js')
+            .then(registration => {
+              console.log('ServiceWorker registrado com sucesso no escopo: ', registration.scope);
+            })
+            .catch(err => {
+              console.log('Falha ao registrar o ServiceWorker: ', err);
+            });
+        });
+      }
     </script>
   </body>
 </html>
