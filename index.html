@@ -629,6 +629,12 @@
        * /unidades/{regionalID}/motorista -> { nome: "Nome Motorista", tel: "71..." }
        * /unidades/{regionalID}/equipe/{userID} -> { nome: "Nome Servidor", email: "...", telefone: "73..." }
        */
+      // Objeto CONTATOS restaurado temporariamente como fallback para garantir que nenhum nome desapareça durante a migração.
+      const CONTATOS = {
+        "14-regional": { motorista: "CLEONES DAMASCENO", tel: "5571996384423", equipe: { "Defensor Caio Cesar Nunes Cruz": "5527998764286", "Defensor Emerson Halsey Soares": "5571999678855", "Defensor Matheus Rocha Almeida": "5573991969670", "Defensor Matheus Silva Bastos": "5571983394060", "Defensora Ana Carolina Lugullo Maia de Araujo": "5521988052225", "Defensora Janaina dos Santos Araújo": "5532988060602", "Servidor Welder Oliveira Rios": "5573991853116", "Servidora Adriele Macário dos Santos": "5573999051485", "Servidora Sabrina Pereira de Oliveira": "5573991135887", "Servidor Victor Hugo": "5573991093944" } },
+        "PORTO SEGURO": { motorista: "Ramona Melgaço Sales", tel: "5571984542450", equipe: { "Servidor Welder Oliveira Rios": "5573991853116", "Psicóloga - Caroline Cardoso": "5573981120994", "Assistente Social - Júlio Felipe": "5573998200302", "Defensora Priscilla Berto Silva": "5573999315353", "Defensor Fábio Gonçalves Fonseca": "5527999226065", "Defensora Tatiana Câmara Assis Velho da Cunha": "5573991800081", "Defensor Guilherme Zuanazzi": "5574999304456", "Defensora Kamile Costa Alves": "5517991436479", "Defensor José Renato Bernardes da Costa": "5573999441303", "Servidora Silvana Almeida Cardoso": "5573998506151" } },
+        "EUNAPOLIS": { motorista: "Neyrailson Souza de Queiroz", tel: "5571999998075", equipe: { "Servidor Welder Oliveira Rios": "5573991853116", "Assistente Social - Mávila da Silva Reis": "5573999089961", "Defensor Henrique da Costa Sennem Bandeira": "5521982818579", "Defensor Victor Rego": "5511997229899", "Defensora Mariana Biderman Soares de Azevedo": "5511941250540", "Defensora Samira de Souza Palaoro": "5527981239910", "Defensor Fábio Sebastião Soares de Oliveira": "5573991133343" } }
+      };
 
       const cidadesBA = ["ABARÉ","ACAJUTIBA","ALAGOINHAS","ALCOBAÇA","ALMADINA","AMARGOSA","AMÉLIA RODRIGUES","ANAGÉ","ANDARAÍ","ANGICAL","ANTAS","APORÁ","APUAREMA","ARAÇÁS","ARACI","ARAMARI","ARATACA","ARATUÍPE","AURELINO LEAL","BAIANÓPOLIS","BAIXA GRANDE","BANZÁE","BARRA","BARRA DA ESTIVA","BARRA DO CHOÇA","BARRA DO MENDES","BARRA DO ROCHA","BARREIRAS","BARRO ALTO","BARROCAS","BELMONTE","BELO CAMPO","BIRITINGA","BOA NOVA","BOA VISTA DO TUPIM","BOM JESUS DA LAPA","BOM JESUS DA SERRA","BONINAL","BONITO","BOQUIRA","BOTUPORÃ","BREJÕES","BREJOLÂNDIA","BROTAS DE MACAÚBAS","BRUMADO","BUERAREMA","BURITIRAMA","CAATIBA","CABACEIRAS DO PARAGUAÇU","CACHOEIRA","CACULÉ","CAÉM","CAETANOS","CAETITÉ","CAFARNAUM","CAIRU","CALDEIRÃO GRANDE","CAMACAN","CAMAÇARI","CAMAMU","CAMPO ALEGRE DE LOURDES","CAMPO FORMOSO","CANÁPOLIS","CANARANA","CANAVIEIRAS","CANDEAL","CANDEIAS","CANDIBA","CÂNDIDO SALES","CANSANÇÃO","CANUDOS","CAPELA DO ALTO ALEGRE","CAPIM GROSSO","CARAÍBAS","CARAVELAS","CARDEAL DA SILVA","CARINHANHA","CASA NOVA","CASTRO ALVES","CATU","CATURAMA","CENTRAL","CHORROCHÓ","CÍCERO DANTAS","CIPÓ","COARACI","COCOS","CONCEIÇÃO DA FEIRA","CONCEIÇÃO DO ALMEIDA","CONCEIÇÃO DO COITÉ","CONCEIÇÃO DO JACUÍPE","CONDE","CONDEÚBA","CORAÇÃO DE MARIA","CORDEIROS","CORIBE","CORONEL JOÃO SÁ","CORRENTINA","COTEGIPE","CRAVOLÂNDIA","CRISÓPOLIS","CRISTÓPOLIS","CRUZ DAS ALMAS","CURAÇÁ","DÁRIO MEIRA","DIAS D'ÁVILA","DOM BASÍLIO","ELÍSIO MEDRADO","ENCRUZILHADA","ENTRE RIOS","ÉRICO CARDOSO","ESPLANADA","EUCLIDES DA CUNHA","EUNÁPOLIS","FÁTIMA","FEIRA DE SANTANA","FILADÉLFIA","FIRMINO Alves","FLORESTA AZUL","FORMOSA DO RIO PRETO","GANDU","GAVIÃO","GENTIO DO OURO","GLÓRIA","GONGOGI","GOVERNADOR MANGABEIRA","GUANAMBI","GUARATINGA","HELIÓPOLIS","IAÇU","IBIASSUCÊ","IBICARAÍ","IBICOARA","IBICUÍ","IBIPEBA","IBIPITANGA","IBIQUERA","IBIRAPITANGA","IBIRAPUÃ","IBIRATAIA","IBITIARA","IBitITÁ","IBOTIRAMA","ICHU","IGAPORÃ","IGRAPIÚNA","IGUAÍ","ILHÉUS","INHAMBUPE","IPECAETÁ","IPIAÚ","IPIRÁ","IPUPIARA","IRAJUBA","IRAMAIA","IRAQUARA","IRARÁ","IRECÊ","ITABELA","ITABERABA","ITABUNA","ITACARÉ","ITAETÊ","ITAGI","ITAGIBÁ","ITAGIMIRIM","ITAJU DO COLÔNIA","ITAJUÍPE","ITAMARAJU","ITAMARI","ITAMBÉ","ITANAGRA","ITANHÉM","ITAPARICA","ITAPÉ","ITAPEBI","ITAPETINGA","ITAPICURU","ITAPPITANGA","ITAQUARA","ITARANTIM","ITATIM","ITIRUÇU","ITIÚBA","ITORORÓ","ITUAÇU","ITUBERÁ","IUIÚ","JABORANDI","JACARACI","JACOBINA","JAGUAQUARA","JAGUARARI","JAGUARIPE","JEQUIÉ","JEREMOABO","JIQUIRIÇÁ","JITAÚNA","JOÃO DOURADO","JUAZEIRO","JUCURUÇU","JUSSARA","JUSSARI","JUSSIAPE","LAFAIETE COUTINHO","LAGOA REAL","LAJE","LAJEDÃO","LAJEDINHO","LAMARÃO","LAPÃO","LAURO DE FREITAS","LENÇÓIS","LICÍNIO DE ALMEIDA","LIVRAMENTO DE NOSSA SENHORA","LUÍS EDUARDO MAGALHAES","MACAJUBA","MACARANI","MACAÚBAS","MACURURÉ","MADRE DE DEUS","MAETINGA","MAIQUINIQUE","MAIRI","MALHADA","MALHADA DE PEDRAS","MANOEL VITORINO","MANSIDÃO","MARACÁS","MARAGOGIPE","MARAÚ","MASCOTE","MATA DE SÃO JOÃO","MATINA","MEDEIROS NETO","MIGUEL CALMON","MILAGRES","MIRANGABA","MONTE SANTO","MORPARÁ","MORRO DO CHAPÉU","MORTUGABA","MUCUGÊ","MUCURI","MULUNGU DO MORRO","MUNDO NOVO","MUNIZ FERREIRA","MUQUÉM DO SÃO FRANCISCO","MURITIBA","MUTUÍPE","NAZARÉ","NILO PEÇANHA","NORDESTINA","NOVA CANAÃ","NOVA FÁTIMA","NOVA IBIA","NOVA SOURE","NOVA VIÇOSA","NOVO HORIZONTE","NOVO TRIUNFO","OLINDINA","OLIVEIRA DOS BREJINHOS","OURIÇANGAS","OUROLÂNDIA","PALMAS DE MONTE ALTO","PALMEIRAS","PARAMIRIM","PARATINGA","PARIPIRANGA","PAU BRASIL","PAULO AFONSO","PÉ DE SERRA","PEDRÃO","PEDRO ALEXANDRE","PIATÃ","PILÃO ARCADO","PINDAÍ","PINDOBAÇU","PINTADAS","PIRAÍ DO Norte","PIRIPÁ","PIRITIBA","PLANALTINO","PLANALTO","POÇÕES","POJUCA","PONTO NOVO","PORTO SEGURO","POTIRAGUÁ","PRADO","PRESIDENTE DUTRA","QUEIMADAS","QUIJINGUE","QUIXABEIRA","RAFAEL JAMBEIRO","REMANSO","RETIROLÂNDIA","RIACHÃO DAS NEVES","RIACHÃO DO JACUÍPE","RIACHO DE SANTANA","RIBEIRA DO AMPARO","RIBEIRA DO POMBAL","RIBEIRÃO DO LARGO","RIO DE CONTAS","RIO DO ANTÔNIO","RIO DO PIRES","RIO REAL","RODELAS","RUY BARBOSA","SALINAS DA MARGARIDA","SALVADOR","SANTA BÁRBARA","SANTA BRÍGIDA","SANTA CRUZ CABRÁLIA","SANTA INÊS","SANTA LUZIA","SANTA MARIA DA VITÓRIA","SANTA RITA DE CÁSSIA","SANTA TERESINHA","SANTALUZ","SANTANA","SANTANÓPOLIS","SANTO AMARO","SANTO ANTÔNIO DE JESUS","SANTO ESTÊVÃO","SÃO DESIDÉRIO","SÃO DOMINGOS","SÃO FELIPE","SÃO FÉLIX","SÃO FRANCISCO DO CONDE","SÃO GABRIEL","SÃO GONÇALO DOS CAMPOS","SÃO JOSÉ DO JACUÍPE","SÃO SEBASTIÃO DO PASSÉ","SAPEACU","SÁTIRO DIAS","SAUBARA","SAÚDE","SEABRA","SEBASTIÃO LARANJEIRAS","SENHOR DO BONFIM","SENTO SÉ","SERRA DO RAMALHO","SERRA DOURADA","SERRA PRETA","SERRAS PRETAS","SERROLÂNDIA","SIMÕES FILHO","SÍTIO DO MATO","SÍTIO DO QUINTO","SOBRADINHO","SOUTO SOARES","TABOCAS DO BREJO VELHO","TANHAÇU","TANQUE NOVO","TANQUINHO","TAPEROÁ","TAPIRAMUTÁ","TEIXEIRA DE FREITAS","TEODORO SAMPAIO","TEOFILÂNDIA","TEOLÂNDIA","TERRA NOVA","TREMEDAL","TUCANO","UAUÁ","UBAÍRA","UBAITABA","UBATÃ","UIBAÍ","UMBURANAS","UNA","URANDI","URUÇUCA","UTINGA","VALENÇA","VALENTE","VÁRZEA DA ROÇA","VÁRZEA DO POÇO","VÁRZEA NOVA","VARZEDO","VERA CRUZ","VEREDA","VITÓRIA DA CONQUISTA","WAGNER","WANDERLEY","WENCESLAU GUIMARÃES","XIQUE-XIQUE"];
 
@@ -762,34 +768,72 @@
         }).catch(error => alert("Erro ao atualizar o perfil: " + error.message));
       };
 
+      function registrarLog(acao, detalhes) {
+        // Não trava a aplicação se o usuário estiver offline ou houver erro
+        try {
+          const logEntry = {
+            acao: acao,
+            detalhes: detalhes,
+            usuario: AppState.user.email || 'N/A',
+            regional: AppState.regionalID,
+            timestamp: new Date().toISOString()
+          };
+          // O log da 14ª fica na raiz, os outros em /unidades/{id}/logs
+          const logPath = AppState.regionalID === '14-regional' 
+            ? 'logs' 
+            : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/logs`;
+          
+          push(ref(db, logPath), logEntry);
+        } catch (error) {
+          console.error("Falha ao registrar log:", error);
+        }
+      }
+
       // Função para carregar dados da unidade (motorista e equipe) do Firebase
       function carregarDadosDaUnidade() {
         return new Promise((resolve) => {
-            const motoristaPath = AppState.regionalID === '14-regional' ? DB_PATHS.MOTORISTA : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.MOTORISTA}`;
-            const equipePath = AppState.regionalID === '14-regional' ? DB_PATHS.EQUIPE : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.EQUIPE}`;
-            
             let motoristaCarregado = false;
             let equipeCarregada = false;
 
             const checarConclusao = () => {
-                // Apenas resolve a promessa quando ambos os carregamentos iniciais terminarem.
                 if (motoristaCarregado && equipeCarregada) {
                     resolve();
                 }
             };
 
+            const motoristaPath = AppState.regionalID === '14-regional' ? DB_PATHS.MOTORISTA : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.MOTORISTA}`;
             onValue(ref(db, motoristaPath), (snap) => { 
                 const motoristaFirebase = snap.val();
-                AppState.unidade.motorista = (motoristaFirebase && motoristaFirebase.nome) ? motoristaFirebase : { nome: 'N/D', tel: '' };
+                if (motoristaFirebase && motoristaFirebase.nome) {
+                    AppState.unidade.motorista = motoristaFirebase;
+                } else {
+                    // Fallback para dados antigos
+                    AppState.unidade.motorista.nome = CONTATOS[AppState.regionalID]?.motorista || 'N/D';
+                    AppState.unidade.motorista.tel = CONTATOS[AppState.regionalID]?.tel || '';
+                }
                 if (!motoristaCarregado) { motoristaCarregado = true; checarConclusao(); }
-                configurarUI(); // Atualiza a UI sempre que houver mudança no motorista
+                configurarUI();
             });
 
+            const equipePath = AppState.regionalID === '14-regional' ? DB_PATHS.EQUIPE : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.EQUIPE}`;
             onValue(ref(db, equipePath), (snap) => { 
-                AppState.unidade.equipe = snap.val() ? Object.keys(snap.val()).map(uid => ({ uid, ...snap.val()[uid] })) : [];
+                const equipeFirebase = snap.val() ? Object.keys(snap.val()).map(uid => ({ uid, ...snap.val()[uid] })) : [];
+                const equipeAntigaObj = CONTATOS[AppState.regionalID]?.equipe || {};
+                const nomesFirebase = new Set(equipeFirebase.map(m => m.nome));
+
+                const equipeAntigaArray = Object.keys(equipeAntigaObj).map(nome => {
+                    let telefone = equipeAntigaObj[nome].replace(/\D/g, '');
+                    if (telefone.startsWith('55')) telefone = telefone.substring(2);
+                    return { uid: `antigo_${nome.replace(/\s/g, '')}`, nome: nome, telefone: telefone };
+                });
+
+                const equipeCombinada = [...equipeFirebase];
+                equipeAntigaArray.forEach(membroAntigo => { if (!nomesFirebase.has(membroAntigo.nome)) equipeCombinada.push(membroAntigo); });
+                
+                AppState.unidade.equipe = equipeCombinada;
                 if (!equipeCarregada) { equipeCarregada = true; checarConclusao(); }
-                configurarUI(); // Atualiza a UI com a lista de solicitantes
-                atualizarTabelaGlobal(); // Redesenha a tabela de viagens com os nomes corretos
+                configurarUI();
+                atualizarTabelaGlobal();
             });
         });
       }
