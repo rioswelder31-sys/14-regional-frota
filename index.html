@@ -712,7 +712,8 @@
           .then((userCredential) => {
               const user = userCredential.user;
               const userProfile = { nome: nome, email: user.email, telefone: tel.replace(/\D/g, '') };
-              const equipePath = `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.EQUIPE}/${user.uid}`;
+              // Define o perfil do usuário no DB, dentro da equipe da regional selecionada
+              const equipePath = AppState.regionalID === '14-regional' ? `${DB_PATHS.EQUIPE}/${user.uid}` : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.EQUIPE}/${user.uid}`;
               return set(ref(db, equipePath), userProfile);
           })
           .then(() => {
@@ -734,10 +735,10 @@
 
         let updatePath, dadosAtualizados;
         if (AppState.user.isMotorista) {
-          updatePath = `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.MOTORISTA}`;
+          updatePath = AppState.regionalID === '14-regional' ? DB_PATHS.MOTORISTA : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.MOTORISTA}`;
           dadosAtualizados = { nome: novoNome, tel: novoTel };
         } else {
-          updatePath = `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.EQUIPE}/${user.uid}`;
+          updatePath = AppState.regionalID === '14-regional' ? `${DB_PATHS.EQUIPE}/${user.uid}` : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.EQUIPE}/${user.uid}`;
           dadosAtualizados = { nome: novoNome, telefone: novoTel, email: user.email };
         }
 
@@ -764,8 +765,8 @@
       // Função para carregar dados da unidade (motorista e equipe) do Firebase
       function carregarDadosDaUnidade() {
         return new Promise((resolve) => {
-            const motoristaPath = `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.MOTORISTA}`;
-            const equipePath = `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.EQUIPE}`;
+            const motoristaPath = AppState.regionalID === '14-regional' ? DB_PATHS.MOTORISTA : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.MOTORISTA}`;
+            const equipePath = AppState.regionalID === '14-regional' ? DB_PATHS.EQUIPE : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.EQUIPE}`;
             
             let motoristaCarregado = false;
             let equipeCarregada = false;
@@ -957,8 +958,9 @@
         const dataInicioISO = dataInicio.toISOString();
         const dataFimISO = dataFim.toISOString();
 
-        const viagensPath = `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.VIAGENS}`;
-
+        const path14 = DB_PATHS.VIAGENS;
+        const pathOutras = `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.VIAGENS}`;
+        const viagensPath = AppState.regionalID === '14-regional' ? path14 : pathOutras;
         console.log(`Atualizando escuta para viagens de ${dataInicioISO} a ${dataFimISO}`);
         const viagensQuery = query(ref(db, viagensPath), orderByChild('saida'), startAt(dataInicioISO), endAt(dataFimISO));
 
@@ -970,7 +972,7 @@
       }
 
       function iniciarEscutaBanco() {
-        const folgasPath = `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.FOLGAS}`;
+        const folgasPath = AppState.regionalID === '14-regional' ? DB_PATHS.FOLGAS : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.FOLGAS}`;
         console.log('Iniciando escuta - Regional:', AppState.regionalID);
         onValue(ref(db, folgasPath), (s) => { AppState.folgas = s.val() ? Object.keys(s.val()).map(k => ({...s.val()[k], id: k})) : []; renderFolgas(); });
         
@@ -1053,7 +1055,7 @@
 
         const msgMotorista = `🔔 *NOVO AGENDAMENTO RECEBIDO*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${dados.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${dados.trajetoExibicao}\n📝 *Motivo:* ${dados.motivo}\n\n*Acesse o aplicativo para confirmar ou recusar a viagem.*`;
 
-        const root = `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.VIAGENS}`;
+        const root = AppState.regionalID === '14-regional' ? DB_PATHS.VIAGENS : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.VIAGENS}`;
         
         if(id) {
           update(ref(db, `${root}/${id}`), dados).then(() => {
@@ -1140,7 +1142,7 @@
                 const chegada = new Date(v.chegada);
                 if (status === STATUS.CONFIRMADO && chegada < agora) {
                     status = STATUS.FINALIZADO;
-                    const path = `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.VIAGENS}/${v.id}`;
+                    const path = AppState.regionalID === '14-regional' ? `${DB_PATHS.VIAGENS}/${v.id}` : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.VIAGENS}/${v.id}`;
                     update(ref(db, path), { status: STATUS.FINALIZADO });
                 }
 
@@ -1220,7 +1222,7 @@
       window.confirmar = (id) => {
           const v = AppState.viagens.find(x => x.id === id);
           if(!v) return alert("Viagem não encontrada!");
-          const path = `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.VIAGENS}/${id}`;
+          const path = AppState.regionalID === '14-regional' ? `${DB_PATHS.VIAGENS}/${id}` : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.VIAGENS}/${id}`;
           update(ref(db, path), {status: STATUS.CONFIRMADO}).then(() => {              
               registrarLog('Confirmação de Viagem', `Viagem ID ${id} de ${v.solicitanteNome} foi confirmada.`);
               const solicitante = AppState.unidade.equipe.find(m => m.uid === v.solicitanteUID);
@@ -1237,7 +1239,7 @@
       window.rejeitar = (id) => {
           const v = AppState.viagens.find(x => x.id === id);
           if(!v) return alert("Viagem não encontrada!");
-          const path = `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.VIAGENS}/${id}`;
+          const path = AppState.regionalID === '14-regional' ? `${DB_PATHS.VIAGENS}/${id}` : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.VIAGENS}/${id}`;
           update(ref(db, path), {status: STATUS.REJEITADO}).then(() => {              
               registrarLog('Rejeição de Viagem', `Viagem ID ${id} de ${v.solicitanteNome} foi rejeitada.`);
               const solicitante = AppState.unidade.equipe.find(m => m.uid === v.solicitanteUID);
@@ -1254,7 +1256,7 @@
       window.deletar = (id) => { 
         if(confirm("Tem certeza que deseja excluir esta viagem?")) { 
           const v = AppState.viagens.find(x => x.id === id);
-          const path = `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.VIAGENS}`; 
+          const path = AppState.regionalID === '14-regional' ? DB_PATHS.VIAGENS : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.VIAGENS}`; 
           remove(ref(db, path + '/' + id)).then(() => {
             if (v) {
               registrarLog('Exclusão de Viagem', `Viagem de ${v.solicitanteNome} (Saída: ${new Date(v.saida).toLocaleString('pt-BR')}) foi excluída.`);
@@ -1263,7 +1265,7 @@
         } 
       };
       window.salvarFolga = () => { 
-        const path = `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.FOLGAS}`; 
+        const path = AppState.regionalID === '14-regional' ? DB_PATHS.FOLGAS : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.FOLGAS}`; 
         const dadosFolga = { inicio: document.getElementById('folga-inicio').value, fim: document.getElementById('folga-fim').value, motivo: document.getElementById('folga-motivo').value };
         push(ref(db, path), dadosFolga).then(() => {
           registrarLog('Criação de Folga/Bloqueio', `Período de ${new Date(dadosFolga.inicio + "T00:00:00").toLocaleDateString('pt-BR')} a ${new Date(dadosFolga.fim + "T00:00:00").toLocaleDateString('pt-BR')} foi criado. Motivo: ${dadosFolga.motivo}`);
@@ -1271,7 +1273,7 @@
       };
       window.deletarFolga = (id) => { 
         const folga = AppState.folgas.find(f => f.id === id);
-        const path = `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.FOLGAS}`; 
+        const path = AppState.regionalID === '14-regional' ? DB_PATHS.FOLGAS : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.FOLGAS}`; 
         remove(ref(db, path + '/' + id)).then(() => {
           if (folga) registrarLog('Exclusão de Folga/Bloqueio', `Período de ${new Date(folga.inicio + "T00:00:00").toLocaleDateString('pt-BR')} a ${new Date(folga.fim + "T00:00:00").toLocaleDateString('pt-BR')} foi excluído. Motivo: ${folga.motivo}`);
         });
