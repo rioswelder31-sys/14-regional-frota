@@ -670,7 +670,15 @@
           modal.classList.add('hidden');
         }
       };
-      window.recuperarSenha = () => { const e = document.getElementById("login-user").value; if(!e) return alert("Digite o e-mail."); sendPasswordResetEmail(auth, e).then(() => alert("E-mail enviado!")); };
+      window.recuperarSenha = () => { 
+        const email = document.getElementById("login-user").value; 
+        if(!email) return alert("Por favor, digite seu e-mail para redefinir a senha."); 
+        sendPasswordResetEmail(auth, email)
+          .then(() => {
+            alert(`Um e-mail de redefinição de senha foi enviado para ${email}.\n\nPor favor, verifique sua caixa de entrada e também a pasta de spam/lixo eletrônico.\n\nO envio pode levar alguns minutos.`);
+          })
+          .catch((error) => { alert("Ocorreu um erro. Verifique se o e-mail está correto e tente novamente."); }); 
+      };
       window.mostrarSub9 = () => { document.getElementById('unit-screen').classList.add('hidden'); document.getElementById('comarca-screen').classList.remove('hidden'); };
       window.voltarParaTelaRegionais = () => { document.querySelectorAll('[id$="-screen"]').forEach(c => c.classList.add('hidden')); document.getElementById('unit-screen').classList.remove('hidden'); };
       window.voltarRegionais = () => { 
