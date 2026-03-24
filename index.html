@@ -763,22 +763,34 @@
       };
 
       // Função para carregar dados da unidade (motorista e equipe) do Firebase
-      async function carregarDadosDaUnidade() {
-        const motoristaPath = AppState.regionalID === '14-regional' ? DB_PATHS.MOTORISTA : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.MOTORISTA}`;
-        const equipePath = AppState.regionalID === '14-regional' ? DB_PATHS.EQUIPE : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.EQUIPE}`;
-        onValue(ref(db, motoristaPath), (snap) => { 
-          const motoristaFirebase = snap.val();
-          if (motoristaFirebase && motoristaFirebase.nome) {
-            AppState.unidade.motorista = motoristaFirebase;
-          } else {
-            AppState.unidade.motorista = { nome: 'N/D', tel: '' };
-          }
-          configurarUI(); // Garante que a UI seja atualizada com os dados do motorista
-        });
-        onValue(ref(db, equipePath), (snap) => { 
-          AppState.unidade.equipe = snap.val() ? Object.keys(snap.val()).map(uid => ({ uid, ...snap.val()[uid] })) : [];
-          configurarUI();
-          atualizarTabelaGlobal(); // Garante que a tabela seja redesenhada quando a equipe carregar
+      function carregarDadosDaUnidade() {
+        return new Promise((resolve) => {
+            const motoristaPath = AppState.regionalID === '14-regional' ? DB_PATHS.MOTORISTA : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.MOTORISTA}`;
+            const equipePath = AppState.regionalID === '14-regional' ? DB_PATHS.EQUIPE : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.EQUIPE}`;
+            
+            let motoristaCarregado = false;
+            let equipeCarregada = false;
+
+            const checarConclusao = () => {
+                // Apenas resolve a promessa quando ambos os carregamentos iniciais terminarem.
+                if (motoristaCarregado && equipeCarregada) {
+                    resolve();
+                }
+            };
+
+            onValue(ref(db, motoristaPath), (snap) => { 
+                const motoristaFirebase = snap.val();
+                AppState.unidade.motorista = (motoristaFirebase && motoristaFirebase.nome) ? motoristaFirebase : { nome: 'N/D', tel: '' };
+                if (!motoristaCarregado) { motoristaCarregado = true; checarConclusao(); }
+                configurarUI(); // Atualiza a UI sempre que houver mudança no motorista
+            });
+
+            onValue(ref(db, equipePath), (snap) => { 
+                AppState.unidade.equipe = snap.val() ? Object.keys(snap.val()).map(uid => ({ uid, ...snap.val()[uid] })) : [];
+                if (!equipeCarregada) { equipeCarregada = true; checarConclusao(); }
+                configurarUI(); // Atualiza a UI com a lista de solicitantes
+                atualizarTabelaGlobal(); // Redesenha a tabela de viagens com os nomes corretos
+            });
         });
       }
 
