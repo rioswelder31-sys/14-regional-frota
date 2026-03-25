@@ -1125,7 +1125,7 @@
         if (!AppState.dadosWppTemp) return alert("Não há dados de notificação para enviar. Por favor, salve uma nova viagem primeiro.");
         const telMotorista = AppState.unidade.motorista.tel;
         const encodedMsg = encodeURIComponent(AppState.dadosWppTemp);
-        window.open(`https://wa.me/${telMotorista}?text=${encodedMsg}`, '_blank');
+        window.open(`https://wa.me/${telMotorista}?text=${encodedMsg}`, '_blank', 'noopener,noreferrer');
         AppState.dadosWppTemp = "";
         resetForm();
       };
