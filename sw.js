@@ -53,15 +53,15 @@ self.addEventListener('fetch', event => {
             return response;
           }
 
-            // Adiciona ao cache se for uma requisição à API do Firebase
-            if (isFirebaseAPIRequest(event.request.url)) {
-              const responseToCache = response.clone();
-              caches.open(CACHE_NAME).then(cache => {
-                cache.put(event.request, responseToCache);
-              });
+          // Adiciona ao cache se for uma requisição à API do Firebase
+          if (isFirebaseAPIRequest(event.request.url)) {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then(cache => {
+              cache.put(event.request, responseToCache);
+            });
+          }
           return response;
         });
-      }
       })
   );
 });
