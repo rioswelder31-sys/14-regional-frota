@@ -1089,8 +1089,8 @@
           solicitanteNome: solicitante.nome, 
           solicitanteUID: solicitante.uid,
           setor: document.getElementById("setor").value, saida, chegada, motivo: document.getElementById("motivo").value, 
-          trajetoExibicao: trajetoString, registradoPor: AppState.user.email, status: STATUS.PENDENTE, 
-          roteiroArray: AppState.roteiroAtual, dataCriacao: new Date().toISOString() 
+          trajetoExibicao: trajetoString, status: STATUS.PENDENTE, 
+          roteiroArray: AppState.roteiroAtual
         };
         
         const motoristaNome = AppState.unidade.motorista.nome;
@@ -1111,6 +1111,8 @@
             resetForm();
           });
         } else {
+          dados.registradoPor = AppState.user.email;
+          dados.dataCriacao = new Date().toISOString();
           push(ref(db, root), dados).then((newRef) => {
             registrarLog('Criação de Viagem', `Nova viagem ID ${newRef.key} para ${dados.solicitanteNome} foi criada.`);
             AppState.dadosWppTemp = msgMotorista;
@@ -1244,7 +1246,7 @@
       };
 
       function createActionButtons(v, status) {
-          const temPermissao = AppState.user.podeTudo || v.registradoPor === AppState.user.email;
+          const temPermissao = AppState.user.podeTudo || v.registradoPor === AppState.user.email || v.solicitanteUID === AppState.user.uid;
           let btns = "";
           if (temPermissao && status !== STATUS.FINALIZADO) btns += `<button class="btn-edit" onclick="prepararEdicao('${v.id}')">✏️ Editar</button>`;
           if (temPermissao && (status === STATUS.PENDENTE || status === STATUS.CONFIRMADO)) btns += `<button style="background:#3498db; color:white; width: auto; padding: 8px 12px; font-size: 0.9em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer;" onclick="reenviarNotificacao('${v.id}')" title="Reenviar notificação para o motorista">🔄 Reenviar</button>`;
