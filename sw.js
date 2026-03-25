@@ -24,6 +24,7 @@ function isFirebaseAPIRequest(url) {
   return url.startsWith('https://frota14regional-8fecc-default-rtdb.firebaseio.com/');
 }
 
+// Limpa caches antigos
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(cacheNames => {
@@ -34,6 +35,7 @@ self.addEventListener('activate', event => {
     })
   );
 });
+
 
 // Estratégia de cache: Stale-while-revalidate
 self.addEventListener('fetch', event => {
@@ -50,13 +52,13 @@ self.addEventListener('fetch', event => {
           if (!response || response.status !== 200 || response.type !== 'basic') {
             return response;
           }
-          
-          if (isFirebaseAPIRequest(event.request.url)) {
-          const responseToCache = response.clone();
-          caches.open(CACHE_NAME)
-            .then(cache => {
-              cache.put(event.request, responseToCache);
-            });
+
+            // Adiciona ao cache se for uma requisição à API do Firebase
+            if (isFirebaseAPIRequest(event.request.url)) {
+              const responseToCache = response.clone();
+              caches.open(CACHE_NAME).then(cache => {
+                cache.put(event.request, responseToCache);
+              });
           return response;
         });
       }
