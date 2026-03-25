@@ -19,6 +19,22 @@ self.addEventListener('install', event => {
   );
 });
 
+function isFirebaseAPIRequest(url) {
+  // Adicione aqui padrões de URL que correspondem às suas chamadas à API Firebase
+  return url.startsWith('https://frota14regional-8fecc-default-rtdb.firebaseio.com/');
+}
+
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.filter(cacheName => cacheName !== CACHE_NAME)
+          .map(cacheName => caches.delete(cacheName))
+      );
+    })
+  );
+});
+
 // Estratégia de cache: Stale-while-revalidate
 self.addEventListener('fetch', event => {
   event.respondWith(
@@ -28,14 +44,14 @@ self.addEventListener('fetch', event => {
         if (cachedResponse) {
           return cachedResponse;
         }
-
         // Se não encontrar, faz a requisição e armazena em cache (para assets da mesma origem)
         return fetch(event.request).then(response => {
           // Garante que a resposta é válida
           if (!response || response.status !== 200 || response.type !== 'basic') {
             return response;
           }
-
+          
+          if (isFirebaseAPIRequest(event.request.url)) {
           const responseToCache = response.clone();
           caches.open(CACHE_NAME)
             .then(cache => {
@@ -43,6 +59,7 @@ self.addEventListener('fetch', event => {
             });
           return response;
         });
+      }
       })
   );
 });
