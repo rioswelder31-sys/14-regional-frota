@@ -1640,6 +1640,7 @@
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('./sw.js')
             .then(registration => {
+              registration.update(); // Força o navegador a buscar sempre a versão mais recente do cache
               console.log('ServiceWorker registrado com sucesso no escopo: ', registration.scope);
             })
             .catch(err => {
