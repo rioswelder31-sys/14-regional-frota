@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Frota DPE - Multi-Regional (V81.0)</title>
+    <link rel="icon" type="image/png" href="logo-dpe-192.png" />
     <link rel="manifest" href="manifest.json" />
     <meta name="theme-color" content="#009c3b" />
     <link rel="apple-touch-icon" href="logo-dpe-192.png" />
@@ -274,6 +275,91 @@
       .accordion-question.active::after { content: '−'; }
       .accordion-answer { padding: 0 15px; background-color: #fafafa; max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
       .accordion-answer p { padding: 15px 0; margin: 0; line-height: 1.6; }
+
+      /* Dark Theme Styles */
+      html[data-theme="dark"] {
+        --primary: #4da6ff;
+        --secondary: #1A202C;
+        --success: #48bb78;
+        --danger: #f56565;
+        --warning: #ecc94b;
+        --dark-text: #E2E8F0;
+        --blocked: #f8d7da;
+        --blocked-bg: #4a1d21;
+      }
+
+      html[data-theme="dark"] body {
+        background-color: #1A202C;
+        color: var(--dark-text);
+      }
+
+      html[data-theme="dark"] .container,
+      html[data-theme="dark"] #login-screen,
+      html[data-theme="dark"] #comarca-screen,
+      html[data-theme="dark"] #register-screen,
+      html[data-theme="dark"] .unit-card,
+      html[data-theme="dark"] #profile-modal-content,
+      html[data-theme="dark"] #help-modal-content {
+        background: #2D3748;
+        color: var(--dark-text);
+        border-color: #4A5568;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+      }
+      
+      html[data-theme="dark"] .text-gray-900 { color: #f7fafc !important; }
+      html[data-theme="dark"] .text-gray-600 { color: #a0aec0 !important; }
+      html[data-theme="dark"] .text-blue-700 { color: var(--primary) !important; }
+
+      html[data-theme="dark"] .header {
+        background: #2D3748;
+      }
+      
+      html[data-theme="dark"] .main-form {
+        background: #2D3748;
+        border-color: #4A5568;
+      }
+
+      html[data-theme="dark"] input,
+      html[data-theme="dark"] select,
+      html[data-theme="dark"] textarea {
+        background-color: #1A202C;
+        border-color: #4A5568;
+        color: var(--dark-text);
+      }
+      
+      html[data-theme="dark"] input::placeholder,
+      html[data-theme="dark"] textarea::placeholder {
+          color: #718096;
+      }
+
+      html[data-theme="dark"] .roteiro-box {
+        background: #4A5568;
+        border-color: #718096;
+      }
+
+      html[data-theme="dark"] .roteiro-lista td {
+        background: #2D3748;
+        border-color: #4A5568;
+      }
+      
+      html[data-theme="dark"] .roteiro-lista thead tr {
+          background: #1A202C !important;
+      }
+
+      html[data-theme="dark"] .linha-confirmada {
+        background-color: #2c5282 !important;
+        color: #bee3f8;
+      }
+      
+      html[data-theme="dark"] thead[style*="background:#004080"] {
+          background: #1A202C !important;
+      }
+
+      html[data-theme="dark"] .btn-primary[style*="background: white"] {
+          background: #4A5568 !important;
+          color: var(--dark-text) !important;
+          border-color: #718096 !important;
+      }
     </style>
   </head>
   <body>
@@ -382,6 +468,7 @@
           
           <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">
             <span id="nome-usuario" style="font-weight: bold; margin-right: 7px;"></span>
+            <button id="theme-toggle-btn" style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px; font-size: 1.2rem; line-height: 1;" onclick="toggleTheme()">🌙</button>
             <button style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px;" onclick="toggleProfileModal(true)">Meu Perfil</button>
             <button style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px;" onclick="fazerLogout()">Sair</button>
           </div>
@@ -600,6 +687,36 @@
       import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
       import { getDatabase, ref, push, onValue, remove, update, query, orderByChild, startAt, endAt, set } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
       import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+
+      // --- Lógica para alternar tema (Claro/Escuro) ---
+      function applyTheme(theme) {
+        const themeToggleButton = document.getElementById('theme-toggle-btn');
+        if (theme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            if (themeToggleButton) themeToggleButton.innerHTML = '☀️';
+            localStorage.setItem('theme', 'dark');
+        } else {
+            document.documentElement.removeAttribute('data-theme');
+            if (themeToggleButton) themeToggleButton.innerHTML = '🌙';
+            localStorage.setItem('theme', 'light');
+        }
+      }
+
+      window.toggleTheme = () => {
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        applyTheme(newTheme);
+      };
+
+      function applyInitialTheme() {
+        const savedTheme = localStorage.getItem('theme');
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (savedTheme) { applyTheme(savedTheme); } 
+        else if (systemPrefersDark) { applyTheme('dark'); } 
+        else { applyTheme('light'); }
+      }
+      applyInitialTheme();
+      // --- Fim da lógica do tema ---
 
       const firebaseConfig = { apiKey: "AIzaSyDvGkxC9WkYICERhbIHcE9yComvh5AF2gw", authDomain: "frota14regional-8fecc.firebaseapp.com", databaseURL: "https://frota14regional-8fecc-default-rtdb.firebaseio.com", projectId: "frota14regional-8fecc" };
       const app = initializeApp(firebaseConfig); const db = getDatabase(app); const auth = getAuth(app);
