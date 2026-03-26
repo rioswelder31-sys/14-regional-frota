@@ -4,6 +4,7 @@ const urlsToCache = [
   './index.html',
   './dist/output.css', // Certifique-se de incluir o caminho correto para seu arquivo CSS
   './logo-dpe-192.png',
+  './logo-dpe-dark-192.png',
   './manifest.json',
   // Adicione aqui outros assets estáticos (imagens, fontes, etc.)
 ];
