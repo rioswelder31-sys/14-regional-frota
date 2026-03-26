@@ -1135,6 +1135,8 @@
         if (AppState.unsubscribeViagens) {
             AppState.unsubscribeViagens();
         }
+        AppState.viagensIniciaisCarregadas = false;
+
         // Mostra o indicador de carregamento
         const tb = document.getElementById("tb-corpo");
         tb.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 20px; font-style: italic; color: #555;">🔄 Carregando viagens...</td></tr>`;
@@ -1153,7 +1155,25 @@
         const viagensQuery = query(ref(db, viagensPath), orderByChild('saida'), startAt(dataInicioISO), endAt(dataFimISO));
 
         AppState.unsubscribeViagens = onValue(viagensQuery, (s) => { 
-            AppState.viagens = s.val() ? Object.keys(s.val()).map(k => ({...s.val()[k], id: k})) : []; 
+            const viagensFirebase = s.val() ? Object.keys(s.val()).map(k => ({...s.val()[k], id: k})) : []; 
+            
+            if (AppState.viagensIniciaisCarregadas) {
+                viagensFirebase.forEach(v => {
+                    const viagemAntiga = AppState.viagens.find(antiga => antiga.id === v.id);
+                    
+                    if (AppState.user.isMotorista && !viagemAntiga && v.status === STATUS.PENDENTE) {
+                        mostrarNotificacaoPush('Novo Agendamento 🚘', `Solicitante: ${v.solicitanteNome}\nSaída: ${new Date(v.saida).toLocaleString('pt-BR')}`);
+                    }
+                    
+                    if (!AppState.user.isMotorista && AppState.user.uid === v.solicitanteUID && viagemAntiga && viagemAntiga.status !== v.status) {
+                        if (v.status === STATUS.CONFIRMADO) mostrarNotificacaoPush('Viagem Confirmada ✅', 'Sua viagem foi confirmada pelo motorista!');
+                        if (v.status === STATUS.REJEITADO) mostrarNotificacaoPush('Viagem Rejeitada ❌', 'Sua viagem foi rejeitada. Verifique a agenda.');
+                    }
+                });
+            }
+
+            AppState.viagens = viagensFirebase;
+            AppState.viagensIniciaisCarregadas = true;
             console.log(`Viagens carregadas para ${mes+1}/${ano}:`, AppState.viagens.length); 
             atualizarTabelaGlobal();
         });
