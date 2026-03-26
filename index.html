@@ -815,6 +815,19 @@
             document.getElementById('profile-nome').value = userProfile.nome;
             document.getElementById('profile-tel').value = userProfile.telefone || '';
           } // Se o perfil não for encontrado, o modal abrirá com campos vazios, permitindo a criação.
+          
+          // Lógica do Painel Admin
+          const adminSection = document.getElementById('admin-driver-section');
+          if (adminSection) {
+            if (AppState.user.podeTudo) {
+              adminSection.classList.remove('hidden');
+              document.getElementById('admin-driver-nome').value = AppState.unidade.motorista.nome || '';
+              document.getElementById('admin-driver-tel').value = AppState.unidade.motorista.tel || '';
+            } else {
+              adminSection.classList.add('hidden');
+            }
+          }
+
           modal.classList.remove('hidden');
         } else {
           modal.classList.add('hidden');
