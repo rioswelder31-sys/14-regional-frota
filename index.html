@@ -912,6 +912,39 @@
         }).catch(error => alert("Erro ao atualizar o perfil: " + error.message));
       };
 
+      window.preencherMotoristaRapido = (tipo) => {
+        let nome = "";
+        let tel = "";
+        if (tipo === 'titular') {
+            if (AppState.regionalID === '14-regional') { nome = "CLEONES DAMASCENO"; tel = "5571996384423"; }
+            else if (AppState.regionalID === 'PORTO SEGURO') { nome = "Ramona Melgaço Sales"; tel = "5571984542450"; }
+            else if (AppState.regionalID === 'EUNAPOLIS') { nome = "Neyrailson Souza de Queiroz"; tel = "5571999998075"; }
+        } else if (tipo === 'substituto') {
+            nome = "Motorista Substituto";
+            tel = "55"; // Prefixo do Brasil para o admin apenas completar
+        }
+        document.getElementById('admin-driver-nome').value = nome;
+        document.getElementById('admin-driver-tel').value = tel;
+        document.getElementById('admin-driver-tel').focus();
+      };
+
+      window.salvarMotoristaAdmin = () => {
+        const novoNome = document.getElementById('admin-driver-nome').value;
+        const novoTel = document.getElementById('admin-driver-tel').value.replace(/\D/g, '');
+        if (!novoNome || !novoTel) return alert("Por favor, preencha o nome e telefone do motorista.");
+
+        if(!confirm(`Confirma a alteração do motorista da Regional para:\nNome: ${novoNome}\nWhatsApp: ${novoTel} ?`)) return;
+
+        const updatePath = AppState.regionalID === '14-regional' ? DB_PATHS.MOTORISTA : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.MOTORISTA}`;
+        const dadosAtualizados = { nome: novoNome, tel: novoTel };
+
+        update(ref(db, updatePath), dadosAtualizados).then(() => {
+          registrarLog('Alteração de Motorista (Admin)', `Admin ${AppState.user.email} alterou o motorista para ${novoNome}.`);
+          alert("Motorista da unidade atualizado com sucesso!");
+          toggleProfileModal(false);
+        }).catch(error => alert("Erro ao atualizar o motorista: " + error.message));
+      };
+
       function registrarLog(acao, detalhes) {
         // Não trava a aplicação se o usuário estiver offline ou houver erro
         try {
