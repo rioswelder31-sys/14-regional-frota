@@ -315,6 +315,12 @@
         background: #2D3748;
       }
       
+      html[data-theme="dark"] .driver-badge {
+        background-color: #2D3748;
+        border-left-color: var(--primary);
+        color: var(--dark-text);
+      }
+
       html[data-theme="dark"] .main-form {
         background: #2D3748;
         border-color: #4A5568;
@@ -326,6 +332,7 @@
         background-color: #1A202C;
         border-color: #4A5568;
         color: var(--dark-text);
+        color-scheme: dark; /* Garante que os controles internos do navegador (como o seletor de data) usem o tema escuro */
       }
       
       html[data-theme="dark"] input::placeholder,
@@ -361,6 +368,16 @@
           color: var(--dark-text) !important;
           border-color: #718096 !important;
       }
+
+      /* Ajustes finos para o tema escuro */
+      html[data-theme="dark"] label { color: #cbd5e0; }
+      html[data-theme="dark"] .toggle-password { color: #A0AEC0; }
+      html[data-theme="dark"] .accordion-question { color: var(--dark-text); }
+      html[data-theme="dark"] .accordion-question:hover { background-color: #4A5568; }
+      html[data-theme="dark"] .accordion-answer { background-color: #1A202C; }
+      html[data-theme="dark"] #help-modal-content strong { color: var(--dark-text); }
+      html[data-theme="dark"] #profile-modal-close, html[data-theme="dark"] #help-modal-close { color: #A0AEC0; }
+      html[data-theme="dark"] #profile-modal-close:hover, html[data-theme="dark"] #help-modal-close:hover { color: var(--dark-text); }
     </style>
   </head>
   <body>
