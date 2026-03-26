@@ -1053,6 +1053,8 @@
                 document.getElementById('form-content').classList.add('hidden');
               }
 
+              solicitarPermissaoNotificacao();
+
               onValue(ref(db, ".info/connected"), (snap) => {
                 const status = document.getElementById("status-conexao");
                 if (snap.val() === true) { status.innerText = "🟢 Online"; status.style.background = "var(--success)"; }
