@@ -6,7 +6,7 @@
     <title>Frota DPE - Multi-Regional (V81.0)</title>
     <link rel="icon" type="image/png" href="logo-dpe-192.png" />
     <link rel="manifest" href="manifest.json" />
-    <meta name="theme-color" content="#009c3b" />
+    <meta id="theme-color-meta" name="theme-color" content="#009c3b" />
     <link rel="apple-touch-icon" href="logo-dpe-192.png" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style type="text/css">
@@ -691,13 +691,17 @@
       // --- Lógica para alternar tema (Claro/Escuro) ---
       function applyTheme(theme) {
         const themeToggleButton = document.getElementById('theme-toggle-btn');
+        const themeColorMeta = document.getElementById('theme-color-meta');
+
         if (theme === 'dark') {
             document.documentElement.setAttribute('data-theme', 'dark');
             if (themeToggleButton) themeToggleButton.innerHTML = '☀️';
+            if (themeColorMeta) themeColorMeta.setAttribute('content', '#2D3748'); // Cor do header escuro
             localStorage.setItem('theme', 'dark');
         } else {
             document.documentElement.removeAttribute('data-theme');
             if (themeToggleButton) themeToggleButton.innerHTML = '🌙';
+            if (themeColorMeta) themeColorMeta.setAttribute('content', '#009c3b'); // Cor do header claro
             localStorage.setItem('theme', 'light');
         }
       }
