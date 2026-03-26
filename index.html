@@ -991,7 +991,10 @@
           const isEsther = AppState.user.email === "esther.bobbio@defensoria.ba.def.br";
           const isSilvana = AppState.user.email === "silvana.cardoso@defensoria.ba.def.br";
           AppState.user.podeTudo = isWelder || (isEsther && AppState.regionalID === 'EUNAPOLIS') || (isSilvana && (AppState.regionalID === 'PORTO SEGURO' || AppState.regionalID === 'EUNAPOLIS'));
-          AppState.user.isMotorista = AppState.user.email.includes("motorista") || AppState.user.email.includes("cleones") || AppState.user.email.includes("ramona") || AppState.user.email.includes("neyrailson");
+          
+          // A regra abaixo vale para QUALQUER comarca. Basta o e-mail conter um desses termos para ter acesso de motorista.
+          const termosMotorista = ["motorista", "cleones", "ramona", "neyrailson", "substituto"];
+          AppState.user.isMotorista = termosMotorista.some(termo => AppState.user.email.includes(termo));
 
           document.querySelectorAll('[id$="-screen"]').forEach(c => c.classList.add('hidden'));
           document.getElementById('app-screen').classList.remove('hidden');
