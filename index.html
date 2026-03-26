@@ -726,9 +726,7 @@
 
       function applyInitialTheme() {
         const savedTheme = localStorage.getItem('theme');
-        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         if (savedTheme) { applyTheme(savedTheme); } 
-        else if (systemPrefersDark) { applyTheme('dark'); } 
         else { applyTheme('light'); }
       }
       applyInitialTheme();
