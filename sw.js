@@ -1,4 +1,4 @@
-const CACHE_NAME = 'frota-dpe-cache-v2';
+const CACHE_NAME = 'frota-dpe-cache-v3';
 const urlsToCache = [
   './',
   './index.html',
@@ -11,6 +11,8 @@ const urlsToCache = [
 
 // Instalação do Service Worker
 self.addEventListener('install', event => {
+  // Força o novo Service Worker a assumir o controle imediatamente, sem esperar fechar as abas
+  self.skipWaiting(); 
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
@@ -28,7 +30,7 @@ self.addEventListener('activate', event => {
         cacheNames.filter(cacheName => cacheName !== CACHE_NAME)
           .map(cacheName => caches.delete(cacheName))
       );
-    })
+    }).then(() => self.clients.claim()) // Atualiza todos os clientes/abas abertas instantaneamente
   );
 });
 
