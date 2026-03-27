@@ -1255,6 +1255,8 @@
           document.getElementById('app-unit-name').innerText = AppState.regionalNome;
           document.getElementById('nome-usuario').innerText = user.email;
 
+          popularFiltrosDeData();
+
           // Carrega os dados da unidade e depois inicia o resto da aplicação
           carregarDadosDaUnidade().then(() => {
               if (AppState.user.isMotorista) {
@@ -1272,7 +1274,6 @@
                 document.getElementById('painel-add-folga').classList.remove('hidden');
                 if (AppState.user.podeTudo) document.getElementById('unit-settings-btn').classList.remove('hidden');
               }
-              popularFiltrosDeData(); 
               iniciarEscutaBanco();
           });
         } else {
@@ -1597,8 +1598,9 @@
 
         tb.innerHTML = ""; // Limpa a tabela de uma vez
         if (viagensParaExibir.length === 0) {
-            const mesSelecionado = document.getElementById('filtro-mes').options[document.getElementById('filtro-mes').selectedIndex].text;
-            const anoSelecionado = document.getElementById('filtro-ano').value;
+            const selectMes = document.getElementById('filtro-mes');
+            const mesSelecionado = selectMes.selectedIndex >= 0 ? selectMes.options[selectMes.selectedIndex].text : '';
+            const anoSelecionado = document.getElementById('filtro-ano').value || '';
             tb.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 20px; font-style: italic;">Nenhuma viagem encontrada para ${mesSelecionado} de ${anoSelecionado}.</td></tr>`;
             return;
         }
@@ -1880,8 +1882,9 @@
             tableRows += `<tr><td>${status}</td><td>${new Date(v.saida).toLocaleString('pt-BR')}</td><td>${new Date(v.chegada).toLocaleString('pt-BR')}</td><td>${getNomeSolicitante(v) || 'N/D'}</td><td>${motivo}</td><td>${traj}</td></tr>`;
         });
 
-        const mesSelecionado = document.getElementById('filtro-mes').options[document.getElementById('filtro-mes').selectedIndex].text;
-        const anoSelecionado = document.getElementById('filtro-ano').value;
+        const selectMes = document.getElementById('filtro-mes');
+        const mesSelecionado = selectMes.selectedIndex >= 0 ? selectMes.options[selectMes.selectedIndex].text : '';
+        const anoSelecionado = document.getElementById('filtro-ano').value || '';
 
         const html = `
           <html>
