@@ -1616,34 +1616,126 @@
       };
 
       window.imprimirAgenda = () => {
-        console.log('Debug Imprimir - Região:', AppState.regionalID);
-        console.log('Debug Imprimir - ListaViagens:', AppState.viagens);
-        console.log('Debug Imprimir - Qty:', AppState.viagens ? AppState.viagens.length : 0);
         if (!AppState.viagens || AppState.viagens.length === 0) {
           alert('Nenhuma viagem registrada para imprimir!');
           return;
         }
-        const printWindow = window.open('', '', 'height=500,width=800');
+        const printWindow = window.open('', '', 'height=600,width=800');
         if (!printWindow) {
           alert('Popup foi bloqueado. Por favor, permita popups neste site.');
           return;
         }
-        let html = `<html><head><title>Agenda de Viagens - ${AppState.regionalNome}</title><style>body { font-family: Arial, sans-serif; margin: 20px; } table { width: 100%; border-collapse: collapse; } th, td { border: 1px solid #333; padding: 10px; text-align: left; } th { background-color: #009c3b; color: white; font-weight: bold; } tr:nth-child(even) { background-color: #f2f2f2; } h2 { color: #009c3b; } .header { margin-bottom: 20px; }</style></head><body>`;
-        html += `<div class="header"><h2>Agenda de Viagens</h2><p><strong>Unidade:</strong> ${AppState.regionalNome}</p><p><strong>Data de Impressão:</strong> ${new Date().toLocaleString('pt-BR')}</p></div>`;
-        html += `<table><thead><tr><th>Status</th><th>Saída</th><th>Retorno</th><th>Solicitante</th><th>Motivo</th><th>Roteiro</th></tr></thead><tbody>`;
-        AppState.viagens.forEach(v => {
-          let status = v.status || 'Pendente';
-          const agora = new Date();
-          const chegada = new Date(v.chegada);
-          if (status === 'Confirmado' && chegada < agora) status = 'Finalizado';
-          const motivo = v.motivo || '';
-          const traj = v.trajetoExibicao ? v.trajetoExibicao.replace(/\n/g, ' | ') : '';
-          html += `<tr><td>${status}</td><td>${new Date(v.saida).toLocaleString('pt-BR')}</td><td>${new Date(v.chegada).toLocaleString('pt-BR')}</td><td>${getNomeSolicitante(v)}</td><td>${motivo}</td><td>${traj}</td></tr>`;
+
+        const styles = `
+          body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            color: #333;
+          }
+          .print-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid #009c3b;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+          }
+          .print-header img {
+            height: 60px;
+            object-fit: contain;
+          }
+          .header-text {
+            text-align: right;
+          }
+          .header-text h2 {
+            margin: 0;
+            color: #009c3b;
+            font-size: 1.8rem;
+          }
+          .header-text p {
+            margin: 2px 0 0 0;
+            font-size: 0.9rem;
+            color: #555;
+          }
+          table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            font-size: 0.9rem;
+          }
+          th, td { 
+            border: 1px solid #ccc; 
+            padding: 8px 12px; 
+            text-align: left; 
+            vertical-align: top;
+            word-break: break-word;
+          }
+          th { 
+            background-color: #009c3b; 
+            color: white; 
+            font-weight: bold; 
+          }
+          tr:nth-child(even) { 
+            background-color: #f8f9fa; 
+          }
+          .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #888;
+          }
+          @media print {
+            body { margin: 1cm; }
+            .footer { position: fixed; bottom: 0; width: 95%; }
+            tr:nth-child(even) { background-color: #f8f9fa !important; -webkit-print-color-adjust: exact; }
+            th { background-color: #009c3b !important; color: white !important; -webkit-print-color-adjust: exact; }
+          }
+        `;
+
+        let tableRows = '';
+        AppState.viagens
+          .sort((a, b) => new Date(b.saida) - new Date(a.saida))
+          .forEach(v => {
+            let status = v.status || 'Pendente';
+            const agora = new Date();
+            const chegada = new Date(v.chegada);
+            if (status === 'Confirmado' && chegada < agora) status = 'Finalizado';
+            
+            const motivo = v.motivo || '';
+            const traj = v.trajetoExibicao ? v.trajetoExibicao.replace(/\n/g, ' | ') : '';
+            
+            tableRows += `<tr><td>${status}</td><td>${new Date(v.saida).toLocaleString('pt-BR')}</td><td>${new Date(v.chegada).toLocaleString('pt-BR')}</td><td>${getNomeSolicitante(v) || 'N/D'}</td><td>${motivo}</td><td>${traj}</td></tr>`;
         });
-        html += `</tbody></table></body></html>`;
+
+        const mesSelecionado = document.getElementById('filtro-mes').options[document.getElementById('filtro-mes').selectedIndex].text;
+        const anoSelecionado = document.getElementById('filtro-ano').value;
+
+        const html = `
+          <html>
+            <head>
+              <title>Agenda de Viagens - ${AppState.regionalNome}</title>
+              <style>${styles}</style>
+            </head>
+            <body>
+              <div class="print-header">
+                <img src="./logo-dpe.png" alt="Logo DPE-BA">
+                <div class="header-text">
+                  <h2>Agenda de Viagens</h2>
+                  <p><strong>Unidade:</strong> ${AppState.regionalNome}</p>
+                  <p><strong>Período:</strong> ${mesSelecionado} de ${anoSelecionado}</p>
+                  <p><strong>Emissão:</strong> ${new Date().toLocaleString('pt-BR')}</p>
+                </div>
+              </div>
+              <table><thead><tr><th>Status</th><th>Saída</th><th>Retorno</th><th>Solicitante</th><th>Motivo</th><th>Roteiro</th></tr></thead><tbody>${tableRows}</tbody></table>
+              <div class="footer"><p>SAD - Sistema de Agendamento Defensorial | Gerado em ${new Date().toLocaleString('pt-BR')}</p></div>
+            </body>
+          </html>`;
+        
         printWindow.document.write(html);
         printWindow.document.close();
-        printWindow.print();
+        setTimeout(() => {
+            printWindow.print();
+            printWindow.close();
+        }, 500);
       };
 
       window.exportarCSV = () => {
