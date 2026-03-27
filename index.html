@@ -1041,9 +1041,10 @@
         return new Promise((resolve) => {
             let motoristaCarregado = false;
             let equipeCarregada = false;
+            let titularCarregado = false;
 
             const checarConclusao = () => {
-                if (motoristaCarregado && equipeCarregada) {
+                if (motoristaCarregado && equipeCarregada && titularCarregado) {
                     resolve();
                 }
             };
@@ -1087,6 +1088,7 @@
             const titularPath = AppState.regionalID === '14-regional' ? 'motoristaTitular' : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/motoristaTitular`;
             onValue(ref(db, titularPath), (snap) => {
                 AppState.unidade.motoristaTitular = snap.val();
+                if (!titularCarregado) { titularCarregado = true; checarConclusao(); }
             });
         });
       }
