@@ -1685,6 +1685,7 @@
           }
           @media print {
             body { margin: 1cm; }
+            .no-print { display: none !important; }
             .footer { position: fixed; bottom: 0; width: 95%; }
             tr:nth-child(even) { background-color: #f8f9fa !important; -webkit-print-color-adjust: exact; }
             th { background-color: #009c3b !important; color: white !important; -webkit-print-color-adjust: exact; }
@@ -1716,6 +1717,13 @@
               <style>${styles}</style>
             </head>
             <body>
+              <div class="no-print" style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-weight: bold; color: #555;">👀 Pré-visualização da Impressão</span>
+                <div>
+                  <button onclick="window.print()" style="background: #17a2b8; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 0.9rem; margin-right: 8px;">🖨️ Confirmar Impressão</button>
+                  <button onclick="window.close()" style="background: #6c757d; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">❌ Fechar</button>
+                </div>
+              </div>
               <div class="print-header">
                 <img src="./logo-dpe.png" alt="Logo DPE-BA">
                 <div class="header-text">
@@ -1732,10 +1740,6 @@
         
         printWindow.document.write(html);
         printWindow.document.close();
-        setTimeout(() => {
-            printWindow.print();
-            printWindow.close();
-        }, 500);
       };
 
       window.exportarCSV = () => {
