@@ -188,7 +188,7 @@
       }
 
       /* Help Modal */
-      #help-modal, #profile-modal {
+      #help-modal, #profile-modal, #unit-settings-modal {
         position: fixed;
         top: 0;
         left: 0;
@@ -215,6 +215,20 @@
       }
       #profile-modal-content label {
         font-weight: 600; color: #555; font-size: 0.95em; margin-bottom: 8px; display: block;
+      }
+      #unit-settings-modal-content {
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        max-width: 600px;
+        width: 100%;
+        position: relative;
+        animation: fadeInUp 0.4s ease-out;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+      #unit-settings-modal-close {
+        position: absolute; top: 10px; right: 15px; font-size: 2.5rem; font-weight: bold; color: #888; cursor: pointer; line-height: 1;
       }
       #help-modal-content {
         background: white;
@@ -299,7 +313,8 @@
       html[data-theme="dark"] #comarca-screen,
       html[data-theme="dark"] #register-screen,
       html[data-theme="dark"] .unit-card,
-      html[data-theme="dark"] #profile-modal-content,
+      html[data-theme="dark"] #profile-modal-content, 
+      html[data-theme="dark"] #unit-settings-modal-content,
       html[data-theme="dark"] #help-modal-content {
         background: #2D3748;
         color: var(--dark-text);
@@ -376,8 +391,8 @@
       html[data-theme="dark"] .accordion-question:hover { background-color: #4A5568; }
       html[data-theme="dark"] .accordion-answer { background-color: #1A202C; }
       html[data-theme="dark"] #help-modal-content strong { color: var(--dark-text); }
-      html[data-theme="dark"] #profile-modal-close, html[data-theme="dark"] #help-modal-close { color: #A0AEC0; }
-      html[data-theme="dark"] #profile-modal-close:hover, html[data-theme="dark"] #help-modal-close:hover { color: var(--dark-text); }
+      html[data-theme="dark"] #profile-modal-close, html[data-theme="dark"] #help-modal-close, html[data-theme="dark"] #unit-settings-modal-close { color: #A0AEC0; }
+      html[data-theme="dark"] #profile-modal-close:hover, html[data-theme="dark"] #help-modal-close:hover, html[data-theme="dark"] #unit-settings-modal-close:hover { color: var(--dark-text); }
     </style>
   </head>
   <body>
@@ -487,6 +502,7 @@
           <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">
             <span id="nome-usuario" style="font-weight: bold; margin-right: 7px;"></span>
             <button id="theme-toggle-btn" style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px; font-size: 1.2rem; line-height: 1;" onclick="toggleTheme()">🌙</button>
+            <button id="unit-settings-btn" class="hidden" style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px;" onclick="toggleUnitSettingsModal(true)">⚙️ Gestão da Unidade</button>
             <button style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px;" onclick="toggleProfileModal(true)">Meu Perfil</button>
             <button style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px;" onclick="fazerLogout()">Sair</button>
           </div>
@@ -718,6 +734,45 @@
           </label>
 
           <button class="btn-primary" style="background: var(--danger);" onclick="salvarMotoristaAdmin()">Atualizar Motorista da Regional</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="unit-settings-modal" class="hidden" onclick="if (event.target === this) toggleUnitSettingsModal(false)">
+      <div id="unit-settings-modal-content">
+        <span id="unit-settings-modal-close" onclick="toggleUnitSettingsModal(false)">×</span>
+        <h3 style="color: var(--primary); margin-bottom: 20px;">⚙️ Gestão da Unidade</h3>
+        
+        <h4 style="margin-bottom: 10px; font-size: 1.1rem;">Equipe da Regional</h4>
+        <div style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 5px; margin-bottom: 20px;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.9em;">
+            <thead style="position: sticky; top: -11px; background: white; box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1);">
+              <tr>
+                <th style="text-align: left; padding: 8px;">Membro</th>
+                <th style="text-align: right; padding: 8px;">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="team-list-tbody">
+              <!-- JS will render rows here -->
+            </tbody>
+          </table>
+        </div>
+
+        <div id="edit-member-form" class="hidden" style="margin-top: 20px; padding-top: 20px; border-top: 2px dashed #ccc;">
+          <h4 style="color: var(--primary); margin-bottom: 15px;">Editar Membro</h4>
+          <input type="hidden" id="edit-member-uid" />
+          <div style="margin-bottom: 15px;">
+            <label for="edit-member-nome">Nome do Membro:</label>
+            <input type="text" id="edit-member-nome" />
+          </div>
+          <div style="margin-bottom: 20px;">
+            <label for="edit-member-tel">WhatsApp (Ex: 73999999999):</label>
+            <input type="tel" id="edit-member-tel" />
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <button class="btn-primary" onclick="saveMemberChanges()">Salvar Alterações</button>
+            <button class="btn-secondary" onclick="cancelEditMember()">Cancelar</button>
+          </div>
         </div>
       </div>
     </div>
@@ -1015,6 +1070,93 @@
               .catch(error => alert("Erro ao atualizar: " + error.message));
       };
 
+      window.toggleUnitSettingsModal = (show) => {
+          const modal = document.getElementById('unit-settings-modal');
+          if (show) {
+              renderTeamList();
+              modal.classList.remove('hidden');
+          } else {
+              modal.classList.add('hidden');
+              document.getElementById('edit-member-form').classList.add('hidden'); // Hide edit form on close
+          }
+      };
+
+      function renderTeamList() {
+          const tbody = document.getElementById('team-list-tbody');
+          tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding: 15px;">Carregando equipe...</td></tr>';
+          const fragment = document.createDocumentFragment();
+
+          if (!AppState.unidade.equipe || AppState.unidade.equipe.length === 0) {
+              tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding: 15px;">Nenhum membro na equipe.</td></tr>';
+              return;
+          }
+
+          AppState.unidade.equipe
+              .sort((a, b) => a.nome.localeCompare(b.nome))
+              .forEach(member => {
+                  const tr = document.createElement('tr');
+                  tr.style.borderTop = '1px solid #eee';
+
+                  const tdNome = document.createElement('td');
+                  tdNome.style.padding = '10px 8px';
+                  tdNome.innerHTML = `${member.nome}<br><small style="color: #666;">${member.email || 'E-mail não cadastrado'}</small>`;
+                  
+                  const tdActions = document.createElement('td');
+                  tdActions.style.padding = '10px 8px';
+                  tdActions.style.textAlign = 'right';
+                  tdActions.innerHTML = `
+                      <button class="btn-edit" style="margin-right: 5px;" onclick="editTeamMember('${member.uid}')" title="Editar">✏️</button>
+                      <button class="btn-delete" onclick="removeTeamMember('${member.uid}', '${member.nome}')" title="Remover">🗑️</button>
+                  `;
+
+                  tr.appendChild(tdNome);
+                  tr.appendChild(tdActions);
+                  fragment.appendChild(tr);
+              });
+          tbody.innerHTML = ''; // Clear loading message
+          tbody.appendChild(fragment);
+      }
+
+      window.editTeamMember = (uid) => {
+          const member = AppState.unidade.equipe.find(m => m.uid === uid);
+          if (!member) return alert('Membro não encontrado.');
+
+          document.getElementById('edit-member-uid').value = uid;
+          document.getElementById('edit-member-nome').value = member.nome;
+          document.getElementById('edit-member-tel').value = member.telefone || '';
+          
+          document.getElementById('edit-member-form').classList.remove('hidden');
+      };
+
+      window.cancelEditMember = () => {
+          document.getElementById('edit-member-form').classList.add('hidden');
+      };
+
+      window.saveMemberChanges = () => {
+          const uid = document.getElementById('edit-member-uid').value;
+          const nome = document.getElementById('edit-member-nome').value;
+          const telefone = document.getElementById('edit-member-tel').value.replace(/\D/g, '');
+          if (!uid || !nome) return alert('Nome não pode ser vazio.');
+          const member = AppState.unidade.equipe.find(m => m.uid === uid);
+          if (!member) return alert('Membro não encontrado para atualizar.');
+          const equipePath = AppState.regionalID === '14-regional' ? `${DB_PATHS.EQUIPE}/${uid}` : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.EQUIPE}/${uid}`;
+          update(ref(db, equipePath), { nome: nome, telefone: telefone, email: member.email }).then(() => {
+              registrarLog('Admin: Edição de Membro', `Admin editou o perfil de ${nome}`);
+              alert('Membro atualizado com sucesso!');
+              cancelEditMember();
+          }).catch(err => alert('Erro ao salvar: ' + err.message));
+      };
+
+      window.removeTeamMember = (uid, nome) => {
+          if (uid.startsWith('antigo_')) return alert('Não é possível remover usuários do sistema legado por aqui.');
+          if (!confirm(`Tem certeza que deseja remover "${nome}" da equipe desta regional?\n\nIsso NÃO excluirá a conta de login do usuário, apenas o removerá da lista de solicitantes.`)) return;
+          const equipePath = AppState.regionalID === '14-regional' ? `${DB_PATHS.EQUIPE}/${uid}` : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.EQUIPE}/${uid}`;
+          remove(ref(db, equipePath)).then(() => {
+              registrarLog('Admin: Remoção de Membro', `Admin removeu ${nome} da equipe.`);
+              alert(`${nome} foi removido da equipe.`);
+          }).catch(err => alert('Erro ao remover: ' + err.message));
+      };
+
       function registrarLog(acao, detalhes) {
         // Não trava a aplicação se o usuário estiver offline ou houver erro
         try {
@@ -1082,6 +1224,9 @@
                 if (!equipeCarregada) { equipeCarregada = true; checarConclusao(); }
                 configurarUI();
                 atualizarTabelaGlobal();
+                if (document.getElementById('unit-settings-modal') && !document.getElementById('unit-settings-modal').classList.contains('hidden')) {
+                    renderTeamList();
+                }
             });
 
             // Novo listener para carregar os dados do Motorista Titular Padrão
@@ -1123,7 +1268,10 @@
                 if (snap.val() === true) { status.innerText = "🟢 Online"; status.style.background = "var(--success)"; }
                 else { status.innerText = "🔴 Offline"; status.style.background = "var(--danger)"; }
               });
-              if(AppState.user.podeTudo || AppState.user.isMotorista) document.getElementById('painel-add-folga').classList.remove('hidden');          
+              if(AppState.user.podeTudo || AppState.user.isMotorista) {
+                document.getElementById('painel-add-folga').classList.remove('hidden');
+                if (AppState.user.podeTudo) document.getElementById('unit-settings-btn').classList.remove('hidden');
+              }
               popularFiltrosDeData(); 
               iniciarEscutaBanco();
           });
