@@ -1756,7 +1756,19 @@
                   <p><strong>Emissão:</strong> ${new Date().toLocaleString('pt-BR')}</p>
                 </div>
               </div>
-              <table><thead><tr><th>Status</th><th>Saída</th><th>Retorno</th><th>Solicitante</th><th>Motivo</th><th>Roteiro</th></tr></thead><tbody>${tableRows}</tbody></table>
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width: 10%;">Status</th>
+                    <th style="width: 18%;">Saída</th>
+                    <th style="width: 18%;">Retorno</th>
+                    <th style="width: 20%;">Solicitante</th>
+                    <th style="width: 17%;">Motivo</th>
+                    <th style="width: 17%;">Roteiro</th>
+                  </tr>
+                </thead>
+                <tbody>${tableRows}</tbody>
+              </table>
               <div class="footer"><p>SAD - Sistema de Agendamento Defensorial | Gerado em ${new Date().toLocaleString('pt-BR')}</p></div>
             </body>
           </html>`;
