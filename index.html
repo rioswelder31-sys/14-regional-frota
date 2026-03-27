@@ -712,6 +712,11 @@
             <button class="btn-secondary" style="font-size: 0.8em;" onclick="preencherMotoristaRapido('substituto')">🔄 Substituto</button>
           </div>
           
+          <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; margin-bottom: 15px; cursor: pointer;">
+            <input type="checkbox" id="admin-driver-is-titular" style="width: auto; padding: 0; margin: 0;" />
+            Salvar também como Motorista Titular Padrão
+          </label>
+
           <button class="btn-primary" style="background: var(--danger);" onclick="salvarMotoristaAdmin()">Atualizar Motorista da Regional</button>
         </div>
       </div>
@@ -966,11 +971,16 @@
       window.preencherMotoristaRapido = (tipo) => {
           let nome = "";
           let tel = "";
-          // Configurações padrão da 14ª Regional (ajuste se necessário para a 9ª)
           if (tipo === 'titular') {
-              if (AppState.regionalID === '14-regional') { nome = "CLEONES DAMASCENO"; tel = "5571996384423"; }
-              else if (AppState.regionalID === 'PORTO SEGURO') { nome = "Ramona Melgaço Sales"; tel = "5571984542450"; }
-              else if (AppState.regionalID === 'EUNAPOLIS') { nome = "Neyrailson Souza de Queiroz"; tel = "5571999998075"; }
+              if (AppState.unidade.motoristaTitular && AppState.unidade.motoristaTitular.nome) {
+                  nome = AppState.unidade.motoristaTitular.nome;
+                  tel = AppState.unidade.motoristaTitular.tel;
+              } else {
+                  // Fallback temporário caso ainda não tenham salvo o titular no banco de dados
+                  if (AppState.regionalID === '14-regional') { nome = "CLEONES DAMASCENO"; tel = "5571996384423"; }
+                  else if (AppState.regionalID === 'PORTO SEGURO') { nome = "Ramona Melgaço Sales"; tel = "5571984542450"; }
+                  else if (AppState.regionalID === 'EUNAPOLIS') { nome = "Neyrailson Souza de Queiroz"; tel = "5571999998075"; }
+              }
           } else {
               nome = "Motorista Substituto";
               tel = "55"; 
@@ -983,16 +993,23 @@
       window.salvarMotoristaAdmin = () => {
           const novoNome = document.getElementById('admin-driver-nome').value;
           const novoTel = document.getElementById('admin-driver-tel').value.replace(/\D/g, '');
+          const isTitular = document.getElementById('admin-driver-is-titular').checked;
 
           if (!novoNome || !novoTel) return alert("Preencha nome e telefone do motorista.");
           if (!confirm(`Deseja alterar o motorista oficial da unidade para ${novoNome}?`)) return;
 
-          const updatePath = AppState.regionalID === '14-regional' ? 'motorista' : `unidades/${AppState.regionalID}/motorista`;
+          const baseRef = AppState.regionalID === '14-regional' ? ref(db) : ref(db, `unidades/${AppState.regionalID}`);
+          const dados = { motorista: { nome: novoNome, tel: novoTel } };
+
+          if (isTitular) {
+              dados.motoristaTitular = { nome: novoNome, tel: novoTel };
+          }
           
-          update(ref(db, updatePath), { nome: novoNome, tel: novoTel })
+          update(baseRef, dados)
               .then(() => {
-                  registrarLog('Alteração Admin', `Admin trocou motorista para: ${novoNome}`);
+                  registrarLog('Alteração Admin', `Admin trocou motorista para: ${novoNome}${isTitular ? ' (Definido como Titular)' : ''}`);
                   alert("Motorista atualizado com sucesso para toda a Regional!");
+                  document.getElementById('admin-driver-is-titular').checked = false; // reseta o checkbox
                   toggleProfileModal(false);
               })
               .catch(error => alert("Erro ao atualizar: " + error.message));
@@ -1064,6 +1081,12 @@
                 if (!equipeCarregada) { equipeCarregada = true; checarConclusao(); }
                 configurarUI();
                 atualizarTabelaGlobal();
+            });
+
+            // Novo listener para carregar os dados do Motorista Titular Padrão
+            const titularPath = AppState.regionalID === '14-regional' ? 'motoristaTitular' : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/motoristaTitular`;
+            onValue(ref(db, titularPath), (snap) => {
+                AppState.unidade.motoristaTitular = snap.val();
             });
         });
       }
