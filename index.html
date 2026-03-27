@@ -1175,14 +1175,14 @@
 
       // Helper function to get a database reference for the current regional
       function getRegionalRef(...pathSegments) {
-        // Se for 14-regional, os dados ficam na raiz. Se não, dentro de /unidades/ID
+        // Padronização: Se for 14-regional, usamos a raiz como base, senão usamos unidades/ID
         let pathArray = AppState.regionalID === '14-regional' ? [] : [DB_PATHS.UNIDADES, AppState.regionalID];
         
-        // Adiciona os segmentos extras (como 'equipe', 'motorista', etc)
-        pathArray = pathArray.concat(pathSegments);
+        // Filtramos segmentos nulos ou vazios
+        const cleanSegments = pathSegments.filter(s => s && s !== "");
+        pathArray = pathArray.concat(cleanSegments);
         
-        // Filtra para remover entradas vazias e junta com '/'
-        const finalPath = pathArray.filter(segment => segment).join('/');
+        const finalPath = pathArray.join('/');
         return ref(db, finalPath || "/"); 
       }
 
@@ -1213,67 +1213,90 @@
       // Função para carregar dados da unidade (motorista e equipe) do Firebase
       function carregarDadosDaUnidade() {
         return new Promise((resolve) => {
-            let motoristaCarregado = false;
-            let equipeCarregada = false;
-            let titularCarregado = false;
+            let carregados = { motorista: false, equipe: false };
+            
+            // Timeout de segurança: se em 4 segundos não carregar, libera a tela para não travar o usuário
+            const safetyTimeout = setTimeout(() => {
+              console.warn("Aviso: Carregamento demorou muito. Liberando interface...");
+              resolve();
+            }, 4000);
 
             const checarConclusao = () => {
-                if (motoristaCarregado && equipeCarregada && titularCarregado) {
-                    resolve();
-                }
+              if (carregados.motorista && carregados.equipe) {
+                clearTimeout(safetyTimeout);
+                resolve();
+              }
             };
 
+            // 1. Carregar Motorista
             onValue(getRegionalRef(DB_PATHS.MOTORISTA), (snap) => { 
-                const motoristaFirebase = snap.val();
-                if (motoristaFirebase && motoristaFirebase.nome) {
-                    AppState.unidade.motorista = motoristaFirebase;
-                } else {
-                    // Fallback para dados antigos
-                    AppState.unidade.motorista.nome = CONTATOS[AppState.regionalID]?.motorista || 'N/D';
-                    AppState.unidade.motorista.tel = CONTATOS[AppState.regionalID]?.tel || '';
-                }
-                if (!motoristaCarregado) { motoristaCarregado = true; checarConclusao(); }
-                configurarUI();
-            });
+              const data = snap.val();
+              if (data && data.nome) {
+                AppState.unidade.motorista = data;
+              } else {
+                AppState.unidade.motorista = { 
+                  nome: CONTATOS[AppState.regionalID]?.motorista || 'N/D',
+                  tel: CONTATOS[AppState.regionalID]?.tel || '' 
+                };
+              }
+              carregados.motorista = true;
+              configurarUI();
+              checarConclusao();
+            }, { onlyOnce: false });
 
+            // 2. Carregar Equipe
             onValue(getRegionalRef(DB_PATHS.EQUIPE), (snap) => { 
                 const equipeFirebase = snap.val() ? Object.keys(snap.val()).map(uid => ({ uid, ...snap.val()[uid] })) : [];
                 const equipeAntigaObj = CONTATOS[AppState.regionalID]?.equipe || {};
+                
                 const nomesFirebase = new Set(equipeFirebase.map(m => m.nome));
-
                 const equipeAntigaArray = Object.keys(equipeAntigaObj).map(nome => {
-                    let telefone = equipeAntigaObj[nome].replace(/\D/g, '');
-                    if (telefone.startsWith('55')) telefone = telefone.substring(2);
-                    return { uid: `antigo_${nome.replace(/\s/g, '')}`, nome: nome, telefone: telefone };
+                  let tel = equipeAntigaObj[nome].replace(/\D/g, '');
+                  if (tel.startsWith('55')) tel = tel.substring(2);
+                  return { uid: `antigo_${nome.replace(/\s/g, '')}`, nome: nome, telefone: tel };
                 });
 
-                const equipeCombinada = [...equipeFirebase];
-                equipeAntigaArray.forEach(membroAntigo => { if (!nomesFirebase.has(membroAntigo.nome)) equipeCombinada.push(membroAntigo); });
-                
-                AppState.unidade.equipe = equipeCombinada;
-                if (!equipeCarregada) { equipeCarregada = true; checarConclusao(); }
+                AppState.unidade.equipe = [...equipeFirebase];
+                equipeAntigaArray.forEach(m => { if (!nomesFirebase.has(m.nome)) AppState.unidade.equipe.push(m); });
+
+                carregados.equipe = true;
                 configurarUI();
-                // A tabela de viagens só deve ser atualizada por este listener se as viagens
-                // já tiverem sido carregadas. Isso evita a condição de corrida na inicialização.
-                if (AppState.viagensIniciaisCarregadas) {
-                    atualizarTabelaGlobal();
-                }
+                if (AppState.viagensIniciaisCarregadas) atualizarTabelaGlobal();
                 if (document.getElementById('unit-settings-modal') && !document.getElementById('unit-settings-modal').classList.contains('hidden')) {
                     renderTeamList();
                 }
+                checarConclusao();
             });
 
-            // Novo listener para carregar os dados do Motorista Titular Padrão
+            // 3. Motorista Titular (Opcional - Não trava mais o carregamento)
             onValue(getRegionalRef('motoristaTitular'), (snap) => {
-                AppState.unidade.motoristaTitular = snap.val();
-                if (!titularCarregado) { titularCarregado = true; checarConclusao(); }
+              AppState.unidade.motoristaTitular = snap.val();
             });
         });
       }
 
       onAuthStateChanged(auth, (user) => {
         if (user) {
-          if (!AppState.regionalID) { AppState.regionalID = localStorage.getItem('regionalID'); AppState.regionalNome = localStorage.getItem('regionalNome'); }
+          // 1. Identifica a Regional imediatamente
+          if (!AppState.regionalID) { 
+            AppState.regionalID = localStorage.getItem('regionalID'); 
+            AppState.regionalNome = localStorage.getItem('regionalNome'); 
+          }
+          
+          // 2. MOSTRAR STATUS ONLINE IMEDIATAMENTE
+          onValue(ref(db, ".info/connected"), (snap) => {
+            const statusEl = document.getElementById("status-conexao");
+            if (statusEl) {
+              if (snap.val() === true) { 
+                statusEl.innerText = "🟢 Online"; 
+                statusEl.style.background = "var(--success)"; 
+              } else { 
+                statusEl.innerText = "🔴 Offline"; 
+                statusEl.style.background = "var(--danger)"; 
+              }
+            }
+          });
+
           AppState.user.email = user.email.toLowerCase();
           AppState.user.uid = user.uid;
           const isWelder = AppState.user.email === "welder.rios@defensoria.ba.def.br";
@@ -1297,19 +1320,6 @@
               }
 
               solicitarPermissaoNotificacao();
-
-              onValue(ref(db, ".info/connected"), (snap) => {
-                const statusEl = document.getElementById("status-conexao");
-                if (!statusEl) return;
-                
-                if (snap.val() === true) { 
-                  statusEl.innerText = "🟢 Online"; 
-                  statusEl.style.background = "var(--success)"; 
-                } else { 
-                  statusEl.innerText = "🔴 Offline"; 
-                  statusEl.style.background = "var(--danger)"; 
-                }
-              });
               if(AppState.user.podeTudo || AppState.user.isMotorista) {
                 document.getElementById('painel-add-folga').classList.remove('hidden');
                 if (AppState.user.podeTudo) document.getElementById('unit-settings-btn').classList.remove('hidden');
