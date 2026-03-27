@@ -1,0 +1,28 @@
+{
+  "name": "Frota DPE - Multi-Regional",
+  "short_name": "Frota DPE",
+  "description": "Sistema de Gestão de Frota da Defensoria Pública do Estado da Bahia",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f3f4f6",
+  "theme_color": "#009c3b",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "logo-dpe-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo-dpe-dark-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "logo-dpe-192.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
