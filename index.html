@@ -463,10 +463,14 @@
     </div>
 
     <div id="comarca-screen" class="container hidden">
-      <h2 style="color: var(--primary); text-align: center;">Selecione a Comarca</h2>
-      <button class="btn-primary" onclick="selecionarUnidade('PORTO SEGURO', '9ª Regional - Porto Seguro')">Porto Seguro</button>
-      <button class="btn-primary" onclick="selecionarUnidade('EUNAPOLIS', '9ª Regional - Eunápolis')">Eunápolis</button>
-      <button class="btn-tertiary" style="margin-top: 10px;" onclick="voltarParaTelaRegionais()">⬅ Voltar</button>
+      <h2 class="text-2xl font-bold mb-6" style="color: var(--primary); text-align: center;">Selecione a Comarca</h2>
+      
+      <button class="btn-primary mb-3" onclick="selecionarUnidade('PORTO SEGURO', '9ª Regional - Porto Seguro')">Porto Seguro</button>
+      <button class="btn-primary mb-3" onclick="selecionarUnidade('EUNAPOLIS', '9ª Regional - Eunápolis')">Eunápolis</button>
+      
+      <div class="mt-4 pt-4 border-t border-gray-100">
+        <button class="btn-tertiary" onclick="voltarParaTelaRegionais()">⬅ Voltar</button>
+      </div>
     </div>
 
     <div id="login-screen" class="container hidden">
@@ -1171,9 +1175,15 @@
 
       // Helper function to get a database reference for the current regional
       function getRegionalRef(...pathSegments) {
-        const basePath = AppState.regionalID === '14-regional' ? [] : [DB_PATHS.UNIDADES, AppState.regionalID];
-        const finalPath = [...basePath, ...pathSegments].join('/');
-        return ref(db, finalPath);
+        // Se for 14-regional, os dados ficam na raiz. Se não, dentro de /unidades/ID
+        let pathArray = AppState.regionalID === '14-regional' ? [] : [DB_PATHS.UNIDADES, AppState.regionalID];
+        
+        // Adiciona os segmentos extras (como 'equipe', 'motorista', etc)
+        pathArray = pathArray.concat(pathSegments);
+        
+        // Filtra para remover entradas vazias e junta com '/'
+        const finalPath = pathArray.filter(segment => segment).join('/');
+        return ref(db, finalPath || "/"); 
       }
 
       window.removeTeamMember = (uid, nome) => {
@@ -1289,9 +1299,16 @@
               solicitarPermissaoNotificacao();
 
               onValue(ref(db, ".info/connected"), (snap) => {
-                const status = document.getElementById("status-conexao");
-                if (snap.val() === true) { status.innerText = "🟢 Online"; status.style.background = "var(--success)"; }
-                else { status.innerText = "🔴 Offline"; status.style.background = "var(--danger)"; }
+                const statusEl = document.getElementById("status-conexao");
+                if (!statusEl) return;
+                
+                if (snap.val() === true) { 
+                  statusEl.innerText = "🟢 Online"; 
+                  statusEl.style.background = "var(--success)"; 
+                } else { 
+                  statusEl.innerText = "🔴 Offline"; 
+                  statusEl.style.background = "var(--danger)"; 
+                }
               });
               if(AppState.user.podeTudo || AppState.user.isMotorista) {
                 document.getElementById('painel-add-folga').classList.remove('hidden');
