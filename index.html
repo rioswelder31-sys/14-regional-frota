@@ -869,6 +869,7 @@
         folgas: [],
         dadosWppTemp: "",
         unidade: { motorista: {}, equipe: [] },
+        viagensIniciaisCarregadas: false,
       };
       window.AppState = AppState; // Expor para depuração no console
 
@@ -1238,7 +1239,11 @@
                 AppState.unidade.equipe = equipeCombinada;
                 if (!equipeCarregada) { equipeCarregada = true; checarConclusao(); }
                 configurarUI();
-                atualizarTabelaGlobal();
+                // A tabela de viagens só deve ser atualizada por este listener se as viagens
+                // já tiverem sido carregadas. Isso evita a condição de corrida na inicialização.
+                if (AppState.viagensIniciaisCarregadas) {
+                    atualizarTabelaGlobal();
+                }
                 if (document.getElementById('unit-settings-modal') && !document.getElementById('unit-settings-modal').classList.contains('hidden')) {
                     renderTeamList();
                 }
