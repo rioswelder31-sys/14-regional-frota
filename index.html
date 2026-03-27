@@ -116,6 +116,10 @@
       .btn-confirm { background: var(--success); width: auto; padding: 8px 12px; font-size: 0.9em; margin-right: 4px; }
       .btn-delete { background: var(--danger); width: auto; padding: 8px 12px; font-size: 0.9em; }
       
+      .btn-outline { background: white; color: var(--primary); border: 2px solid var(--primary); }
+      .btn-tertiary { background: white; color: #666; border: 1px solid #ddd; }
+      .table-header-custom { background:#004080; color:white; }
+
       .main-form { background: var(--secondary); padding: 20px; border-radius: 6px; border: 1px solid #dee2e6; }
       .form-row { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
       .col { flex: 1; min-width: 200px; }
@@ -374,14 +378,19 @@
         color: #bee3f8;
       }
       
-      html[data-theme="dark"] thead[style*="background:#004080"] {
+      html[data-theme="dark"] .table-header-custom {
           background: #1A202C !important;
       }
 
-      html[data-theme="dark"] .btn-primary[style*="background: white"] {
-          background: #4A5568 !important;
-          color: var(--dark-text) !important;
-          border-color: #718096 !important;
+      html[data-theme="dark"] .btn-outline {
+        background: #2D3748;
+        color: var(--primary);
+        border-color: var(--primary);
+      }
+      html[data-theme="dark"] .btn-tertiary {
+          background: #4A5568;
+          color: var(--dark-text);
+          border-color: #718096;
       }
 
       /* Ajustes finos para o tema escuro */
@@ -456,9 +465,9 @@
 
     <div id="comarca-screen" class="container hidden">
       <h2 style="color: var(--primary); text-align: center;">Selecione a Comarca</h2>
-      <button class="btn-primary" style="margin-bottom: 20px;" onclick="selecionarUnidade('PORTO SEGURO', '9ª Regional - Porto Seguro')">Porto Seguro</button>
-      <button class="btn-primary" style="margin-bottom: 20px;" onclick="selecionarUnidade('EUNAPOLIS', '9ª Regional - Eunápolis')">Eunápolis</button>
-      <button class="btn-primary" style="background: white; color: #666; border: 1px solid #ddd;" onclick="voltarParaTelaRegionais()">⬅ Voltar</button>
+      <button class="btn-primary" onclick="selecionarUnidade('PORTO SEGURO', '9ª Regional - Porto Seguro')">Porto Seguro</button>
+      <button class="btn-primary" onclick="selecionarUnidade('EUNAPOLIS', '9ª Regional - Eunápolis')">Eunápolis</button>
+      <button class="btn-tertiary" style="margin-top: 10px;" onclick="voltarParaTelaRegionais()">⬅ Voltar</button>
     </div>
 
     <div id="login-screen" class="container hidden">
@@ -470,8 +479,8 @@
       </div>
       <p style="text-align: right; margin-bottom: 25px;"><a href="#" style="font-size: 0.9em; color: var(--primary); text-decoration: none;" onclick="recuperarSenha()">Esqueceu a senha?</a></p>
       <button class="btn-primary" style="margin-bottom: 20px;" onclick="realizarLogin()">Entrar</button>
-      <button class="btn-primary" style="background: white; color: var(--primary); border: 2px solid var(--primary); margin-bottom: 20px;" onclick="irParaRegistro()">Não tem conta? Criar Agora</button>
-      <button class="btn-primary" style="background: white; color: #666; border: 1px solid #ddd; margin-bottom: 20px;" onclick="voltarRegionais()">⬅ Voltar</button>
+      <button class="btn-outline" onclick="irParaRegistro()">Não tem conta? Criar Agora</button>
+      <button class="btn-tertiary" style="margin-top: 10px;" onclick="voltarRegionais()">⬅ Voltar</button>
     </div>
 
     <div id="register-screen" class="container hidden">
@@ -484,7 +493,7 @@
         <span class="toggle-password" onclick="togglePassword('reg-pass')">👁️</span>
       </div>
       <button class="btn-primary" style="background:var(--success); margin-top:20px; margin-bottom: 20px;" onclick="realizarCadastro()">Registrar e Entrar</button>
-      <button class="btn-primary" style="background: white; color: #666; border: 1px solid #ddd; margin-top: 10px;" onclick="voltarLogin()">⬅ Voltar para Login</button>
+      <button class="btn-tertiary" onclick="voltarLogin()">⬅ Voltar para Login</button>
     </div>
 
     <div id="app-screen" class="container hidden">
@@ -571,7 +580,7 @@
         <button style="background: #17a2b8; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="imprimirAgenda()">🖨️ Imprimir</button>
         <button style="background: #6f42c1; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="exportarCSV()">📥 Exportar CSV</button>
       </div>
-      <div style="overflow-x:auto;"><table style="width:100%; border-collapse: collapse; min-width: 1100px;"><thead style="background:#004080; color:white;"><tr><th style="padding:12px;">Status</th><th style="padding:12px;">Saída</th><th style="padding:12px;">Retorno</th><th style="padding:12px;">Solicitante</th><th style="padding:12px;">Motivo</th><th style="padding:12px;">Roteiro</th><th style="padding:12px; text-align:center;">Ações</th></tr></thead><tbody id="tb-corpo"></tbody></table></div>
+      <div style="overflow-x:auto;"><table style="width:100%; border-collapse: collapse; min-width: 1100px;"><thead class="table-header-custom"><tr><th style="padding:12px;">Status</th><th style="padding:12px;">Saída</th><th style="padding:12px;">Retorno</th><th style="padding:12px;">Solicitante</th><th style="padding:12px;">Motivo</th><th style="padding:12px;">Roteiro</th><th style="padding:12px; text-align:center;">Ações</th></tr></thead><tbody id="tb-corpo"></tbody></table></div>
     </div>
 
     <div id="help-fab" onclick="toggleHelpModal(true)">?</div>
@@ -782,6 +791,12 @@
       import { getDatabase, ref, push, onValue, remove, update, query, orderByChild, startAt, endAt, set } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
       import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
+      // NOTA DE REATORAÇÃO: Muitas funções são atribuídas ao objeto `window` para que possam ser
+      // chamadas por atributos `onclick` no HTML. Uma melhoria futura seria remover os `onclick`
+      // do HTML e adicionar os listeners de evento diretamente no JavaScript (ex:
+      // document.getElementById('meu-botao').addEventListener('click', minhaFuncao);).
+      // Isso limparia o escopo global e separaria melhor as responsabilidades.
+
       // --- Lógica para alternar tema (Claro/Escuro) ---
       function applyTheme(theme) {
         const themeToggleButton = document.getElementById('theme-toggle-btn');
@@ -858,17 +873,16 @@
       window.AppState = AppState; // Expor para depuração no console
 
       // Constantes para evitar "magic strings"
+      // Constantes para caminhos do DB, evitando "magic strings"
       const STATUS = { PENDENTE: 'Pendente', CONFIRMADO: 'Confirmado', FINALIZADO: 'Finalizado', REJEITADO: 'Rejeitado' };
       const DB_PATHS = { VIAGENS: 'viagens', FOLGAS: 'folgas', UNIDADES: 'unidades', EQUIPE: 'equipe', MOTORISTA: 'motorista' };
 
       /*
-       * O objeto CONTATOS foi removido.
-       * Agora, os dados do motorista e da equipe serão carregados diretamente do Firebase.
-       * É necessário criar essa estrutura no seu Firebase Realtime Database:
-       * /unidades/{regionalID}/motorista -> { nome: "Nome Motorista", tel: "71..." }
-       * /unidades/{regionalID}/equipe/{userID} -> { nome: "Nome Servidor", email: "...", telefone: "73..." }
+       * NOTA SOBRE DADOS LEGADOS: O objeto `CONTATOS` abaixo é mantido como um "fallback" (plano B).
+       * A função `carregarDadosDaUnidade` primeiro tenta carregar a equipe do Firebase.
+       * Depois, ela complementa a lista com os contatos deste objeto que AINDA NÃO estão no Firebase.
+       * O objetivo a longo prazo é migrar todos os usuários para o banco de dados e remover este objeto.
        */
-      // Objeto CONTATOS restaurado temporariamente como fallback para garantir que nenhum nome desapareça durante a migração.
       const CONTATOS = {
         "14-regional": { motorista: "CLEONES DAMASCENO", tel: "5571996384423", equipe: { "Defensor Caio Cesar Nunes Cruz": "5527998764286", "Defensor Emerson Halsey Soares": "5571999678855", "Defensor Matheus Rocha Almeida": "5573991969670", "Defensor Matheus Silva Bastos": "5571983394060", "Defensora Ana Carolina Lugullo Maia de Araujo": "5521988052225", "Defensora Janaina dos Santos Araújo": "5532988060602", "Servidor Welder Oliveira Rios": "5573991853116", "Servidora Adriele Macário dos Santos": "5573999051485" } },
         "PORTO SEGURO": { motorista: "Ramona Melgaço Sales", tel: "5571984542450", equipe: { "Servidor Welder Oliveira Rios": "5573991853116", "Psicóloga - Caroline Cardoso": "5573981120994", "Assistente Social - Júlio Felipe": "5573998200302", "Defensora Priscilla Berto Silva": "5573999315353", "Defensor Fábio Gonçalves Fonseca": "5527999226065", "Defensora Tatiana Câmara Assis Velho da Cunha": "5573991800081", "Defensor Guilherme Zuanazzi": "5574999304456", "Defensora Kamile Costa Alves": "5517991436479", "Defensor José Renato Bernardes da Costa": "5573999441303", "Servidora Silvana Almeida Cardoso": "5573998506151" } },
@@ -876,6 +890,12 @@
       };
 
       const cidadesBA = ["ABARÉ","ACAJUTIBA","ALAGOINHAS","ALCOBAÇA","ALMADINA","AMARGOSA","AMÉLIA RODRIGUES","ANAGÉ","ANDARAÍ","ANGICAL","ANTAS","APORÁ","APUAREMA","ARAÇÁS","ARACI","ARAMARI","ARATACA","ARATUÍPE","AURELINO LEAL","BAIANÓPOLIS","BAIXA GRANDE","BANZÁE","BARRA","BARRA DA ESTIVA","BARRA DO CHOÇA","BARRA DO MENDES","BARRA DO ROCHA","BARREIRAS","BARRO ALTO","BARROCAS","BELMONTE","BELO CAMPO","BIRITINGA","BOA NOVA","BOA VISTA DO TUPIM","BOM JESUS DA LAPA","BOM JESUS DA SERRA","BONINAL","BONITO","BOQUIRA","BOTUPORÃ","BREJÕES","BREJOLÂNDIA","BROTAS DE MACAÚBAS","BRUMADO","BUERAREMA","BURITIRAMA","CAATIBA","CABACEIRAS DO PARAGUAÇU","CACHOEIRA","CACULÉ","CAÉM","CAETANOS","CAETITÉ","CAFARNAUM","CAIRU","CALDEIRÃO GRANDE","CAMACAN","CAMAÇARI","CAMAMU","CAMPO ALEGRE DE LOURDES","CAMPO FORMOSO","CANÁPOLIS","CANARANA","CANAVIEIRAS","CANDEAL","CANDEIAS","CANDIBA","CÂNDIDO SALES","CANSANÇÃO","CANUDOS","CAPELA DO ALTO ALEGRE","CAPIM GROSSO","CARAÍBAS","CARAVELAS","CARDEAL DA SILVA","CARINHANHA","CASA NOVA","CASTRO ALVES","CATU","CATURAMA","CENTRAL","CHORROCHÓ","CÍCERO DANTAS","CIPÓ","COARACI","COCOS","CONCEIÇÃO DA FEIRA","CONCEIÇÃO DO ALMEIDA","CONCEIÇÃO DO COITÉ","CONCEIÇÃO DO JACUÍPE","CONDE","CONDEÚBA","CORAÇÃO DE MARIA","CORDEIROS","CORIBE","CORONEL JOÃO SÁ","CORRENTINA","COTEGIPE","CRAVOLÂNDIA","CRISÓPOLIS","CRISTÓPOLIS","CRUZ DAS ALMAS","CURAÇÁ","DÁRIO MEIRA","DIAS D'ÁVILA","DOM BASÍLIO","ELÍSIO MEDRADO","ENCRUZILHADA","ENTRE RIOS","ÉRICO CARDOSO","ESPLANADA","EUCLIDES DA CUNHA","EUNÁPOLIS","FÁTIMA","FEIRA DE SANTANA","FILADÉLFIA","FIRMINO Alves","FLORESTA AZUL","FORMOSA DO RIO PRETO","GANDU","GAVIÃO","GENTIO DO OURO","GLÓRIA","GONGOGI","GOVERNADOR MANGABEIRA","GUANAMBI","GUARATINGA","HELIÓPOLIS","IAÇU","IBIASSUCÊ","IBICARAÍ","IBICOARA","IBICUÍ","IBIPEBA","IBIPITANGA","IBIQUERA","IBIRAPITANGA","IBIRAPUÃ","IBIRATAIA","IBITIARA","IBitITÁ","IBOTIRAMA","ICHU","IGAPORÃ","IGRAPIÚNA","IGUAÍ","ILHÉUS","INHAMBUPE","IPECAETÁ","IPIAÚ","IPIRÁ","IPUPIARA","IRAJUBA","IRAMAIA","IRAQUARA","IRARÁ","IRECÊ","ITABELA","ITABERABA","ITABUNA","ITACARÉ","ITAETÊ","ITAGI","ITAGIBÁ","ITAGIMIRIM","ITAJU DO COLÔNIA","ITAJUÍPE","ITAMARAJU","ITAMARI","ITAMBÉ","ITANAGRA","ITANHÉM","ITAPARICA","ITAPÉ","ITAPEBI","ITAPETINGA","ITAPICURU","ITAPPITANGA","ITAQUARA","ITARANTIM","ITATIM","ITIRUÇU","ITIÚBA","ITORORÓ","ITUAÇU","ITUBERÁ","IUIÚ","JABORANDI","JACARACI","JACOBINA","JAGUAQUARA","JAGUARARI","JAGUARIPE","JEQUIÉ","JEREMOABO","JIQUIRIÇÁ","JITAÚNA","JOÃO DOURADO","JUAZEIRO","JUCURUÇU","JUSSARA","JUSSARI","JUSSIAPE","LAFAIETE COUTINHO","LAGOA REAL","LAJE","LAJEDÃO","LAJEDINHO","LAMARÃO","LAPÃO","LAURO DE FREITAS","LENÇÓIS","LICÍNIO DE ALMEIDA","LIVRAMENTO DE NOSSA SENHORA","LUÍS EDUARDO MAGALHAES","MACAJUBA","MACARANI","MACAÚBAS","MACURURÉ","MADRE DE DEUS","MAETINGA","MAIQUINIQUE","MAIRI","MALHADA","MALHADA DE PEDRAS","MANOEL VITORINO","MANSIDÃO","MARACÁS","MARAGOGIPE","MARAÚ","MASCOTE","MATA DE SÃO JOÃO","MATINA","MEDEIROS NETO","MIGUEL CALMON","MILAGRES","MIRANGABA","MONTE SANTO","MORPARÁ","MORRO DO CHAPÉU","MORTUGABA","MUCUGÊ","MUCURI","MULUNGU DO MORRO","MUNDO NOVO","MUNIZ FERREIRA","MUQUÉM DO SÃO FRANCISCO","MURITIBA","MUTUÍPE","NAZARÉ","NILO PEÇANHA","NORDESTINA","NOVA CANAÃ","NOVA FÁTIMA","NOVA IBIA","NOVA SOURE","NOVA VIÇOSA","NOVO HORIZONTE","NOVO TRIUNFO","OLINDINA","OLIVEIRA DOS BREJINHOS","OURIÇANGAS","OUROLÂNDIA","PALMAS DE MONTE ALTO","PALMEIRAS","PARAMIRIM","PARATINGA","PARIPIRANGA","PAU BRASIL","PAULO AFONSO","PÉ DE SERRA","PEDRÃO","PEDRO ALEXANDRE","PIATÃ","PILÃO ARCADO","PINDAÍ","PINDOBAÇU","PINTADAS","PIRAÍ DO Norte","PIRIPÁ","PIRITIBA","PLANALTINO","PLANALTO","POÇÕES","POJUCA","PONTO NOVO","PORTO SEGURO","POTIRAGUÁ","PRADO","PRESIDENTE DUTRA","QUEIMADAS","QUIJINGUE","QUIXABEIRA","RAFAEL JAMBEIRO","REMANSO","RETIROLÂNDIA","RIACHÃO DAS NEVES","RIACHÃO DO JACUÍPE","RIACHO DE SANTANA","RIBEIRA DO AMPARO","RIBEIRA DO POMBAL","RIBEIRÃO DO LARGO","RIO DE CONTAS","RIO DO ANTÔNIO","RIO DO PIRES","RIO REAL","RODELAS","RUY BARBOSA","SALINAS DA MARGARIDA","SALVADOR","SANTA BÁRBARA","SANTA BRÍGIDA","SANTA CRUZ CABRÁLIA","SANTA INÊS","SANTA LUZIA","SANTA MARIA DA VITÓRIA","SANTA RITA DE CÁSSIA","SANTA TERESINHA","SANTALUZ","SANTANA","SANTANÓPOLIS","SANTO AMARO","SANTO ANTÔNIO DE JESUS","SANTO ESTÊVÃO","SÃO DESIDÉRIO","SÃO DOMINGOS","SÃO FELIPE","SÃO FÉLIX","SÃO FRANCISCO DO CONDE","SÃO GABRIEL","SÃO GONÇALO DOS CAMPOS","SÃO JOSÉ DO JACUÍPE","SÃO SEBASTIÃO DO PASSÉ","SAPEACU","SÁTIRO DIAS","SAUBARA","SAÚDE","SEABRA","SEBASTIÃO LARANJEIRAS","SENHOR DO BONFIM","SENTO SÉ","SERRA DO RAMALHO","SERRA DOURADA","SERRA PRETA","SERRAS PRETAS","SERROLÂNDIA","SIMÕES FILHO","SÍTIO DO MATO","SÍTIO DO QUINTO","SOBRADINHO","SOUTO SOARES","TABOCAS DO BREJO VELHO","TANHAÇU","TANQUE NOVO","TANQUINHO","TAPEROÁ","TAPIRAMUTÁ","TEIXEIRA DE FREITAS","TEODORO SAMPAIO","TEOFILÂNDIA","TEOLÂNDIA","TERRA NOVA","TREMEDAL","TUCANO","UAUÁ","UBAÍRA","UBAITABA","UBATÃ","UIBAÍ","UMBURANAS","UNA","URANDI","URUÇUCA","UTINGA","VALENÇA","VALENTE","VÁRZEA DA ROÇA","VÁRZEA DO POÇO","VÁRZEA NOVA","VARZEDO","VERA CRUZ","VEREDA","VITÓRIA DA CONQUISTA","WAGNER","WANDERLEY","WENCESLAU GUIMARÃES","XIQUE-XIQUE"];
+
+      // Função auxiliar para "escapar" HTML e prevenir ataques de XSS
+      function escapeHtml(unsafe) {
+        if (unsafe === null || typeof unsafe === 'undefined') return '';
+        return unsafe.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+      }
 
       window.togglePassword = (id) => { const i = document.getElementById(id); i.type = i.type === "password" ? "text" : "password"; };
       window.toggleHelpModal = (show) => {
@@ -971,10 +991,9 @@
         createUserWithEmailAndPassword(auth, email, pass)
           .then((userCredential) => {
               const user = userCredential.user;
-              const userProfile = { nome: nome, email: user.email, telefone: tel.replace(/\D/g, '') };
-              // Define o perfil do usuário no DB, dentro da equipe da regional selecionada
-              const equipePath = AppState.regionalID === '14-regional' ? `${DB_PATHS.EQUIPE}/${user.uid}` : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.EQUIPE}/${user.uid}`;
-              return set(ref(db, equipePath), userProfile);
+              const userProfile = { nome: nome, email: user.email, telefone: tel.replace(/\D/g, '') };              
+              // Define o perfil do usuário no DB usando a função auxiliar de caminho
+              return set(getRegionalRef(DB_PATHS.EQUIPE, user.uid), userProfile);
           })
           .then(() => {
             registrarLog('Criação de Conta', `Novo usuário: ${nome} (${email})`);
@@ -993,16 +1012,16 @@
         const user = auth.currentUser;
         if (!user) return alert("Sessão expirada. Faça login novamente.");
 
-        let updatePath, dadosAtualizados;
+        let updateRef, dadosAtualizados;
         if (AppState.user.isMotorista) {
-          updatePath = AppState.regionalID === '14-regional' ? DB_PATHS.MOTORISTA : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.MOTORISTA}`;
+          updateRef = getRegionalRef(DB_PATHS.MOTORISTA);
           dadosAtualizados = { nome: novoNome, tel: novoTel };
         } else {
-          updatePath = AppState.regionalID === '14-regional' ? `${DB_PATHS.EQUIPE}/${user.uid}` : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.EQUIPE}/${user.uid}`;
+          updateRef = getRegionalRef(DB_PATHS.EQUIPE, user.uid);
           dadosAtualizados = { nome: novoNome, telefone: novoTel, email: user.email };
         }
 
-        update(ref(db, updatePath), dadosAtualizados).then(() => {
+        update(updateRef, dadosAtualizados).then(() => {
           registrarLog('Atualização de Perfil', `Usuário ${AppState.user.email} atualizou o perfil.`);
           alert("Perfil atualizado com sucesso!");
           if (AppState.user.isMotorista) {
@@ -1053,14 +1072,13 @@
           if (!novoNome || !novoTel) return alert("Preencha nome e telefone do motorista.");
           if (!confirm(`Deseja alterar o motorista oficial da unidade para ${novoNome}?`)) return;
 
-          const baseRef = AppState.regionalID === '14-regional' ? ref(db) : ref(db, `unidades/${AppState.regionalID}`);
           const dados = { motorista: { nome: novoNome, tel: novoTel } };
 
           if (isTitular) {
               dados.motoristaTitular = { nome: novoNome, tel: novoTel };
           }
           
-          update(baseRef, dados)
+          update(getRegionalRef(), dados)
               .then(() => {
                   registrarLog('Alteração Admin', `Admin trocou motorista para: ${novoNome}${isTitular ? ' (Definido como Titular)' : ''}`);
                   alert("Motorista atualizado com sucesso para toda a Regional!");
@@ -1138,27 +1156,31 @@
           const telefone = document.getElementById('edit-member-tel').value.replace(/\D/g, '');
           if (!uid || !nome) return alert('Nome não pode ser vazio.');
           const member = AppState.unidade.equipe.find(m => m.uid === uid);
-          if (!member) return alert('Membro não encontrado para atualizar.');
-          const equipePath = AppState.regionalID === '14-regional' ? `${DB_PATHS.EQUIPE}/${uid}` : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.EQUIPE}/${uid}`;
-          update(ref(db, equipePath), { nome: nome, telefone: telefone, email: member.email }).then(() => {
+          if (!member) return alert('Membro não encontrado para atualizar.');          
+          update(getRegionalRef(DB_PATHS.EQUIPE, uid), { nome: nome, telefone: telefone, email: member.email }).then(() => {
               registrarLog('Admin: Edição de Membro', `Admin editou o perfil de ${nome}`);
               alert('Membro atualizado com sucesso!');
               cancelEditMember();
           }).catch(err => alert('Erro ao salvar: ' + err.message));
       };
 
+      // Helper function to get a database reference for the current regional
+      function getRegionalRef(...pathSegments) {
+        const basePath = AppState.regionalID === '14-regional' ? [] : [DB_PATHS.UNIDADES, AppState.regionalID];
+        const finalPath = [...basePath, ...pathSegments].join('/');
+        return ref(db, finalPath);
+      }
+
       window.removeTeamMember = (uid, nome) => {
           if (uid.startsWith('antigo_')) return alert('Não é possível remover usuários do sistema legado por aqui.');
           if (!confirm(`Tem certeza que deseja remover "${nome}" da equipe desta regional?\n\nIsso NÃO excluirá a conta de login do usuário, apenas o removerá da lista de solicitantes.`)) return;
-          const equipePath = AppState.regionalID === '14-regional' ? `${DB_PATHS.EQUIPE}/${uid}` : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.EQUIPE}/${uid}`;
-          remove(ref(db, equipePath)).then(() => {
+          remove(getRegionalRef(DB_PATHS.EQUIPE, uid)).then(() => {
               registrarLog('Admin: Remoção de Membro', `Admin removeu ${nome} da equipe.`);
               alert(`${nome} foi removido da equipe.`);
           }).catch(err => alert('Erro ao remover: ' + err.message));
       };
 
       function registrarLog(acao, detalhes) {
-        // Não trava a aplicação se o usuário estiver offline ou houver erro
         try {
           const logEntry = {
             acao: acao,
@@ -1167,12 +1189,7 @@
             regional: AppState.regionalID,
             timestamp: new Date().toISOString()
           };
-          // O log da 14ª fica na raiz, os outros em /unidades/{id}/logs
-          const logPath = AppState.regionalID === '14-regional' 
-            ? 'logs' 
-            : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/logs`;
-          
-          push(ref(db, logPath), logEntry);
+          push(getRegionalRef('logs'), logEntry);
         } catch (error) {
           console.error("Falha ao registrar log:", error);
         }
@@ -1191,8 +1208,7 @@
                 }
             };
 
-            const motoristaPath = AppState.regionalID === '14-regional' ? DB_PATHS.MOTORISTA : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.MOTORISTA}`;
-            onValue(ref(db, motoristaPath), (snap) => { 
+            onValue(getRegionalRef(DB_PATHS.MOTORISTA), (snap) => { 
                 const motoristaFirebase = snap.val();
                 if (motoristaFirebase && motoristaFirebase.nome) {
                     AppState.unidade.motorista = motoristaFirebase;
@@ -1205,8 +1221,7 @@
                 configurarUI();
             });
 
-            const equipePath = AppState.regionalID === '14-regional' ? DB_PATHS.EQUIPE : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.EQUIPE}`;
-            onValue(ref(db, equipePath), (snap) => { 
+            onValue(getRegionalRef(DB_PATHS.EQUIPE), (snap) => { 
                 const equipeFirebase = snap.val() ? Object.keys(snap.val()).map(uid => ({ uid, ...snap.val()[uid] })) : [];
                 const equipeAntigaObj = CONTATOS[AppState.regionalID]?.equipe || {};
                 const nomesFirebase = new Set(equipeFirebase.map(m => m.nome));
@@ -1230,8 +1245,7 @@
             });
 
             // Novo listener para carregar os dados do Motorista Titular Padrão
-            const titularPath = AppState.regionalID === '14-regional' ? 'motoristaTitular' : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/motoristaTitular`;
-            onValue(ref(db, titularPath), (snap) => {
+            onValue(getRegionalRef('motoristaTitular'), (snap) => {
                 AppState.unidade.motoristaTitular = snap.val();
                 if (!titularCarregado) { titularCarregado = true; checarConclusao(); }
             });
@@ -1285,7 +1299,13 @@
       function configurarUI() {
         const dlS = document.getElementById('lista-solicitantes'); 
         dlS.innerHTML = "";
-        AppState.unidade.equipe.forEach(membro => dlS.innerHTML += `<option value="${membro.nome}">`);
+        const fragment = document.createDocumentFragment();
+        AppState.unidade.equipe.forEach(membro => {
+            const option = document.createElement('option');
+            option.value = membro.nome;
+            fragment.appendChild(option);
+        });
+        dlS.appendChild(fragment);
         const usuarioLogado = AppState.unidade.equipe.find(m => m.email === AppState.user.email);
         if (usuarioLogado) document.getElementById('solicitante').value = usuarioLogado.nome;
 
@@ -1321,7 +1341,15 @@
 
       function renderRoteiro() {
         const b = document.getElementById('roteiro-lista-body'); b.innerHTML = "";
-        AppState.roteiroAtual.forEach(t => b.innerHTML += `<tr><td>${t.origem}</td><td>${t.destino}</td></tr>`);
+        const fragment = document.createDocumentFragment();
+        AppState.roteiroAtual.forEach(t => {
+            const tr = fragment.appendChild(document.createElement('tr'));
+            const tdOrigem = tr.appendChild(document.createElement('td'));
+            const tdDestino = tr.appendChild(document.createElement('td'));
+            tdOrigem.textContent = t.origem;
+            tdDestino.textContent = t.destino;
+        });
+        b.appendChild(fragment);
       }
 
       window.limparRoteiro = () => { AppState.roteiroAtual = []; renderRoteiro(); };
@@ -1410,11 +1438,9 @@
         const dataInicioISO = dataInicio.toISOString();
         const dataFimISO = dataFim.toISOString();
 
-        const path14 = DB_PATHS.VIAGENS;
-        const pathOutras = `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.VIAGENS}`;
-        const viagensPath = AppState.regionalID === '14-regional' ? path14 : pathOutras;
         console.log(`Atualizando escuta para viagens de ${dataInicioISO} a ${dataFimISO}`);
-        const viagensQuery = query(ref(db, viagensPath), orderByChild('saida'), startAt(dataInicioISO), endAt(dataFimISO));
+        
+        const viagensQuery = query(getRegionalRef(DB_PATHS.VIAGENS), orderByChild('saida'), startAt(dataInicioISO), endAt(dataFimISO));
 
         AppState.unsubscribeViagens = onValue(viagensQuery, (s) => { 
             const viagensFirebase = s.val() ? Object.keys(s.val()).map(k => ({...s.val()[k], id: k})) : []; 
@@ -1442,9 +1468,8 @@
       }
 
       function iniciarEscutaBanco() {
-        const folgasPath = AppState.regionalID === '14-regional' ? DB_PATHS.FOLGAS : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.FOLGAS}`;
         console.log('Iniciando escuta - Regional:', AppState.regionalID);
-        onValue(ref(db, folgasPath), (s) => { AppState.folgas = s.val() ? Object.keys(s.val()).map(k => ({...s.val()[k], id: k})) : []; renderFolgas(); });
+        onValue(getRegionalRef(DB_PATHS.FOLGAS), (s) => { AppState.folgas = s.val() ? Object.keys(s.val()).map(k => ({...s.val()[k], id: k})) : []; renderFolgas(); });
         
         atualizarEscutaViagens();
       }
@@ -1525,10 +1550,8 @@
 
         const msgMotorista = `🔔 *NOVO AGENDAMENTO RECEBIDO*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${dados.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${dados.trajetoExibicao}\n📝 *Motivo:* ${dados.motivo}\n\n*Acesse o aplicativo para confirmar ou recusar a viagem.*`;
 
-        const root = AppState.regionalID === '14-regional' ? DB_PATHS.VIAGENS : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.VIAGENS}`;
-        
         if(id) {
-          update(ref(db, `${root}/${id}`), dados).then(() => {
+          update(getRegionalRef(DB_PATHS.VIAGENS, id), dados).then(() => {
             registrarLog('Edição de Viagem', `Viagem ID ${id} para ${dados.solicitanteNome} foi editada.`);
             alert("Viagem editada! O motorista será notificado das alterações.");
             const telMotorista = AppState.unidade.motorista.tel;
@@ -1539,7 +1562,7 @@
         } else {
           dados.registradoPor = AppState.user.email;
           dados.dataCriacao = new Date().toISOString();
-          push(ref(db, root), dados).then((newRef) => {
+          push(getRegionalRef(DB_PATHS.VIAGENS), dados).then((newRef) => {
             registrarLog('Criação de Viagem', `Nova viagem ID ${newRef.key} para ${dados.solicitanteNome} foi criada.`);
             AppState.dadosWppTemp = msgMotorista;
             document.getElementById("btn-whatsapp-manual").classList.remove("hidden"); 
@@ -1616,9 +1639,8 @@
                 if (status === STATUS.CONFIRMADO && chegada < agora) {
                     status = STATUS.FINALIZADO;
                 // Somente administradores ou motoristas disparam a atualização no banco para evitar múltiplas gravações simultâneas
-                if (AppState.user.podeTudo || AppState.user.isMotorista) {
-                    const path = AppState.regionalID === '14-regional' ? `${DB_PATHS.VIAGENS}/${v.id}` : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.VIAGENS}/${v.id}`;
-                    update(ref(db, path), { status: STATUS.FINALIZADO });
+                if (AppState.user.podeTudo || AppState.user.isMotorista) {                    
+                    update(getRegionalRef(DB_PATHS.VIAGENS, v.id), { status: STATUS.FINALIZADO });
                 }
                 }
 
@@ -1630,48 +1652,51 @@
                 tr.className = classeLinha;
                 tr.style.borderBottom = '1px solid #eee';
 
-                // Célula Status (Seguro, pois não contém dados do usuário)
+                // Célula Status
                 const tdStatus = tr.insertCell();
                 tdStatus.style.cssText = 'padding:12px; text-align:center';
-                tdStatus.innerHTML = `<span class="status-badge ${badgeCor}">${status}</span>`;
+                const statusBadge = document.createElement('span');
+                statusBadge.className = `status-badge ${badgeCor}`;
+                statusBadge.textContent = status;
+                tdStatus.appendChild(statusBadge);
 
                 // Célula Saída
                 const tdSaida = tr.insertCell();
                 tdSaida.style.padding = '12px';
                 tdSaida.textContent = new Date(v.saida).toLocaleString('pt-BR');
 
-                // Célula Retorno
+                // Célula Retorno (usando textContent para segurança)
                 const tdRetorno = tr.insertCell();
                 tdRetorno.style.padding = '12px';
                 tdRetorno.textContent = new Date(v.chegada).toLocaleString('pt-BR');
 
-                // Célula Solicitante
+                // Célula Solicitante (usando textContent para segurança)
                 const tdSolicitante = tr.insertCell();
                 tdSolicitante.style.padding = '12px';
                 const strongSolicitante = document.createElement('strong');
                 strongSolicitante.textContent = nomeParaExibir || 'N/D';
                 tdSolicitante.appendChild(strongSolicitante);
 
-                // Célula Motivo (usando textContent para segurança)
+                // Célula Motivo
                 const tdMotivo = tr.insertCell();
                 tdMotivo.style.cssText = 'padding:12px; font-size:0.9em; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;';
                 tdMotivo.title = 'Toque para ver o motivo completo';
                 tdMotivo.textContent = v.motivo || '';
                 tdMotivo.addEventListener('click', () => toggleMotivoVisibilidade(tdMotivo));
 
-                // Célula Roteiro (usando textContent para segurança)
+                // Célula Roteiro
                 const tdRoteiro = tr.insertCell();
                 tdRoteiro.style.cssText = 'padding:12px; font-size:0.9em; white-space: pre-line;';
                 tdRoteiro.textContent = v.trajetoExibicao || '';
 
-                // Célula Ações (Seguro, pois o HTML é gerado internamente)
+                // Célula Ações (innerHTML é seguro aqui pois createActionButtons não usa dados do usuário na estrutura HTML)
                 const tdAcoes = tr.insertCell();
                 tdAcoes.style.cssText = 'padding:12px; text-align:center; white-space:nowrap;';
                 tdAcoes.innerHTML = createActionButtons(v, status);
 
                 fragment.appendChild(tr);
             });
-
+        tb.innerHTML = ''; // Limpa a tabela antes de adicionar o novo conteúdo
         tb.appendChild(fragment);
       };
 
@@ -1698,8 +1723,7 @@
       window.confirmar = (id) => {
           const v = AppState.viagens.find(x => x.id === id);
           if(!v) return alert("Viagem não encontrada!");
-          const path = AppState.regionalID === '14-regional' ? `${DB_PATHS.VIAGENS}/${id}` : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.VIAGENS}/${id}`;
-          update(ref(db, path), {status: STATUS.CONFIRMADO}).then(() => {              
+          update(getRegionalRef(DB_PATHS.VIAGENS, id), {status: STATUS.CONFIRMADO}).then(() => {              
               registrarLog('Confirmação de Viagem', `Viagem ID ${id} de ${v.solicitanteNome} foi confirmada.`);
               const solicitante = AppState.unidade.equipe.find(m => m.uid === v.solicitanteUID);
               const telSol = solicitante ? solicitante.telefone : null;
@@ -1715,8 +1739,7 @@
       window.rejeitar = (id) => {
           const v = AppState.viagens.find(x => x.id === id);
           if(!v) return alert("Viagem não encontrada!");
-          const path = AppState.regionalID === '14-regional' ? `${DB_PATHS.VIAGENS}/${id}` : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.VIAGENS}/${id}`;
-          update(ref(db, path), {status: STATUS.REJEITADO}).then(() => {              
+          update(getRegionalRef(DB_PATHS.VIAGENS, id), {status: STATUS.REJEITADO}).then(() => {              
               registrarLog('Rejeição de Viagem', `Viagem ID ${id} de ${v.solicitanteNome} foi rejeitada.`);
               const solicitante = AppState.unidade.equipe.find(m => m.uid === v.solicitanteUID);
               const telSol = solicitante ? solicitante.telefone : null;
@@ -1732,8 +1755,7 @@
       window.deletar = (id) => { 
         if(confirm("Tem certeza que deseja excluir esta viagem?")) { 
           const v = AppState.viagens.find(x => x.id === id);
-          const path = AppState.regionalID === '14-regional' ? DB_PATHS.VIAGENS : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.VIAGENS}`; 
-          remove(ref(db, path + '/' + id)).then(() => {
+          remove(getRegionalRef(DB_PATHS.VIAGENS, id)).then(() => {
             if (v) {
               registrarLog('Exclusão de Viagem', `Viagem de ${v.solicitanteNome} (Saída: ${new Date(v.saida).toLocaleString('pt-BR')}) foi excluída.`);
             }
@@ -1741,16 +1763,14 @@
         } 
       };
       window.salvarFolga = () => { 
-        const path = AppState.regionalID === '14-regional' ? DB_PATHS.FOLGAS : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.FOLGAS}`; 
         const dadosFolga = { inicio: document.getElementById('folga-inicio').value, fim: document.getElementById('folga-fim').value, motivo: document.getElementById('folga-motivo').value };
-        push(ref(db, path), dadosFolga).then(() => {
+        push(getRegionalRef(DB_PATHS.FOLGAS), dadosFolga).then(() => {
           registrarLog('Criação de Folga/Bloqueio', `Período de ${new Date(dadosFolga.inicio + "T00:00:00").toLocaleDateString('pt-BR')} a ${new Date(dadosFolga.fim + "T00:00:00").toLocaleDateString('pt-BR')} foi criado. Motivo: ${dadosFolga.motivo}`);
         });
       };
       window.deletarFolga = (id) => { 
         const folga = AppState.folgas.find(f => f.id === id);
-        const path = AppState.regionalID === '14-regional' ? DB_PATHS.FOLGAS : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.FOLGAS}`; 
-        remove(ref(db, path + '/' + id)).then(() => {
+        remove(getRegionalRef(DB_PATHS.FOLGAS, id)).then(() => {
           if (folga) registrarLog('Exclusão de Folga/Bloqueio', `Período de ${new Date(folga.inicio + "T00:00:00").toLocaleDateString('pt-BR')} a ${new Date(folga.fim + "T00:00:00").toLocaleDateString('pt-BR')} foi excluído. Motivo: ${folga.motivo}`);
         });
       };
@@ -1769,7 +1789,8 @@
           if (AppState.user.podeTudo || AppState.user.isMotorista) {
             const button = document.createElement('button');
             button.style.cssText = "background:none; color:red; width:auto; border:none; cursor:pointer;";
-            button.innerHTML = '🗑️'; // Emoji é seguro
+            button.textContent = '🗑️';
+            button.title = "Excluir bloqueio";
             button.onclick = () => deletarFolga(f.id);
             div.appendChild(button);
           }
@@ -1876,10 +1897,14 @@
             const chegada = new Date(v.chegada);
             if (status === 'Confirmado' && chegada < agora) status = 'Finalizado';
             
-            const motivo = v.motivo || '';
-            const traj = v.trajetoExibicao ? v.trajetoExibicao.replace(/\n/g, ' | ') : '';
+            const motivo = escapeHtml(v.motivo || '');
+            const traj = escapeHtml(v.trajetoExibicao ? v.trajetoExibicao.replace(/\n/g, ' | ') : '');
+            const solicitante = escapeHtml(getNomeSolicitante(v) || 'N/D');
+            const statusEscaped = escapeHtml(status);
+            const saidaEscaped = escapeHtml(new Date(v.saida).toLocaleString('pt-BR'));
+            const chegadaEscaped = escapeHtml(new Date(v.chegada).toLocaleString('pt-BR'));
             
-            tableRows += `<tr><td>${status}</td><td>${new Date(v.saida).toLocaleString('pt-BR')}</td><td>${new Date(v.chegada).toLocaleString('pt-BR')}</td><td>${getNomeSolicitante(v) || 'N/D'}</td><td>${motivo}</td><td>${traj}</td></tr>`;
+            tableRows += `<tr><td>${statusEscaped}</td><td>${saidaEscaped}</td><td>${chegadaEscaped}</td><td>${solicitante}</td><td>${motivo}</td><td>${traj}</td></tr>`;
         });
 
         const selectMes = document.getElementById('filtro-mes');
@@ -1944,8 +1969,9 @@
           const saida = new Date(v.saida).toLocaleString('pt-BR');
           const chegada = new Date(v.chegada).toLocaleString('pt-BR');
           const motivo = v.motivo ? v.motivo.replace(/"/g, '""').replace(/\n/g, ' ') : '';
-          const roteiro = v.trajetoExibicao ? v.trajetoExibicao.replace(/\n/g, ' | ') : '';
-          csv += `"${status}","${saida}","${chegada}","${getNomeSolicitante(v)}","${motivo}","${roteiro}"\n`;
+          const roteiro = v.trajetoExibicao ? v.trajetoExibicao.replace(/"/g, '""').replace(/\n/g, ' | ') : '';
+          const solicitante = getNomeSolicitante(v) ? getNomeSolicitante(v).replace(/"/g, '""') : '';
+          csv += `"${status}","${saida}","${chegada}","${solicitante}","${motivo}","${roteiro}"\n`;
         });
         
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
