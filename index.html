@@ -681,40 +681,35 @@
 
     <div id="profile-modal" class="hidden" onclick="if (event.target === this) toggleProfileModal(false)">
       <div id="profile-modal-content">
-        <span id="profile-modal-close" onclick="toggleProfileModal(false)">&times;</span>
         <span id="profile-modal-close" onclick="toggleProfileModal(false)">×</span>
         <h3 style="color: var(--primary); margin-bottom: 25px;">Meu Perfil</h3>
         
         <div style="margin-bottom: 20px;">
-          <label for="profile-nome">Nome Completo:</label>
-          <label for="profile-nome">Seu Nome Completo:</label>
+          <label for="profile-nome">Meu Nome:</label>
           <input type="text" id="profile-nome" />
         </div>
         <div style="margin-bottom: 25px;">
-          <label for="profile-tel">WhatsApp (somente números):</label>
-          <input type="tel" id="profile-tel" placeholder="Ex: 73999999999" />
-          <label for="profile-tel">Seu WhatsApp (Ex: 73999999999):</label>
+          <label for="profile-tel">Meu WhatsApp (Ex: 73999999999):</label>
           <input type="tel" id="profile-tel" />
         </div>
-        <button class="btn-primary" onclick="salvarPerfil()">Salvar Alterações</button>
         <button class="btn-primary" onclick="salvarPerfil()">Salvar Meus Dados</button>
 
-        <div id="admin-driver-panel" class="hidden" style="margin-top: 30px; padding-top: 20px; border-top: 2px dashed #ccc;">
-          <h3 style="color: var(--danger); margin-bottom: 15px;">🛡️ Gestão da Unidade (Admin)</h3>
-          <p style="font-size: 0.85em; color: #666; margin-bottom: 15px;">Altere o motorista ativo desta Regional:</p>
+        <div id="admin-driver-section" class="hidden" style="margin-top: 30px; padding-top: 20px; border-top: 2px dashed #ccc;">
+          <h4 style="color: var(--danger); margin-bottom: 15px;">⚙️ Gestão do Motorista da Unidade</h4>
+          <p style="font-size: 0.85em; color: #666; margin-bottom: 15px;">Altere aqui o motorista que recebe as notificações da Regional.</p>
           
           <div style="margin-bottom: 15px;">
-            <label>Nome do Motorista:</label>
-            <input type="text" id="admin-driver-nome" placeholder="Nome do motorista atual" />
+            <label>Nome do Motorista Atual:</label>
+            <input type="text" id="admin-driver-nome" placeholder="Nome do motorista" />
           </div>
           <div style="margin-bottom: 15px;">
-            <label>WhatsApp do Motorista:</label>
-            <input type="tel" id="admin-driver-tel" placeholder="Ex: 71999999999" />
+            <label>WhatsApp do Motorista (com DDD):</label>
+            <input type="tel" id="admin-driver-tel" placeholder="Ex: 71996384423" />
           </div>
           
           <div style="display: flex; gap: 8px; margin-bottom: 15px;">
-            <button onclick="preencherMotoristaRapido('titular')" style="background:#f8f9fa; color:#333; border:1px solid #ccc; font-size: 0.8em; padding: 5px;">Titular Padrão</button>
-            <button onclick="preencherMotoristaRapido('substituto')" style="background:#f8f9fa; color:#333; border:1px solid #ccc; font-size: 0.8em; padding: 5px;">Reset Substituto</button>
+            <button class="btn-secondary" style="font-size: 0.8em;" onclick="preencherMotoristaRapido('titular')">📍 Titular</button>
+            <button class="btn-secondary" style="font-size: 0.8em;" onclick="preencherMotoristaRapido('substituto')">🔄 Substituto</button>
           </div>
           
           <button class="btn-primary" style="background: var(--danger);" onclick="salvarMotoristaAdmin()">Atualizar Motorista da Regional</button>
@@ -841,42 +836,39 @@
         }
       };
       window.toggleProfileModal = (show) => {
-        const modal = document.getElementById('profile-modal');
-        const adminPanel = document.getElementById('admin-driver-panel');
-        
-        if (show) {
-          const currentUser = auth.currentUser;
-          if (!currentUser) return;
+          const modal = document.getElementById('profile-modal');
+          if (show) {
+              const currentUser = auth.currentUser;
+              if (!currentUser) return;
 
-          // Preenche dados do usuário logado
-          let userProfile;
-          if (AppState.user.isMotorista) {
-            userProfile = { nome: AppState.unidade.motorista.nome, telefone: AppState.unidade.motorista.tel };
+              // Preenche dados do usuário logado
+              let userProfile;
+              if (AppState.user.isMotorista) {
+                  userProfile = { nome: AppState.unidade.motorista.nome, telefone: AppState.unidade.motorista.tel };
+              } else {
+                  userProfile = AppState.unidade.equipe.find(m => m.uid === currentUser.uid);
+              }
+
+              if (userProfile) {
+                  document.getElementById('profile-nome').value = userProfile.nome;
+                  document.getElementById('profile-tel').value = userProfile.telefone || '';
+              }
+
+              // LOGICA DE ADMIN: Exibe painel de troca de motorista
+              const adminSection = document.getElementById('admin-driver-section');
+              if (AppState.user.podeTudo) {
+                  adminSection.classList.remove('hidden');
+                  // Carrega os dados atuais do motorista nos campos de edição admin
+                  document.getElementById('admin-driver-nome').value = AppState.unidade.motorista.nome || '';
+                  document.getElementById('admin-driver-tel').value = AppState.unidade.motorista.tel || '';
+              } else {
+                  adminSection.classList.add('hidden');
+              }
+
+              modal.classList.remove('hidden');
           } else {
-            userProfile = AppState.unidade.equipe.find(m => m.uid === currentUser.uid);
+              modal.classList.add('hidden');
           }
-
-          if (userProfile) {
-            document.getElementById('profile-nome').value = userProfile.nome;
-            document.getElementById('profile-tel').value = userProfile.telefone || '';
-          } // Se o perfil não for encontrado, o modal abrirá com campos vazios, permitindo a criação.
-            document.getElementById('profile-nome').value = userProfile.nome || '';
-            document.getElementById('profile-tel').value = userProfile.telefone || userProfile.tel || '';
-          }
-
-          // Lógica do Painel Admin
-          if (AppState.user.podeTudo) {
-            adminPanel.classList.remove('hidden');
-            document.getElementById('admin-driver-nome').value = AppState.unidade.motorista.nome || '';
-            document.getElementById('admin-driver-tel').value = AppState.unidade.motorista.tel || '';
-          } else {
-            adminPanel.classList.add('hidden');
-          }
-
-          modal.classList.remove('hidden');
-        } else {
-          modal.classList.add('hidden');
-        }
       };
       window.recuperarSenha = () => { 
         const email = document.getElementById("login-user").value; 
@@ -970,91 +962,40 @@
         }).catch(error => alert("Erro ao atualizar o perfil: " + error.message));
       };
 
+      // Função para preenchimento rápido (Titular/Substituto)
       window.preencherMotoristaRapido = (tipo) => {
-        let nome = "";
-        let tel = "";
-        
-        // Busca o titular baseado na regional configurada no AppState
-        if (tipo === 'titular') {
-            if (AppState.regionalID === '14-regional') { nome = "CLEONES DAMASCENO"; tel = "5571996384423"; }
-            else if (AppState.regionalID === 'PORTO SEGURO') { nome = "Ramona Melgaço Sales"; tel = "5571984542450"; }
-            else if (AppState.regionalID === 'EUNAPOLIS') { nome = "Neyrailson Souza de Queiroz"; tel = "5571999998075"; }
-        } else if (tipo === 'substituto') {
-            nome = "Motorista Substituto";
-            tel = "55"; // Prefixo do Brasil para o admin apenas completar
-          const backup = CONTATOS[AppState.regionalID];
-          nome = backup?.motorista || "";
-          tel = backup?.tel || "";
-        } else {
-          nome = "Motorista Substituto";
-          tel = "55"; // Inicia com o código do país
-        }
-        
-        document.getElementById('admin-driver-nome').value = nome;
-        document.getElementById('admin-driver-tel').value = tel;
-        document.getElementById('admin-driver-tel').focus();
+          let nome = "";
+          let tel = "";
+          // Configurações padrão da 14ª Regional (ajuste se necessário para a 9ª)
+          if (tipo === 'titular') {
+              if (AppState.regionalID === '14-regional') { nome = "CLEONES DAMASCENO"; tel = "5571996384423"; }
+              else if (AppState.regionalID === 'PORTO SEGURO') { nome = "Ramona Melgaço Sales"; tel = "5571984542450"; }
+              else if (AppState.regionalID === 'EUNAPOLIS') { nome = "Neyrailson Souza de Queiroz"; tel = "5571999998075"; }
+          } else {
+              nome = "Motorista Substituto";
+              tel = "55"; 
+          }
+          document.getElementById('admin-driver-nome').value = nome;
+          document.getElementById('admin-driver-tel').value = tel;
       };
 
+      // Função que grava a alteração no Firebase
       window.salvarMotoristaAdmin = () => {
-        const novoNome = document.getElementById('admin-driver-nome').value;
-        const novoTel = document.getElementById('admin-driver-tel').value.replace(/\D/g, '');
-        if (!novoNome || !novoTel) return alert("Por favor, preencha o nome e telefone do motorista.");
+          const novoNome = document.getElementById('admin-driver-nome').value;
+          const novoTel = document.getElementById('admin-driver-tel').value.replace(/\D/g, '');
 
-        if(!confirm(`Confirma a alteração do motorista da Regional para:\nNome: ${novoNome}\nWhatsApp: ${novoTel} ?`)) return;
-        if (!novoNome || !novoTel) return alert("Preencha nome e telefone do motorista!");
+          if (!novoNome || !novoTel) return alert("Preencha nome e telefone do motorista.");
+          if (!confirm(`Deseja alterar o motorista oficial da unidade para ${novoNome}?`)) return;
 
-        const updatePath = AppState.regionalID === '14-regional' ? DB_PATHS.MOTORISTA : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.MOTORISTA}`;
-        const dadosAtualizados = { nome: novoNome, tel: novoTel };
-        if (!confirm(`Deseja alterar o motorista da unidade ${AppState.regionalNome} para: \n\n${novoNome}?`)) return;
-
-        update(ref(db, updatePath), dadosAtualizados).then(() => {
-          registrarLog('Alteração de Motorista (Admin)', `Admin ${AppState.user.email} alterou o motorista para ${novoNome}.`);
-          alert("Motorista da unidade atualizado com sucesso!");
-          toggleProfileModal(false);
-        }).catch(error => alert("Erro ao atualizar o motorista: " + error.message));
-      };
-        const path = AppState.regionalID === '14-regional' 
-          ? DB_PATHS.MOTORISTA 
-          : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.MOTORISTA}`;
-
-      window.preencherMotoristaRapido = (tipo) => {
-        let nome = "";
-        let tel = "";
-        if (tipo === 'titular') {
-            if (AppState.regionalID === '14-regional') { nome = "CLEONES DAMASCENO"; tel = "5571996384423"; }
-            else if (AppState.regionalID === 'PORTO SEGURO') { nome = "Ramona Melgaço Sales"; tel = "5571984542450"; }
-            else if (AppState.regionalID === 'EUNAPOLIS') { nome = "Neyrailson Souza de Queiroz"; tel = "5571999998075"; }
-        } else if (tipo === 'substituto') {
-            nome = "Motorista Substituto";
-            tel = "55"; // Prefixo do Brasil para o admin apenas completar
-        }
-        document.getElementById('admin-driver-nome').value = nome;
-        document.getElementById('admin-driver-tel').value = tel;
-        document.getElementById('admin-driver-tel').focus();
-        update(ref(db, path), { nome: novoNome, tel: novoTel })
-          .then(() => {
-            registrarLog('Alteração Admin Motorista', `Admin alterou motorista para: ${novoNome}`);
-            alert("Motorista da Regional atualizado com sucesso!");
-            toggleProfileModal(false);
-          })
-          .catch(err => alert("Erro ao atualizar: " + err.message));
-      };
-
-      window.salvarMotoristaAdmin = () => {
-        const novoNome = document.getElementById('admin-driver-nome').value;
-        const novoTel = document.getElementById('admin-driver-tel').value.replace(/\D/g, '');
-        if (!novoNome || !novoTel) return alert("Por favor, preencha o nome e telefone do motorista.");
-
-        if(!confirm(`Confirma a alteração do motorista da Regional para:\nNome: ${novoNome}\nWhatsApp: ${novoTel} ?`)) return;
-
-        const updatePath = AppState.regionalID === '14-regional' ? DB_PATHS.MOTORISTA : `${DB_PATHS.UNIDADES}/${AppState.regionalID}/${DB_PATHS.MOTORISTA}`;
-        const dadosAtualizados = { nome: novoNome, tel: novoTel };
-
-        update(ref(db, updatePath), dadosAtualizados).then(() => {
-          registrarLog('Alteração de Motorista (Admin)', `Admin ${AppState.user.email} alterou o motorista para ${novoNome}.`);
-          alert("Motorista da unidade atualizado com sucesso!");
-          toggleProfileModal(false);
-        }).catch(error => alert("Erro ao atualizar o motorista: " + error.message));
+          const updatePath = AppState.regionalID === '14-regional' ? 'motorista' : `unidades/${AppState.regionalID}/motorista`;
+          
+          update(ref(db, updatePath), { nome: novoNome, tel: novoTel })
+              .then(() => {
+                  registrarLog('Alteração Admin', `Admin trocou motorista para: ${novoNome}`);
+                  alert("Motorista atualizado com sucesso para toda a Regional!");
+                  toggleProfileModal(false);
+              })
+              .catch(error => alert("Erro ao atualizar: " + error.message));
       };
 
       function registrarLog(acao, detalhes) {
