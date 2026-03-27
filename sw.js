@@ -1,10 +1,9 @@
-const CACHE_NAME = 'frota-dpe-cache-v3';
+const CACHE_NAME = 'frota-dpe-cache-v4'; // Atualizado para v4 para forçar a limpeza do cache nos celulares
 const urlsToCache = [
   './',
   './index.html',
   './dist/output.css', // Certifique-se de incluir o caminho correto para seu arquivo CSS
   './logo-dpe-192.png',
-  './logo-dpe-dark-192.png',
   './manifest.json',
   // Adicione aqui outros assets estáticos (imagens, fontes, etc.)
 ];
