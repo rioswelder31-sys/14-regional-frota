@@ -1303,7 +1303,7 @@
           const isEsther = AppState.user.email === "esther.bobbio@defensoria.ba.def.br";
           const isSilvana = AppState.user.email === "silvana.cardoso@defensoria.ba.def.br";
           AppState.user.podeTudo = isWelder || (isEsther && AppState.regionalID === 'EUNAPOLIS') || (isSilvana && (AppState.regionalID === 'PORTO SEGURO' || AppState.regionalID === 'EUNAPOLIS'));
-          const termosMotorista = ["motorista", "cleones", "ramona", "neyrailson", "substituto"];
+          const termosMotorista = ["motorista", "cleones", "ramona", "neyrailson", "substituto", "frota"];
           AppState.user.isMotorista = termosMotorista.some(termo => AppState.user.email.includes(termo));
 
           document.querySelectorAll('[id$="-screen"]').forEach(c => c.classList.add('hidden'));
