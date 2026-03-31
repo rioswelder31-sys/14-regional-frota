@@ -1169,13 +1169,25 @@
 
       window.saveMemberChanges = () => {
           const uid = document.getElementById('edit-member-uid').value;
+
+          if (uid.startsWith('antigo_')) {
+              return alert('Não é possível editar um usuário do sistema legado. O usuário precisa criar uma conta no novo sistema para ter seus dados gerenciados.');
+          }
+
           const nome = document.getElementById('edit-member-nome').value;
-          const telefone = document.getElementById('edit-member-tel').value.replace(/\D/g, '');
+          let telefone = document.getElementById('edit-member-tel').value.replace(/\D/g, '');
           const isMotorista = document.getElementById('edit-member-is-driver').checked;
           if (!uid || !nome) return alert('Nome não pode ser vazio.');
+
+          // Garante que o telefone tenha o código de país 55 para consistência
+          if (telefone && telefone.length > 9 && !telefone.startsWith('55')) {
+              telefone = '55' + telefone;
+          }
+
           const member = AppState.unidade.equipe.find(m => m.uid === uid);
           if (!member) return alert('Membro não encontrado para atualizar.');
           const dadosAtualizados = { nome: nome, telefone: telefone, email: member.email, isMotorista: isMotorista };
+          
           update(getRegionalRef(DB_PATHS.EQUIPE, uid), dadosAtualizados).then(() => {
               registrarLog('Admin: Edição de Membro', `Admin editou o perfil de ${nome}. Motorista: ${isMotorista}`);
               alert('Membro atualizado com sucesso!');
