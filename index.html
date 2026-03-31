@@ -999,14 +999,19 @@
         const email = document.getElementById("reg-user").value;
         const pass = document.getElementById("reg-pass").value;
         const nome = document.getElementById("reg-nome").value;
-        const tel = document.getElementById("reg-tel").value;
+        let tel = document.getElementById("reg-tel").value;
         if (!email || !pass || !nome || !tel) return alert("Por favor, preencha todos os campos.");
         if (pass.length < 6) return alert("A senha deve ter no mínimo 6 caracteres.");
+
+        let telNumerico = tel.replace(/\D/g, '');
+        if (telNumerico && telNumerico.length > 9 && !telNumerico.startsWith('55')) {
+            telNumerico = '55' + telNumerico;
+        }
 
         createUserWithEmailAndPassword(auth, email, pass)
           .then((userCredential) => {
               const user = userCredential.user;
-              const userProfile = { nome: nome, email: user.email, telefone: tel.replace(/\D/g, '') };              
+              const userProfile = { nome: nome, email: user.email, telefone: telNumerico };              
               // Define o perfil do usuário no DB usando a função auxiliar de caminho
               return set(getRegionalRef(DB_PATHS.EQUIPE, user.uid), userProfile);
           })
@@ -1021,11 +1026,16 @@
 
       window.salvarPerfil = () => {
         const novoNome = document.getElementById('profile-nome').value;
-        const novoTel = document.getElementById('profile-tel').value.replace(/\D/g, '');
+        let novoTel = document.getElementById('profile-tel').value.replace(/\D/g, '');
         if (!novoNome || !novoTel) return alert("Por favor, preencha seu nome e telefone.");
 
         const user = auth.currentUser;
         if (!user) return alert("Sessão expirada. Faça login novamente.");
+
+        // Garante que o telefone tenha o código de país 55 para consistência
+        if (novoTel && novoTel.length > 9 && !novoTel.startsWith('55')) {
+            novoTel = '55' + novoTel;
+        }
 
         let updateRef, dadosAtualizados;
         if (AppState.user.isMotorista) {
@@ -1081,10 +1091,16 @@
       // Função que grava a alteração no Firebase
       window.salvarMotoristaAdmin = () => {
           const novoNome = document.getElementById('admin-driver-nome').value;
-          const novoTel = document.getElementById('admin-driver-tel').value.replace(/\D/g, '');
+          let novoTel = document.getElementById('admin-driver-tel').value.replace(/\D/g, '');
           const isTitular = document.getElementById('admin-driver-is-titular').checked;
 
           if (!novoNome || !novoTel) return alert("Preencha nome e telefone do motorista.");
+          
+          // Garante que o telefone tenha o código de país 55 para consistência
+          if (novoTel && novoTel.length > 9 && !novoTel.startsWith('55')) {
+              novoTel = '55' + novoTel;
+          }
+
           if (!confirm(`Deseja alterar o motorista oficial da unidade para ${novoNome}?`)) return;
 
           const dados = { motorista: { nome: novoNome, tel: novoTel } };
@@ -1339,8 +1355,16 @@
               const currentUserProfile = AppState.unidade.equipe.find(m => m.uid === user.uid);
               const isMotoristaPorEmail = ["motorista", "cleones", "ramona", "neyrailson", "frota"].some(termo => AppState.user.email.includes(termo));
               
-              // Um usuário é motorista se o e-mail for de um motorista principal (legado) OU se tiver a flag no perfil
-              AppState.user.isMotorista = isMotoristaPorEmail || (currentUserProfile && currentUserProfile.isMotorista === true);
+              // Verifica se o usuário logado é o motorista ATIVO da unidade (comparando telefones)
+              const activeDriverTel = AppState.unidade.motorista.tel ? String(AppState.unidade.motorista.tel).replace(/\D/g, '') : null;
+              const userTel = currentUserProfile && currentUserProfile.telefone ? String(currentUserProfile.telefone).replace(/\D/g, '') : null;
+              const isCurrentActiveDriver = activeDriverTel && userTel && activeDriverTel === userTel;
+
+              // Um usuário é considerado motorista se:
+              // 1. O e-mail for de um motorista principal (legado).
+              // 2. Tiver a flag `isMotorista: true` em seu perfil na equipe.
+              // 3. O seu telefone for o mesmo do motorista ATIVO da unidade.
+              AppState.user.isMotorista = isMotoristaPorEmail || (currentUserProfile && currentUserProfile.isMotorista === true) || isCurrentActiveDriver;
 
               if (AppState.user.isMotorista) {
                 document.getElementById('form-content').classList.add('hidden');
