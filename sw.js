@@ -1,8 +1,7 @@
-const CACHE_NAME = 'frota-dpe-cache-v4'; // Atualizado para v4 para forçar a limpeza do cache nos celulares
+const CACHE_NAME = 'frota-dpe-cache-v6'; // Atualizado para v6 para aplicar a nova regra de visibilidade do formulário.
 const urlsToCache = [
   './',
   './index.html',
-  './dist/output.css', // Certifique-se de incluir o caminho correto para seu arquivo CSS
   './logo-dpe-192.png',
   './manifest.json',
   // Adicione aqui outros assets estáticos (imagens, fontes, etc.)

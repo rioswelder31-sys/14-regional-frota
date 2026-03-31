@@ -1366,6 +1366,7 @@
               // 3. O seu telefone for o mesmo do motorista ATIVO da unidade.
               AppState.user.isMotorista = isMotoristaPorEmail || (currentUserProfile && currentUserProfile.isMotorista === true) || isCurrentActiveDriver;
 
+              // O formulário de agendamento fica oculto para qualquer usuário com perfil de motorista.
               if (AppState.user.isMotorista) {
                 document.getElementById('form-content').classList.add('hidden');
               }
