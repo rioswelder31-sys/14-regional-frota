@@ -786,6 +786,12 @@
             <label for="edit-member-tel">WhatsApp (Ex: 73999999999):</label>
             <input type="tel" id="edit-member-tel" />
           </div>
+          <div style="margin-bottom: 20px;">
+            <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
+                <input type="checkbox" id="edit-member-is-driver" style="width: auto; padding: 0; margin: 0;" />
+                Pode atuar como Motorista (verá botões de confirmar/rejeitar)
+            </label>
+          </div>
           <div style="display: flex; gap: 10px;">
             <button class="btn-primary" onclick="saveMemberChanges()">Salvar Alterações</button>
             <button class="btn-secondary" onclick="cancelEditMember()">Cancelar</button>
@@ -1126,7 +1132,8 @@
 
                   const tdNome = document.createElement('td');
                   tdNome.style.padding = '10px 8px';
-                  tdNome.innerHTML = `${member.nome}<br><small style="color: #666;">${member.email || 'E-mail não cadastrado'}</small>`;
+                  const driverBadge = member.isMotorista ? ' <span style="background: var(--warning); color: #333; padding: 2px 6px; border-radius: 4px; font-size: 0.75em; font-weight: bold;">MOTORISTA</span>' : '';
+                  tdNome.innerHTML = `${member.nome}${driverBadge}<br><small style="color: #666;">${member.email || 'E-mail não cadastrado'}</small>`;
                   
                   const tdActions = document.createElement('td');
                   tdActions.style.padding = '10px 8px';
@@ -1151,6 +1158,7 @@
           document.getElementById('edit-member-uid').value = uid;
           document.getElementById('edit-member-nome').value = member.nome;
           document.getElementById('edit-member-tel').value = member.telefone || '';
+          document.getElementById('edit-member-is-driver').checked = !!member.isMotorista;
           
           document.getElementById('edit-member-form').classList.remove('hidden');
       };
@@ -1163,11 +1171,13 @@
           const uid = document.getElementById('edit-member-uid').value;
           const nome = document.getElementById('edit-member-nome').value;
           const telefone = document.getElementById('edit-member-tel').value.replace(/\D/g, '');
+          const isMotorista = document.getElementById('edit-member-is-driver').checked;
           if (!uid || !nome) return alert('Nome não pode ser vazio.');
           const member = AppState.unidade.equipe.find(m => m.uid === uid);
-          if (!member) return alert('Membro não encontrado para atualizar.');          
-          update(getRegionalRef(DB_PATHS.EQUIPE, uid), { nome: nome, telefone: telefone, email: member.email }).then(() => {
-              registrarLog('Admin: Edição de Membro', `Admin editou o perfil de ${nome}`);
+          if (!member) return alert('Membro não encontrado para atualizar.');
+          const dadosAtualizados = { nome: nome, telefone: telefone, email: member.email, isMotorista: isMotorista };
+          update(getRegionalRef(DB_PATHS.EQUIPE, uid), dadosAtualizados).then(() => {
+              registrarLog('Admin: Edição de Membro', `Admin editou o perfil de ${nome}. Motorista: ${isMotorista}`);
               alert('Membro atualizado com sucesso!');
               cancelEditMember();
           }).catch(err => alert('Erro ao salvar: ' + err.message));
@@ -1302,9 +1312,7 @@
           const isWelder = AppState.user.email === "welder.rios@defensoria.ba.def.br";
           const isEsther = AppState.user.email === "esther.bobbio@defensoria.ba.def.br";
           const isSilvana = AppState.user.email === "silvana.cardoso@defensoria.ba.def.br";
-          AppState.user.podeTudo = isWelder || (isEsther && AppState.regionalID === 'EUNAPOLIS') || (isSilvana && (AppState.regionalID === 'PORTO SEGURO' || AppState.regionalID === 'EUNAPOLIS'));
-          const termosMotorista = ["motorista", "cleones", "ramona", "neyrailson", "substituto", "frota"];
-          AppState.user.isMotorista = termosMotorista.some(termo => AppState.user.email.includes(termo));
+          AppState.user.podeTudo = isWelder || (isEsther && AppState.regionalID === 'EUNAPOLIS') || (isSilvana && (AppState.regionalID === 'PORTO SEGURO' || AppState.regionalID === 'EUNAPOLIS'));          
 
           document.querySelectorAll('[id$="-screen"]').forEach(c => c.classList.add('hidden'));
           document.getElementById('app-screen').classList.remove('hidden');
@@ -1315,12 +1323,19 @@
 
           // Carrega os dados da unidade e depois inicia o resto da aplicação
           carregarDadosDaUnidade().then(() => {
+              // Determina se o usuário é motorista após carregar os dados da unidade
+              const currentUserProfile = AppState.unidade.equipe.find(m => m.uid === user.uid);
+              const isMotoristaPorEmail = ["motorista", "cleones", "ramona", "neyrailson", "frota"].some(termo => AppState.user.email.includes(termo));
+              
+              // Um usuário é motorista se o e-mail for de um motorista principal (legado) OU se tiver a flag no perfil
+              AppState.user.isMotorista = isMotoristaPorEmail || (currentUserProfile && currentUserProfile.isMotorista === true);
+
               if (AppState.user.isMotorista) {
                 document.getElementById('form-content').classList.add('hidden');
               }
 
               solicitarPermissaoNotificacao();
-              if(AppState.user.podeTudo || AppState.user.isMotorista) {
+              if (AppState.user.podeTudo || AppState.user.isMotorista) {
                 document.getElementById('painel-add-folga').classList.remove('hidden');
                 if (AppState.user.podeTudo) document.getElementById('unit-settings-btn').classList.remove('hidden');
               }
