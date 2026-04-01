@@ -526,9 +526,11 @@
         <div id="lista-folgas-visual"></div>
         <div id="painel-add-folga" class="hidden" style="margin-top: 15px; border-top: 1px dashed #bbb; padding-top: 10px;">
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <input type="hidden" id="folga-id" />
                 <input type="date" id="folga-inicio" style="flex:1"><input type="date" id="folga-fim" style="flex:1">
                 <input type="text" id="folga-motivo" placeholder="Motivo" style="flex:2">
-                <button style="background:white; color:black; width: auto; border:1px solid #ccc;" onclick="salvarFolga()">Bloquear</button>
+                <button id="btn-salvar-folga" style="background:white; color:black; width: auto; border:1px solid #ccc;" onclick="salvarFolga()">Bloquear</button>
+                <button id="btn-cancelar-folga" class="hidden" style="background:#f8d7da; color:#721c24; width: auto; border:1px solid #f5c6cb;" onclick="limparFormFolga()">Cancelar</button>
             </div>
         </div>
       </div>
@@ -1851,10 +1853,57 @@
         } 
       };
       window.salvarFolga = () => { 
-        const dadosFolga = { inicio: document.getElementById('folga-inicio').value, fim: document.getElementById('folga-fim').value, motivo: document.getElementById('folga-motivo').value };
-        push(getRegionalRef(DB_PATHS.FOLGAS), dadosFolga).then(() => {
-          registrarLog('Criação de Folga/Bloqueio', `Período de ${new Date(dadosFolga.inicio + "T00:00:00").toLocaleDateString('pt-BR')} a ${new Date(dadosFolga.fim + "T00:00:00").toLocaleDateString('pt-BR')} foi criado. Motivo: ${dadosFolga.motivo}`);
-        });
+        const inicio = document.getElementById('folga-inicio').value;
+        const fim = document.getElementById('folga-fim').value;
+        const motivo = document.getElementById('folga-motivo').value;
+        const id = document.getElementById('folga-id') ? document.getElementById('folga-id').value : '';
+        
+        if (!inicio || !fim || !motivo) return alert('Por favor, preencha todos os campos do bloqueio.');
+        
+        const dadosFolga = { inicio, fim, motivo };
+        
+        if (id) {
+          update(getRegionalRef(DB_PATHS.FOLGAS, id), dadosFolga).then(() => {
+            registrarLog('Edição de Folga/Bloqueio', `Período editado para ${new Date(inicio + "T00:00:00").toLocaleDateString('pt-BR')} a ${new Date(fim + "T00:00:00").toLocaleDateString('pt-BR')}. Motivo: ${motivo}`);
+            alert('Bloqueio atualizado com sucesso!');
+            limparFormFolga();
+          });
+        } else {
+          push(getRegionalRef(DB_PATHS.FOLGAS), dadosFolga).then(() => {
+            registrarLog('Criação de Folga/Bloqueio', `Período de ${new Date(inicio + "T00:00:00").toLocaleDateString('pt-BR')} a ${new Date(fim + "T00:00:00").toLocaleDateString('pt-BR')} foi criado. Motivo: ${motivo}`);
+            alert('Bloqueio adicionado com sucesso!');
+            limparFormFolga();
+          });
+        }
+      };
+      window.limparFormFolga = () => {
+        document.getElementById('folga-inicio').value = '';
+        document.getElementById('folga-fim').value = '';
+        document.getElementById('folga-motivo').value = '';
+        if (document.getElementById('folga-id')) document.getElementById('folga-id').value = '';
+        
+        const btnSalvar = document.getElementById('btn-salvar-folga');
+        if (btnSalvar) btnSalvar.innerText = 'Bloquear';
+        
+        const btnCancelar = document.getElementById('btn-cancelar-folga');
+        if (btnCancelar) btnCancelar.classList.add('hidden');
+      };
+      window.prepararEdicaoFolga = (id) => {
+        const folga = AppState.folgas.find(f => f.id === id);
+        if (!folga) return alert('Bloqueio não encontrado!');
+        
+        document.getElementById('folga-inicio').value = folga.inicio;
+        document.getElementById('folga-fim').value = folga.fim;
+        document.getElementById('folga-motivo').value = folga.motivo;
+        if (document.getElementById('folga-id')) document.getElementById('folga-id').value = id;
+        
+        const btnSalvar = document.getElementById('btn-salvar-folga');
+        if (btnSalvar) btnSalvar.innerText = 'Salvar Edição';
+        
+        const btnCancelar = document.getElementById('btn-cancelar-folga');
+        if (btnCancelar) btnCancelar.classList.remove('hidden');
+        
+        document.getElementById('painel-add-folga').scrollIntoView({ behavior: 'smooth', block: 'center' });
       };
       window.deletarFolga = (id) => { 
         const folga = AppState.folgas.find(f => f.id === id);
@@ -1875,6 +1924,13 @@
           div.appendChild(strong);
           div.appendChild(document.createTextNode(`: ${f.motivo} `));
           if (AppState.user.podeTudo || AppState.user.isMotorista) {
+            const btnEdit = document.createElement('button');
+            btnEdit.style.cssText = "background:none; color:inherit; width:auto; border:none; cursor:pointer; margin-right: 5px;";
+            btnEdit.textContent = '✏️';
+            btnEdit.title = "Editar bloqueio";
+            btnEdit.onclick = () => prepararEdicaoFolga(f.id);
+            div.appendChild(btnEdit);
+
             const button = document.createElement('button');
             button.style.cssText = "background:none; color:red; width:auto; border:none; cursor:pointer;";
             button.textContent = '🗑️';
