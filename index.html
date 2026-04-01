@@ -618,7 +618,7 @@
     
         <h4>🛡️ REGRAS DE SEGURANÇA (ALGORITMO)</h4>
         <p><strong>BUFFER DE 5 MINUTOS:</strong> O sistema impede agendamentos "colados". É necessário um intervalo mínimo de 5 minutos entre o fim de uma viagem e o início da próxima para o mesmo veículo.</p>
-        <p><strong>BLOQUEIOS:</strong> O SAD bloqueia salvamentos em datas de folgas, férias ou manutenção, exibindo o motivo na tela.</p>
+        <p><strong>BLOQUEIOS (FOLGAS/MANUTENÇÃO):</strong> O SAD bloqueia salvamentos em datas indisponíveis. Administradores e motoristas podem criar, editar (✏️) e excluir (🗑️) bloqueios diretamente no painel superior. Após salvar, o formulário é limpo automaticamente.</p>
     
         <h4>🚛 PAINEL DO MOTORISTA & GPS</h4>
         <p><strong>ACEITE REAL-TIME:</strong> O motorista possui botões de ✅ Confirmar ou ❌ Rejeitar com retorno automático via Zap.</p>
@@ -662,6 +662,12 @@
               <p><strong>R:</strong> Significa que o motorista ou o administrador cadastrou uma Folga ou Manutenção para aquele período (Férias, Licença, Oficina, etc.). O sistema bloqueia automaticamente qualquer agendamento nessas datas.</p>
             </div>
           </div>
+        <div class="accordion-item">
+          <button class="accordion-question" onclick="toggleAccordion(this)">Como edito ou removo um bloqueio de folga já criado?</button>
+          <div class="accordion-answer">
+            <p><strong>R:</strong> Se você for Administrador ou Motorista, verá os ícones de lápis (✏️) e lixeira (🗑️) ao lado de cada bloqueio listado no painel vermelho "Motorista não disponível". Clique no lápis para carregar os dados no formulário, faça a alteração e clique em "Salvar Edição" (ou "Cancelar" se desistir).</p>
+          </div>
+        </div>
           <div class="accordion-item">
             <button class="accordion-question" onclick="toggleAccordion(this)">Salvei a viagem, o motorista já está sabendo?</button>
             <div class="accordion-answer">
