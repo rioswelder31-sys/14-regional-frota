@@ -790,6 +790,19 @@
             <label for="edit-member-nome">Nome do Membro:</label>
             <input type="text" id="edit-member-nome" />
           </div>
+        <div style="margin-bottom: 15px;">
+          <label for="edit-member-email">E-mail Institucional:</label>
+          <input type="email" id="edit-member-email" />
+        </div>
+        <div style="margin-bottom: 15px;">
+          <label for="edit-member-tipo">Vínculo (Tipo de Cadastro):</label>
+          <select id="edit-member-tipo">
+            <option value="Servidor(a)">Servidor(a)</option>
+            <option value="Defensor(a)">Defensor(a)</option>
+            <option value="Motorista">Motorista</option>
+            <option value="Outro">Outro</option>
+          </select>
+        </div>
           <div style="margin-bottom: 20px;">
             <label for="edit-member-tel">WhatsApp (Ex: 73999999999):</label>
             <input type="tel" id="edit-member-tel" />
@@ -1156,8 +1169,9 @@
 
                   const tdNome = document.createElement('td');
                   tdNome.style.padding = '10px 8px';
-                  const driverBadge = member.isMotorista ? ' <span style="background: var(--warning); color: #333; padding: 2px 6px; border-radius: 4px; font-size: 0.75em; font-weight: bold;">MOTORISTA</span>' : '';
-                  tdNome.innerHTML = `${member.nome}${driverBadge}<br><small style="color: #666;">${member.email || 'E-mail não cadastrado'}</small>`;
+                  const roleBadge = member.tipo ? ` <span style="background: #e2e8f0; color: #4a5568; padding: 2px 6px; border-radius: 4px; font-size: 0.75em; margin-right: 4px;">${member.tipo}</span>` : '';
+                  const driverBadge = member.isMotorista ? '<span style="background: var(--warning); color: #333; padding: 2px 6px; border-radius: 4px; font-size: 0.75em; font-weight: bold;">MOTORISTA</span>' : '';
+                  tdNome.innerHTML = `<strong>${member.nome}</strong><br><div style="margin-top: 4px; margin-bottom: 2px;">${roleBadge}${driverBadge}</div><small style="color: #666;">${member.email || 'E-mail não cadastrado'}</small>`;
                   
                   const tdActions = document.createElement('td');
                   tdActions.style.padding = '10px 8px';
@@ -1181,6 +1195,8 @@
 
           document.getElementById('edit-member-uid').value = uid;
           document.getElementById('edit-member-nome').value = member.nome;
+          document.getElementById('edit-member-email').value = member.email || '';
+          document.getElementById('edit-member-tipo').value = member.tipo || 'Servidor(a)';
           document.getElementById('edit-member-tel').value = member.telefone || '';
           document.getElementById('edit-member-is-driver').checked = !!member.isMotorista;
           
@@ -1199,6 +1215,8 @@
           }
 
           const nome = document.getElementById('edit-member-nome').value;
+          const email = document.getElementById('edit-member-email').value;
+          const tipo = document.getElementById('edit-member-tipo').value;
           let telefone = document.getElementById('edit-member-tel').value.replace(/\D/g, '');
           const isMotorista = document.getElementById('edit-member-is-driver').checked;
           if (!uid || !nome) return alert('Nome não pode ser vazio.');
@@ -1210,10 +1228,10 @@
 
           const member = AppState.unidade.equipe.find(m => m.uid === uid);
           if (!member) return alert('Membro não encontrado para atualizar.');
-          const dadosAtualizados = { nome: nome, telefone: telefone, email: member.email, isMotorista: isMotorista };
+          const dadosAtualizados = { nome: nome, telefone: telefone, email: email, tipo: tipo, isMotorista: isMotorista };
           
           update(getRegionalRef(DB_PATHS.EQUIPE, uid), dadosAtualizados).then(() => {
-              registrarLog('Admin: Edição de Membro', `Admin editou o perfil de ${nome}. Motorista: ${isMotorista}`);
+              registrarLog('Admin: Edição de Membro', `Admin editou o perfil de ${nome}. Tipo: ${tipo}, Motorista: ${isMotorista}`);
               alert('Membro atualizado com sucesso!');
               cancelEditMember();
           }).catch(err => alert('Erro ao salvar: ' + err.message));
