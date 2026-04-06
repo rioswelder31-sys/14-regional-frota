@@ -1210,10 +1210,6 @@
       window.saveMemberChanges = () => {
           const uid = document.getElementById('edit-member-uid').value;
 
-          if (uid.startsWith('antigo_')) {
-              return alert('Não é possível editar um usuário do sistema legado. O usuário precisa criar uma conta no novo sistema para ter seus dados gerenciados.');
-          }
-
           const nome = document.getElementById('edit-member-nome').value;
           const email = document.getElementById('edit-member-email').value;
           const tipo = document.getElementById('edit-member-tipo').value;
