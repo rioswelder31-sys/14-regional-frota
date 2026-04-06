@@ -1251,7 +1251,6 @@
       }
 
       window.removeTeamMember = (uid, nome) => {
-          if (uid.startsWith('antigo_')) return alert('Não é possível remover usuários do sistema legado por aqui.');
           if (!confirm(`Tem certeza que deseja remover "${nome}" da equipe desta regional?\n\nIsso NÃO excluirá a conta de login do usuário, apenas o removerá da lista de solicitantes.`)) return;
           remove(getRegionalRef(DB_PATHS.EQUIPE, uid)).then(() => {
               registrarLog('Admin: Remoção de Membro', `Admin removeu ${nome} da equipe.`);
