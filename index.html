@@ -1833,23 +1833,26 @@
       };
 
       window.cancelar = (id) => {
-        if(!confirm("Tem certeza que deseja cancelar esta viagem? O registro será mantido com status 'Cancelado'.")) return;
         const v = AppState.viagens.find(x => x.id === id);
         if(!v) return alert("Viagem não encontrada!");
         
+        if(!confirm("Tem certeza que deseja cancelar esta viagem? O registro será mantido com status 'Cancelado'.")) return;
+        
+        if(confirm("Deseja avisar o motorista sobre o cancelamento via WhatsApp agora?")) {
+          const telMotorista = AppState.unidade.motorista.tel;
+          const dataSaidaFormatada = new Date(v.saida).toLocaleString('pt-BR');
+          const quemCancelou = AppState.user.podeTudo ? "A administração" : "O solicitante";
+          const msgCancelamento = `🚫 *VIAGEM CANCELADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída Original:* ${dataSaidaFormatada}\n📍 *Roteiro:* ${v.trajetoExibicao.replace(/\n/g, ' ')}\n\n${quemCancelou} cancelou esta viagem no sistema. Por favor, desconsidere-a da sua agenda.`;
+          if(telMotorista) {
+            window.open(`https://wa.me/${telMotorista}?text=${encodeURIComponent(msgCancelamento)}`, '_blank');
+          } else {
+            alert("Telefone do motorista não encontrado.");
+          }
+        }
+        
         update(getRegionalRef(DB_PATHS.VIAGENS, id), {status: STATUS.CANCELADO}).then(() => {
           registrarLog('Cancelamento de Viagem', `Viagem ID ${id} de ${v.solicitanteNome} foi cancelada.`);
-          if(confirm("Viagem cancelada com sucesso! Deseja avisar o motorista via WhatsApp?")) {
-            const telMotorista = AppState.unidade.motorista.tel;
-            const dataSaidaFormatada = new Date(v.saida).toLocaleString('pt-BR');
-            const quemCancelou = AppState.user.podeTudo ? "A administração" : "O solicitante";
-            const msgCancelamento = `🚫 *VIAGEM CANCELADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída Original:* ${dataSaidaFormatada}\n📍 *Roteiro:* ${v.trajetoExibicao.replace(/\n/g, ' ')}\n\n${quemCancelou} cancelou esta viagem no sistema. Por favor, desconsidere-a da sua agenda.`;
-            if(telMotorista) {
-              window.open(`https://wa.me/${telMotorista}?text=${encodeURIComponent(msgCancelamento)}`, '_blank');
-            } else {
-              alert("Telefone do motorista não encontrado.");
-            }
-          }
+          alert("Viagem cancelada com sucesso!");
         }).catch(err => alert("Erro ao cancelar: " + err.message));
       };
 
