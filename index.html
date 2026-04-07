@@ -544,14 +544,20 @@
           </div>
           
           <div class="roteiro-box">
-              <div class="roteiro-controls">
-                  <div style="flex: 1; display: flex; gap: 4px; min-width: 250px;">
-                      <select id="uf-origem" style="width:70px;" onchange="carregarCidades('origem')"></select>
-                      <input type="text" id="cidade-origem" list="list-origem" placeholder="Origem" style="flex: 1;">
+              <div class="roteiro-controls" style="gap: 15px;">
+                  <div style="flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 220px;">
+                      <label style="margin-bottom: 0; color: var(--primary); font-size: 0.9em; text-transform: uppercase;">📍 De (Origem):</label>
+                      <div style="display: flex; gap: 4px;">
+                          <select id="uf-origem" style="width:70px;" onchange="carregarCidades('origem')"></select>
+                          <input type="text" id="cidade-origem" list="list-origem" placeholder="Origem" style="flex: 1;">
+                      </div>
                   </div>
-                  <div style="flex: 1; display: flex; gap: 4px; min-width: 250px;">
-                      <select id="uf-destino" style="width:70px;" onchange="carregarCidades('destino')"></select>
-                      <input type="text" id="cidade-destino" list="list-destino" placeholder="Destino" style="flex: 1;">
+                  <div style="flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 220px;">
+                      <label style="margin-bottom: 0; color: var(--primary); font-size: 0.9em; text-transform: uppercase;">🎯 Para (Destino):</label>
+                      <div style="display: flex; gap: 4px;">
+                          <select id="uf-destino" style="width:70px;" onchange="carregarCidades('destino')"></select>
+                          <input type="text" id="cidade-destino" list="list-destino" placeholder="Destino" style="flex: 1;">
+                      </div>
                   </div>
                   <div style="display: flex; gap: 5px;">
                       <button style="background:var(--primary); color:white; width: 70px; margin-bottom: 0;" onclick="adicionarTrecho()">Add</button>
