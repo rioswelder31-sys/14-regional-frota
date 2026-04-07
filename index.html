@@ -1819,16 +1819,16 @@
       function createActionButtons(v, status) {
           const temPermissao = AppState.user.podeTudo || v.registradoPor === AppState.user.email || v.solicitanteUID === AppState.user.uid;
           let btns = "";
-          if (temPermissao && status !== STATUS.FINALIZADO && status !== STATUS.CANCELADO) btns += `<button class="btn-edit" onclick="prepararEdicao('${v.id}')">✏️ Editar</button>`;
-          if (temPermissao && (status === STATUS.PENDENTE || status === STATUS.CONFIRMADO)) btns += `<button style="background:#3498db; color:white; width: auto; padding: 8px 12px; font-size: 0.9em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer;" onclick="reenviarNotificacao('${v.id}')" title="Reenviar notificação para o motorista">🔄 Reenviar</button>`;
+          if (temPermissao && status !== STATUS.FINALIZADO && status !== STATUS.CANCELADO) btns += `<button class="btn-edit" onclick="prepararEdicao('${v.id}')" title="Editar viagem">✏️</button>`;
+          if (temPermissao && (status === STATUS.PENDENTE || status === STATUS.CONFIRMADO)) btns += `<button style="background:#3498db; color:white; width: 36px; height: 36px; padding: 0; font-size: 1.1em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" onclick="reenviarNotificacao('${v.id}')" title="Reenviar notificação para o motorista">🔄</button>`;
           if ((AppState.user.isMotorista || AppState.user.podeTudo) && status === STATUS.PENDENTE) {
-              btns += `<button class="btn-confirm" onclick="confirmar('${v.id}')">✅ Confirmar</button>`;
-              btns += `<button class="btn-reject" onclick="rejeitar('${v.id}')">❌ Rejeitar</button>`;
+              btns += `<button class="btn-confirm" onclick="confirmar('${v.id}')" title="Confirmar viagem">✅</button>`;
+              btns += `<button class="btn-reject" onclick="rejeitar('${v.id}')" title="Rejeitar viagem">❌</button>`;
           }
-          if ((AppState.user.isMotorista || AppState.user.podeTudo) && status === STATUS.CONFIRMADO) btns += `<button style="background:#27ae60; color:white; width: auto; padding: 8px 12px; font-size: 0.9em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer;" onclick="reenviarConfirmacao('${v.id}')" title="Reenviar confirmação para o solicitante">🔄 Reenviar Confirmação</button>`;
-          if (temPermissao && status !== STATUS.FINALIZADO && status !== STATUS.CANCELADO && status !== STATUS.REJEITADO) btns += `<button style="background:#e67e22; color:white; width: auto; padding: 8px 12px; font-size: 0.9em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer;" onclick="cancelar('${v.id}')" title="Cancelar viagem">🚫 Cancelar</button>`;
-          if (status !== STATUS.FINALIZADO && status !== STATUS.CANCELADO) btns += `<button style="background:#16a085; color:white; width: auto; padding: 8px 12px; font-size: 0.9em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer;" onclick="abrirRotaGoogleMaps('${v.id}')" title="Abrir rota no Google Maps">🗺️ Mapa</button>`;
-          if (temPermissao && status !== STATUS.FINALIZADO) btns += `<button class="btn-delete" onclick="deletar('${v.id}')">🗑️ Excluir</button>`;
+          if ((AppState.user.isMotorista || AppState.user.podeTudo) && status === STATUS.CONFIRMADO) btns += `<button style="background:#27ae60; color:white; width: 36px; height: 36px; padding: 0; font-size: 1.1em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" onclick="reenviarConfirmacao('${v.id}')" title="Reenviar confirmação para o solicitante">🔄</button>`;
+          if (temPermissao && status !== STATUS.FINALIZADO && status !== STATUS.CANCELADO && status !== STATUS.REJEITADO) btns += `<button style="background:#e67e22; color:white; width: 36px; height: 36px; padding: 0; font-size: 1.1em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" onclick="cancelar('${v.id}')" title="Cancelar viagem">🚫</button>`;
+          if (status !== STATUS.FINALIZADO && status !== STATUS.CANCELADO) btns += `<button style="background:#16a085; color:white; width: 36px; height: 36px; padding: 0; font-size: 1.1em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" onclick="abrirRotaGoogleMaps('${v.id}')" title="Abrir rota no Google Maps">🗺️</button>`;
+          if (temPermissao && status !== STATUS.FINALIZADO) btns += `<button class="btn-delete" onclick="deletar('${v.id}')" title="Excluir viagem">🗑️</button>`;
           return btns;
       };
 
