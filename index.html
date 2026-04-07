@@ -545,18 +545,20 @@
           
           <div class="roteiro-box">
               <div class="roteiro-controls" style="gap: 15px;">
-                  <div style="flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 220px;">
-                      <label style="margin-bottom: 0; color: var(--primary); font-size: 0.9em; text-transform: uppercase;">📍 De (Origem):</label>
-                      <div style="display: flex; gap: 4px;">
-                          <select id="uf-origem" style="width:70px;" onchange="carregarCidades('origem')"></select>
-                          <input type="text" id="cidade-origem" list="list-origem" placeholder="Origem" style="flex: 1;">
+                  <div style="flex: 1 1 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; min-width: 280px;">
+                      <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+                          <label style="margin-bottom: 0; color: var(--primary); font-size: 0.9em; text-transform: uppercase;">📍 De (Origem):</label>
+                          <div style="display: flex; gap: 4px;">
+                              <select id="uf-origem" style="width:70px; flex-shrink: 0;" onchange="carregarCidades('origem')"></select>
+                              <input type="text" id="cidade-origem" list="list-origem" placeholder="Origem" style="flex: 1; min-width: 0;">
+                          </div>
                       </div>
-                  </div>
-                  <div style="flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 220px;">
-                      <label style="margin-bottom: 0; color: var(--primary); font-size: 0.9em; text-transform: uppercase;">🎯 Para (Destino):</label>
-                      <div style="display: flex; gap: 4px;">
-                          <select id="uf-destino" style="width:70px;" onchange="carregarCidades('destino')"></select>
-                          <input type="text" id="cidade-destino" list="list-destino" placeholder="Destino" style="flex: 1;">
+                      <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+                          <label style="margin-bottom: 0; color: var(--primary); font-size: 0.9em; text-transform: uppercase;">🎯 Para (Destino):</label>
+                          <div style="display: flex; gap: 4px;">
+                              <select id="uf-destino" style="width:70px; flex-shrink: 0;" onchange="carregarCidades('destino')"></select>
+                              <input type="text" id="cidade-destino" list="list-destino" placeholder="Destino" style="flex: 1; min-width: 0;">
+                          </div>
                       </div>
                   </div>
                   <div style="display: flex; gap: 5px;">
