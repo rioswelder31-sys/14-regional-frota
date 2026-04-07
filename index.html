@@ -1762,7 +1762,7 @@
                 }
 
                 const nomeParaExibir = getNomeSolicitante(v);
-                const classeLinha = status === STATUS.FINALIZADO ? 'linha-confirmada' : '';
+                const classeLinha = (status === STATUS.FINALIZADO || status === STATUS.CANCELADO) ? 'linha-confirmada' : '';
                 const badgeCor = status === STATUS.CONFIRMADO ? 'status-confirmado' : status === STATUS.FINALIZADO ? 'status-finalizado' : status === STATUS.REJEITADO ? 'status-rejeitado' : status === STATUS.CANCELADO ? 'status-cancelado' : 'status-pendente';
                 
                 const tr = document.createElement('tr');
