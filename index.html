@@ -403,9 +403,34 @@
       html[data-theme="dark"] #help-modal-content strong { color: var(--dark-text); }
       html[data-theme="dark"] #profile-modal-close, html[data-theme="dark"] #help-modal-close, html[data-theme="dark"] #unit-settings-modal-close { color: #A0AEC0; }
       html[data-theme="dark"] #profile-modal-close:hover, html[data-theme="dark"] #help-modal-close:hover, html[data-theme="dark"] #unit-settings-modal-close:hover { color: var(--dark-text); }
+
+      /* Dashboard de Resumo */
+      .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px; animation: fadeInUp 0.5s ease-out; }
+      .dash-card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-left: 5px solid #ccc; transition: transform 0.2s; display: flex; flex-direction: column; justify-content: space-between; }
+      .dash-card:hover { transform: translateY(-3px); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+      .dash-title { font-size: 0.8em; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+      .dash-value { font-size: 2rem; font-weight: 800; color: #333; line-height: 1; }
+      .border-blue { border-left-color: #3b82f6; }
+      .border-warning { border-left-color: var(--warning); }
+      .border-success { border-left-color: var(--success); }
+      .border-danger { border-left-color: var(--danger); }
+      html[data-theme="dark"] .dash-card { background: #2D3748; box-shadow: 0 2px 10px rgba(0,0,0,0.2); border-color: transparent; border-left-color: inherit; }
+      html[data-theme="dark"] .dash-title { color: #A0AEC0; }
+      html[data-theme="dark"] .dash-value { color: #F7FAFC; }
+
+      /* Toast Notifications */
+      #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+      .toast { background: white; color: #333; padding: 15px 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); font-weight: 600; display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); min-width: 250px; pointer-events: auto; border-left: 5px solid transparent; }
+      .toast.show { transform: translateX(0); }
+      .toast-success { border-left-color: var(--success); }
+      .toast-error { border-left-color: var(--danger); }
+      .toast-info { border-left-color: var(--primary); }
+      html[data-theme="dark"] .toast { background: #2D3748; color: #F7FAFC; }
     </style>
   </head>
   <body>
+    
+    <div id="toast-container"></div>
 
     <div id="unit-screen" class="hidden">
       <div class="min-h-screen bg-gradient-to-b from-gray-100 to-gray-50 flex flex-col">
@@ -600,6 +625,15 @@
         <button style="background: #17a2b8; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="imprimirAgenda()">🖨️ Imprimir</button>
         <button style="background: #6f42c1; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="exportarCSV()">📥 Exportar CSV</button>
       </div>
+
+      <!-- Dashboard de Resumo (Novidade) -->
+      <div class="dash-grid">
+        <div class="dash-card border-blue"><div class="dash-title">Total de Viagens</div><div class="dash-value" id="dash-total">0</div></div>
+        <div class="dash-card border-warning"><div class="dash-title">Pendentes</div><div class="dash-value" id="dash-pendentes">0</div></div>
+        <div class="dash-card border-success"><div class="dash-title">Confirmadas / Fim</div><div class="dash-value" id="dash-concluidas">0</div></div>
+        <div class="dash-card border-danger"><div class="dash-title">Canceladas / Rej.</div><div class="dash-value" id="dash-canceladas">0</div></div>
+      </div>
+
       <div style="overflow-x:auto;"><table class="table-custom"><thead class="table-header-custom"><tr><th style="padding:12px;">Status</th><th style="padding:12px;">Saída</th><th style="padding:12px;">Retorno</th><th style="padding:12px;">Solicitante</th><th style="padding:12px;">Motivo</th><th style="padding:12px;">Roteiro</th><th style="padding:12px; text-align:center;">Ações</th></tr></thead><tbody id="tb-corpo"></tbody></table></div>
     </div>
 
@@ -915,6 +949,23 @@
         }
       };
 
+      // Sistema de Notificações Toast UI (Novidade)
+      window.showToast = (msg, tipo = 'success') => {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${tipo}`;
+        let icone = tipo === 'success' ? '✅' : tipo === 'error' ? '❌' : 'ℹ️';
+        toast.innerHTML = `<span style="font-size: 1.2em;">${icone}</span><span>${msg}</span>`;
+        container.appendChild(toast);
+        
+        requestAnimationFrame(() => { setTimeout(() => toast.classList.add('show'), 10); });
+        
+        setTimeout(() => {
+          toast.classList.remove('show');
+          setTimeout(() => toast.remove(), 400);
+        }, 3500);
+      };
+
       const errosAuth = {
         'auth/invalid-email': 'E-mail inválido.',
         'auth/user-not-found': 'Usuário não encontrado.',
@@ -1071,7 +1122,7 @@
           })
           .then(() => {
             registrarLog('Criação de Conta', `Novo usuário: ${nome} (${email})`);
-            alert("Conta criada com sucesso! Você será logado automaticamente.");
+            showToast("Conta criada com sucesso! Você será logado.", "success");
           })
         .catch(e => alert("Erro ao criar conta: " + traduzirErroAuth(e)));
       };
@@ -1102,7 +1153,7 @@
 
         update(updateRef, dadosAtualizados).then(() => {
           registrarLog('Atualização de Perfil', `Usuário ${AppState.user.email} atualizou o perfil.`);
-          alert("Perfil atualizado com sucesso!");
+          showToast("Perfil atualizado com sucesso!", "success");
           if (AppState.user.isMotorista) {
             AppState.unidade.motorista.nome = novoNome;
             AppState.unidade.motorista.tel = novoTel;
@@ -1166,7 +1217,7 @@
           update(getRegionalRef(), dados)
               .then(() => {
                   registrarLog('Alteração Admin', `Admin trocou motorista para: ${novoNome}${isTitular ? ' (Definido como Titular)' : ''}`);
-                  alert("Motorista atualizado com sucesso para toda a Regional!");
+                  showToast("Motorista atualizado com sucesso!", "success");
                   document.getElementById('admin-driver-is-titular').checked = false; // reseta o checkbox
                   toggleProfileModal(false);
               })
@@ -1674,8 +1725,8 @@
 
         const conflito = temConflito(saida, chegada, id);
         if(conflito) {
-            if(conflito.tipo === 'folga') { alert(`🛑 INDISPONÍVEL!\nO motorista está em folga: ${conflito.motivo}`); return; }
-            else { alert(`🚫 CONFLITO DE HORÁRIO!\nEste período já está reservado por: ${conflito.solicitante}`); return; }
+            if(conflito.tipo === 'folga') { showToast(`Motorista indisponível: ${conflito.motivo}`, 'error'); return; }
+            else { showToast(`Conflito! Horário reservado por: ${conflito.solicitante}`, 'error'); return; }
         }
 
         const trajetoString = AppState.roteiroAtual.map(t => `🔹 ${t.origem} → ${t.destino}`).join("\n");
@@ -1696,7 +1747,7 @@
         if(id) {
           update(getRegionalRef(DB_PATHS.VIAGENS, id), dados).then(() => {
             registrarLog('Edição de Viagem', `Viagem ID ${id} para ${dados.solicitanteNome} foi editada.`);
-            alert("Viagem editada! O motorista será notificado das alterações.");
+            showToast("Viagem editada! Notifique o motorista.", "success");
             const telMotorista = AppState.unidade.motorista.tel;
             const msgEdicao = `🔄 *VIAGEM EDITADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${dados.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${dados.trajetoExibicao}\n📝 *Motivo:* ${dados.motivo}\n\n*A viagem foi editada. Acesse o aplicativo para confirmar ou recusar.*`;
             window.open(`https://wa.me/${telMotorista}?text=${encodeURIComponent(msgEdicao)}`, '_blank');
@@ -1710,7 +1761,7 @@
             AppState.dadosWppTemp = msgMotorista;
             document.getElementById("btn-whatsapp-manual").classList.remove("hidden"); 
             document.getElementById("btn-save").classList.add("hidden");
-            alert("Salvo! Agora clique no botão para notificar o motorista.");
+            showToast("Salvo! Clique para notificar o motorista.", "success");
           });
         }
       };
@@ -1763,11 +1814,18 @@
         const viagensParaExibir = AppState.viagens;
 
         tb.innerHTML = ""; // Limpa a tabela de uma vez
+        
+        let total = 0, pendentes = 0, concluidas = 0, canceladas = 0;
+
         if (viagensParaExibir.length === 0) {
             const selectMes = document.getElementById('filtro-mes');
             const mesSelecionado = selectMes.selectedIndex >= 0 ? selectMes.options[selectMes.selectedIndex].text : '';
             const anoSelecionado = document.getElementById('filtro-ano').value || '';
             tb.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 20px; font-style: italic;">Nenhuma viagem encontrada para ${mesSelecionado} de ${anoSelecionado}.</td></tr>`;
+            document.getElementById('dash-total').innerText = '0';
+            document.getElementById('dash-pendentes').innerText = '0';
+            document.getElementById('dash-concluidas').innerText = '0';
+            document.getElementById('dash-canceladas').innerText = '0';
             return;
         }
 
@@ -1786,6 +1844,12 @@
                     update(getRegionalRef(DB_PATHS.VIAGENS, v.id), { status: STATUS.FINALIZADO });
                 }
                 }
+
+                // Contabiliza para o Dashboard
+                total++;
+                if (status === STATUS.PENDENTE) pendentes++;
+                else if (status === STATUS.CONFIRMADO || status === STATUS.FINALIZADO) concluidas++;
+                else if (status === STATUS.CANCELADO || status === STATUS.REJEITADO) canceladas++;
 
                 const nomeParaExibir = getNomeSolicitante(v);
                 const classeLinha = (status === STATUS.FINALIZADO || status === STATUS.CANCELADO) ? 'linha-confirmada' : '';
@@ -1838,6 +1902,12 @@
 
                 fragment.appendChild(tr);
             });
+            
+        document.getElementById('dash-total').innerText = total;
+        document.getElementById('dash-pendentes').innerText = pendentes;
+        document.getElementById('dash-concluidas').innerText = concluidas;
+        document.getElementById('dash-canceladas').innerText = canceladas;
+
         tb.innerHTML = ''; // Limpa a tabela antes de adicionar o novo conteúdo
         tb.appendChild(fragment);
       };
@@ -1878,7 +1948,7 @@
         
         update(getRegionalRef(DB_PATHS.VIAGENS, id), {status: STATUS.CANCELADO}).then(() => {
           registrarLog('Cancelamento de Viagem', `Viagem ID ${id} de ${v.solicitanteNome} foi cancelada.`);
-          alert("Viagem cancelada com sucesso!");
+          showToast("Viagem cancelada com sucesso!", "success");
         }).catch(err => alert("Erro ao cancelar: " + err.message));
       };
 
@@ -1899,7 +1969,7 @@
               if(telSol) {
                 window.open(`https://wa.me/55${telSol}?text=${encodeURIComponent(msgConf)}`, '_blank');
               }
-              alert("Viagem confirmada! Solicitante será notificado.");
+              showToast("Viagem confirmada! Solicitante notificado.", "success");
           }).catch(err => alert("Erro ao confirmar: " + err.message));
       };
 
@@ -1915,7 +1985,7 @@
               if(telSol) {
                 window.open(`https://wa.me/55${telSol}?text=${encodeURIComponent(msgRejeicao)}`, '_blank');
               }
-              alert("Viagem rejeitada! Solicitante será notificado.");
+              showToast("Viagem rejeitada! Solicitante notificado.", "success");
           }).catch(err => alert("Erro ao rejeitar: " + err.message));
       };
 
