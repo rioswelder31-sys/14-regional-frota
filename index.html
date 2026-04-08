@@ -130,6 +130,9 @@
       input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 1em; }
       
       .driver-badge { background: #e8f0fe; padding: 12px 15px; border-radius: 4px; margin-bottom: 20px; border-left: 5px solid var(--primary); font-size: 0.95em; display: flex; justify-content: space-between; align-items: center; }
+      
+      .protected-info { filter: blur(5px); transition: filter 0.3s ease; cursor: help; }
+      .protected-info:hover, .protected-info:active { filter: blur(0); }
 
       /* Estilo Telas de Login/Registro conforme foto */
       #login-screen, #comarca-screen, #register-screen { 
@@ -537,7 +540,10 @@
       </div>
 
       <div class="main-form">
-        <div class="driver-badge"><div>🚘 Motorista: <strong id="nome-motorista"></strong></div><span id="tel-motorista" style="font-weight: bold;"></span></div>
+        <div class="driver-badge">
+          <div>🚘 Motorista: <strong id="nome-motorista"></strong></div>
+          <span id="tel-motorista" class="protected-info" title="Passe o mouse para ver o número" style="font-weight: bold;"></span>
+        </div>
         <div id="form-content">
           <h3 id="form-title" style="color: var(--primary)">📝 Novo Agendamento</h3>
           <input type="hidden" id="edit-id" />
