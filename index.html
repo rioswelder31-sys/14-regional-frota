@@ -330,6 +330,7 @@
       html[data-theme="dark"] .card-hover,
       html[data-theme="dark"] #profile-modal-content, 
       html[data-theme="dark"] #unit-settings-modal-content,
+      html[data-theme="dark"] #chat-modal-content,
       html[data-theme="dark"] #help-modal-content {
         background: #2D3748;
         color: var(--dark-text);
@@ -414,6 +415,21 @@
       html[data-theme="dark"] #help-modal-content strong { color: var(--dark-text); }
       html[data-theme="dark"] #profile-modal-close, html[data-theme="dark"] #help-modal-close, html[data-theme="dark"] #unit-settings-modal-close { color: #A0AEC0; }
       html[data-theme="dark"] #profile-modal-close:hover, html[data-theme="dark"] #help-modal-close:hover, html[data-theme="dark"] #unit-settings-modal-close:hover { color: var(--dark-text); }
+
+      /* Chat Styles */
+      #chat-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1002; display: flex; align-items: center; justify-content: center; padding: 20px; }
+      #chat-modal-content { background: white; padding: 20px; border-radius: 8px; max-width: 450px; width: 100%; position: relative; animation: fadeInUp 0.3s ease-out; display: flex; flex-direction: column; max-height: 85vh; }
+      #chat-messages { flex: 1; overflow-y: auto; background: #e5ddd5; padding: 15px; border-radius: 8px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px; min-height: 350px; max-height: 450px; }
+      .msg-bubble { max-width: 85%; padding: 8px 12px; border-radius: 8px; font-size: 0.95em; position: relative; word-wrap: break-word; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+      .msg-sent { background: #dcf8c6; align-self: flex-end; border-bottom-right-radius: 0; }
+      .msg-received { background: #ffffff; align-self: flex-start; border-bottom-left-radius: 0; }
+      .msg-header { font-size: 0.75em; font-weight: bold; color: #555; margin-bottom: 3px; }
+      .msg-time { font-size: 0.7em; color: #888; text-align: right; margin-top: 4px; }
+      
+      html[data-theme="dark"] #chat-messages { background: #1A202C; }
+      html[data-theme="dark"] .msg-sent { background: #056162; color: #E2E8F0; }
+      html[data-theme="dark"] .msg-received { background: #262D31; color: #E2E8F0; }
+      html[data-theme="dark"] .msg-header, html[data-theme="dark"] .msg-time { color: #A0AEC0; }
 
       /* Dashboard de Resumo */
       .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px; animation: fadeInUp 0.5s ease-out; }
@@ -569,6 +585,7 @@
             <span id="nome-usuario" style="font-weight: bold; margin-right: 7px;"></span>
             <button id="theme-toggle-btn" style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px; font-size: 1.2rem; line-height: 1;" onclick="toggleTheme()">🌙</button>
             <button id="unit-settings-btn" class="hidden" style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px;" onclick="toggleUnitSettingsModal(true)">⚙️ Gestão da Unidade</button>
+            <button style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px;" onclick="toggleChatModal(true)">💬 Chat</button>
             <button style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px;" onclick="toggleProfileModal(true)">Meu Perfil</button>
             <button style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px;" onclick="fazerLogout()">Sair</button>
           </div>
@@ -913,6 +930,19 @@
       </div>
     </div>
 
+    <!-- Modal do Chat -->
+    <div id="chat-modal" class="hidden" onclick="if (event.target === this) toggleChatModal(false)">
+      <div id="chat-modal-content">
+        <span style="position: absolute; top: 10px; right: 15px; font-size: 2.5rem; cursor: pointer; color: #888; line-height: 1;" onclick="toggleChatModal(false)">×</span>
+        <h3 style="color: var(--primary); margin-bottom: 15px; font-size: 1.5rem;">💬 Chat da Unidade</h3>
+        <div id="chat-messages"></div>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="chat-input" placeholder="Digite uma mensagem..." style="flex: 1; margin: 0; padding: 12px;" onkeypress="if(event.key === 'Enter') enviarMensagemChat()" />
+          <button class="btn-primary" style="width: auto; margin: 0; padding: 0 20px;" onclick="enviarMensagemChat()">Enviar</button>
+        </div>
+      </div>
+    </div>
+
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
       import { getDatabase, ref, push, onValue, remove, update, query, orderByChild, startAt, endAt, set } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
@@ -1010,6 +1040,7 @@
         regionalID: "",
         regionalNome: "",
         unsubscribeViagens: null,
+        unsubscribeChat: null,
         user: { email: "", uid: "", podeTudo: false, isMotorista: false },
         roteiroAtual: [],
         viagens: [],
@@ -1023,7 +1054,7 @@
       // Constantes para evitar "magic strings"
       // Constantes para caminhos do DB, evitando "magic strings"
       const STATUS = { PENDENTE: 'Pendente', CONFIRMADO: 'Confirmado', FINALIZADO: 'Finalizado', REJEITADO: 'Rejeitado', CANCELADO: 'Cancelado' };
-      const DB_PATHS = { VIAGENS: 'viagens', FOLGAS: 'folgas', UNIDADES: 'unidades', EQUIPE: 'equipe', MOTORISTA: 'motorista' };
+      const DB_PATHS = { VIAGENS: 'viagens', FOLGAS: 'folgas', UNIDADES: 'unidades', EQUIPE: 'equipe', MOTORISTA: 'motorista', CHAT: 'chat' };
 
       /*
        * NOTA SOBRE DADOS LEGADOS: O objeto `CONTATOS` abaixo é mantido como um "fallback" (plano B).
@@ -1098,6 +1129,56 @@
               modal.classList.add('hidden');
           }
       };
+
+      window.toggleChatModal = (show) => {
+        const modal = document.getElementById('chat-modal');
+        if (show) {
+          modal.classList.remove('hidden');
+          iniciarEscutaChat();
+          setTimeout(() => { document.getElementById('chat-input').focus(); }, 100);
+        } else {
+          modal.classList.add('hidden');
+        }
+      };
+
+      function iniciarEscutaChat() {
+        if (AppState.unsubscribeChat) return; // Já está escutando para não duplicar listeners
+        const chatRef = query(getRegionalRef(DB_PATHS.CHAT), orderByChild('timestamp'));
+        AppState.unsubscribeChat = onValue(chatRef, (snap) => {
+          const messagesContainer = document.getElementById('chat-messages');
+          messagesContainer.innerHTML = '';
+          if (snap.exists()) {
+            snap.forEach(childSnap => {
+              const msg = childSnap.val();
+              const isMe = msg.uid === AppState.user.uid;
+              const bubble = document.createElement('div');
+              bubble.className = `msg-bubble ${isMe ? 'msg-sent' : 'msg-received'}`;
+              const timeStr = new Date(msg.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+              // Utiliza a função escapeHtml de segurança que já existe no seu código
+              bubble.innerHTML = `<div class="msg-header">${isMe ? 'Você' : escapeHtml(msg.nome)}</div><div>${escapeHtml(msg.texto)}</div><div class="msg-time">${timeStr}</div>`;
+              messagesContainer.appendChild(bubble);
+            });
+            // Desce o scroll automaticamente para mostrar as mensagens mais recentes
+            setTimeout(() => { messagesContainer.scrollTop = messagesContainer.scrollHeight; }, 50);
+          } else {
+            messagesContainer.innerHTML = '<div style="text-align:center; color:#888; font-size:0.9em; margin-top:20px;">Nenhuma mensagem ainda. Seja o primeiro a dizer olá! 👋</div>';
+          }
+        });
+      }
+
+      window.enviarMensagemChat = () => {
+        const input = document.getElementById('chat-input');
+        const texto = input.value.trim();
+        if (!texto) return;
+        
+        const currentUserProfile = AppState.unidade.equipe.find(m => m.uid === AppState.user.uid);
+        const nomeSender = currentUserProfile ? currentUserProfile.nome : (AppState.user.isMotorista ? AppState.unidade.motorista.nome : AppState.user.email);
+
+        // Envia para a subcoleção "chat" da Regional correspondente
+        push(getRegionalRef(DB_PATHS.CHAT), { uid: AppState.user.uid, nome: nomeSender, texto: texto, timestamp: Date.now() });
+        input.value = '';
+      };
+
       window.recuperarSenha = () => { 
         const email = document.getElementById("login-user").value; 
         if(!email) return alert("Por favor, digite seu e-mail para redefinir a senha."); 
