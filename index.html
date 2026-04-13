@@ -1134,16 +1134,62 @@
         const modal = document.getElementById('chat-modal');
         if (show) {
           modal.classList.remove('hidden');
-          iniciarEscutaChat();
-          setTimeout(() => { document.getElementById('chat-input').focus(); }, 100);
+          popularListaUsuariosChat();
+          document.getElementById('chat-messages').innerHTML = '<div style="text-align:center; color:#888; margin-top:20px;">Selecione um contato acima para iniciar a conversa.</div>';
+          document.getElementById('chat-input-container').classList.add('hidden');
         } else {
           modal.classList.add('hidden');
+          if (AppState.unsubscribeChat) { 
+            AppState.unsubscribeChat(); 
+            AppState.unsubscribeChat = null; 
+          }
         }
       };
 
-      function iniciarEscutaChat() {
-        if (AppState.unsubscribeChat) return; // Já está escutando para não duplicar listeners
-        const chatRef = query(getRegionalRef(DB_PATHS.CHAT), orderByChild('timestamp'));
+      window.popularListaUsuariosChat = () => {
+        const select = document.getElementById('chat-user-select');
+        select.innerHTML = '<option value="">-- Selecione um contato --</option>';
+        
+        // Filtra os membros removendo a si próprio e os perfis legados (que não possuem conta para responder)
+        const contatos = AppState.unidade.equipe.filter(m => m.uid !== AppState.user.uid && !m.uid.startsWith('antigo_'));
+        
+        if (contatos.length === 0) {
+            select.innerHTML = '<option value="">Nenhum contato disponível</option>';
+            select.disabled = true;
+            return;
+        }
+        
+        select.disabled = false;
+        contatos.sort((a, b) => a.nome.localeCompare(b.nome)).forEach(m => {
+            const tipo = m.isMotorista ? 'Motorista' : (m.tipo || 'Servidor');
+            select.innerHTML += `<option value="${m.uid}">${m.nome} (${tipo})</option>`;
+        });
+      };
+
+      window.selecionarUsuarioChat = () => {
+        const targetUid = document.getElementById('chat-user-select').value;
+        if (!targetUid) {
+            document.getElementById('chat-messages').innerHTML = '<div style="text-align:center; color:#888; font-size:0.9em; margin-top:20px;">Selecione um contato acima para iniciar a conversa.</div>';
+            document.getElementById('chat-input-container').classList.add('hidden');
+            if (AppState.unsubscribeChat) { 
+                AppState.unsubscribeChat(); 
+                AppState.unsubscribeChat = null; 
+            }
+            return;
+        }
+        
+        document.getElementById('chat-input-container').classList.remove('hidden');
+        iniciarEscutaChatIndividual(targetUid);
+        setTimeout(() => { document.getElementById('chat-input').focus(); }, 100);
+      };
+
+      function iniciarEscutaChatIndividual(targetUid) {
+        if (AppState.unsubscribeChat) { AppState.unsubscribeChat(); }
+        
+        // Cria um ID de sala único para a dupla (sempre ordenado alfabeticamente para dar o mesmo resultado em ambos os lados)
+        const roomId = AppState.user.uid < targetUid ? `${AppState.user.uid}_${targetUid}` : `${targetUid}_${AppState.user.uid}`;
+        const chatRef = query(getRegionalRef(DB_PATHS.CHAT, roomId), orderByChild('timestamp'));
+        
         AppState.unsubscribeChat = onValue(chatRef, (snap) => {
           const messagesContainer = document.getElementById('chat-messages');
           messagesContainer.innerHTML = '';
@@ -1154,11 +1200,9 @@
               const bubble = document.createElement('div');
               bubble.className = `msg-bubble ${isMe ? 'msg-sent' : 'msg-received'}`;
               const timeStr = new Date(msg.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-              // Utiliza a função escapeHtml de segurança que já existe no seu código
               bubble.innerHTML = `<div class="msg-header">${isMe ? 'Você' : escapeHtml(msg.nome)}</div><div>${escapeHtml(msg.texto)}</div><div class="msg-time">${timeStr}</div>`;
               messagesContainer.appendChild(bubble);
             });
-            // Desce o scroll automaticamente para mostrar as mensagens mais recentes
             setTimeout(() => { messagesContainer.scrollTop = messagesContainer.scrollHeight; }, 50);
           } else {
             messagesContainer.innerHTML = '<div style="text-align:center; color:#888; font-size:0.9em; margin-top:20px;">Nenhuma mensagem ainda. Seja o primeiro a dizer olá! 👋</div>';
@@ -1169,13 +1213,16 @@
       window.enviarMensagemChat = () => {
         const input = document.getElementById('chat-input');
         const texto = input.value.trim();
-        if (!texto) return;
+        const targetUid = document.getElementById('chat-user-select').value;
+        
+        if (!texto || !targetUid) return;
         
         const currentUserProfile = AppState.unidade.equipe.find(m => m.uid === AppState.user.uid);
         const nomeSender = currentUserProfile ? currentUserProfile.nome : (AppState.user.isMotorista ? AppState.unidade.motorista.nome : AppState.user.email);
 
-        // Envia para a subcoleção "chat" da Regional correspondente
-        push(getRegionalRef(DB_PATHS.CHAT), { uid: AppState.user.uid, nome: nomeSender, texto: texto, timestamp: Date.now() });
+        // Envia a mensagem especificamente para a sala criada entre a dupla
+        const roomId = AppState.user.uid < targetUid ? `${AppState.user.uid}_${targetUid}` : `${targetUid}_${AppState.user.uid}`;
+        push(getRegionalRef(DB_PATHS.CHAT, roomId), { uid: AppState.user.uid, nome: nomeSender, texto: texto, timestamp: Date.now() });
         input.value = '';
       };
 
