@@ -327,6 +327,7 @@
       html[data-theme="dark"] #comarca-screen,
       html[data-theme="dark"] #register-screen,
       html[data-theme="dark"] .unit-card,
+      html[data-theme="dark"] .card-hover,
       html[data-theme="dark"] #profile-modal-content, 
       html[data-theme="dark"] #unit-settings-modal-content,
       html[data-theme="dark"] #help-modal-content {
@@ -393,6 +394,16 @@
           color: var(--dark-text);
           border-color: #718096;
       }
+      
+      /* Ajustes de Tema Escuro para a Tela Inicial */
+      html[data-theme="dark"] #unit-screen > div { background: #1A202C !important; }
+      html[data-theme="dark"] .footer-developer { background-color: #2D3748; border-top-color: #4A5568; }
+      html[data-theme="dark"] .border-blue-700 { border-color: var(--primary) !important; }
+      html[data-theme="dark"] .border-green-600 { border-color: var(--success) !important; }
+      html[data-theme="dark"] .text-green-600 { color: var(--success) !important; }
+      .theme-btn-home { background: white; color: #333; transition: all 0.3s; }
+      .theme-btn-home:hover { transform: scale(1.1); }
+      html[data-theme="dark"] .theme-btn-home { background: #4A5568; color: #F7FAFC; border: 1px solid #718096 !important; }
 
       /* Ajustes finos para o tema escuro */
       html[data-theme="dark"] label { color: #cbd5e0; }
@@ -433,7 +444,11 @@
     <div id="toast-container"></div>
 
     <div id="unit-screen" class="hidden">
-      <div class="min-h-screen bg-gradient-to-b from-gray-100 to-gray-50 flex flex-col">
+      <div class="min-h-screen bg-gradient-to-b from-gray-100 to-gray-50 flex flex-col relative">
+        
+        <!-- Dark Mode Toggle (Tela Inicial) -->
+        <button id="theme-toggle-btn-home" class="theme-btn-home" style="position: absolute; top: 15px; right: 15px; width: 45px; height: 45px; border-radius: 50%; border: 1px solid #ccc; font-size: 1.5rem; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 10; display: flex; justify-content: center; align-items: center;" onclick="toggleTheme()" title="Alternar Tema">🌙</button>
+
         <!-- Hero Section -->
         <div class="flex-1 flex items-center justify-center px-4 py-20">
           <div class="max-w-5xl w-full animate-fade-in-up">
@@ -912,16 +927,19 @@
       // --- Lógica para alternar tema (Claro/Escuro) ---
       function applyTheme(theme) {
         const themeToggleButton = document.getElementById('theme-toggle-btn');
+        const themeToggleButtonHome = document.getElementById('theme-toggle-btn-home');
         const themeColorMeta = document.getElementById('theme-color-meta');
 
         if (theme === 'dark') {
             document.documentElement.setAttribute('data-theme', 'dark');
             if (themeToggleButton) themeToggleButton.innerHTML = '☀️';
+            if (themeToggleButtonHome) themeToggleButtonHome.innerHTML = '☀️';
             if (themeColorMeta) themeColorMeta.setAttribute('content', '#2D3748'); // Cor do header escuro
             localStorage.setItem('theme', 'dark');
         } else {
             document.documentElement.removeAttribute('data-theme');
             if (themeToggleButton) themeToggleButton.innerHTML = '🌙';
+            if (themeToggleButtonHome) themeToggleButtonHome.innerHTML = '🌙';
             if (themeColorMeta) themeColorMeta.setAttribute('content', '#009c3b'); // Cor do header claro
             localStorage.setItem('theme', 'light');
         }
