@@ -1,0 +1,145 @@
+{
+  "rules": {
+    /* ========================================
+       REGRAS DE SEGURANÇA - FROTA DPE
+       ======================================== */
+
+    /* ========================================
+       1. DADOS DA 14ª REGIONAL (RAIZ)
+       Estrutura: /viagens, /folgas, /equipe, /motorista, /chat, /logs
+       ======================================== */
+
+    "viagens": {
+      ".read": "auth != null && root.child('14-regional-users').child(auth.uid).exists()",
+      ".write": "auth != null && (root.child('14-regional-admins').child(auth.uid).exists() || (root.child('14-regional-users').child(auth.uid).exists() && auth.uid === newData.child('solicitanteUID').val()))",
+      ".validate": "newData.hasChildren(['solicitanteNome', 'solicitanteUID', 'saida', 'chegada', 'status'])"
+    },
+
+    "folgas": {
+      ".read": "auth != null && root.child('14-regional-users').child(auth.uid).exists()",
+      ".write": "auth != null && root.child('14-regional-admins').child(auth.uid).exists()",
+      ".validate": "newData.hasChildren(['inicio', 'fim', 'motivo'])"
+    },
+
+    "equipe": {
+      ".read": "auth != null && root.child('14-regional-users').child(auth.uid).exists()",
+      ".write": "auth != null && root.child('14-regional-admins').child(auth.uid).exists()",
+      ".validate": "newData.hasChildren(['nome'])"
+    },
+
+    "motorista": {
+      ".read": "auth != null && root.child('14-regional-users').child(auth.uid).exists()",
+      ".write": "auth != null && root.child('14-regional-admins').child(auth.uid).exists()",
+      ".validate": "newData.hasChildren(['nome'])"
+    },
+
+    "chat": {
+      ".read": "auth != null && root.child('14-regional-users').child(auth.uid).exists()",
+      ".write": "auth != null && root.child('14-regional-users').child(auth.uid).exists()",
+      ".validate": "newData.hasChildren(['uid', 'nome', 'texto', 'timestamp'])"
+    },
+
+    "logs": {
+      ".read": "false",
+      ".write": "auth != null && root.child('14-regional-admins').child(auth.uid).exists()",
+      ".validate": "newData.hasChildren(['acao', 'usuario', 'timestamp'])"
+    },
+
+    /* ========================================
+       2. DADOS DAS SUB-REGIONAIS
+       Estrutura: /unidades/{regionalID}/viagens, folgas, equipe, etc
+       ======================================== */
+
+    "unidades": {
+      "$regional": {
+        "viagens": {
+          ".read": "auth != null && (root.child('users').child(auth.uid).child('regional').val() === $regional || root.child('system-admins').child(auth.uid).exists())",
+          ".write": "auth != null && (root.child('admins').child(auth.uid).child('regional').val() === $regional || root.child('system-admins').child(auth.uid).exists() || (root.child('users').child(auth.uid).child('regional').val() === $regional && auth.uid === newData.child('solicitanteUID').val()))",
+          ".validate": "newData.hasChildren(['solicitanteNome', 'solicitanteUID', 'saida', 'chegada', 'status'])"
+        },
+
+        "folgas": {
+          ".read": "auth != null && (root.child('users').child(auth.uid).child('regional').val() === $regional || root.child('system-admins').child(auth.uid).exists())",
+          ".write": "auth != null && (root.child('admins').child(auth.uid).child('regional').val() === $regional || root.child('system-admins').child(auth.uid).exists())",
+          ".validate": "newData.hasChildren(['inicio', 'fim', 'motivo'])"
+        },
+
+        "equipe": {
+          ".read": "auth != null && (root.child('users').child(auth.uid).child('regional').val() === $regional || root.child('system-admins').child(auth.uid).exists())",
+          ".write": "auth != null && (root.child('admins').child(auth.uid).child('regional').val() === $regional || root.child('system-admins').child(auth.uid).exists())",
+          ".validate": "newData.hasChildren(['nome'])"
+        },
+
+        "motorista": {
+          ".read": "auth != null && (root.child('users').child(auth.uid).child('regional').val() === $regional || root.child('system-admins').child(auth.uid).exists())",
+          ".write": "auth != null && (root.child('admins').child(auth.uid).child('regional').val() === $regional || root.child('system-admins').child(auth.uid).exists())",
+          ".validate": "newData.hasChildren(['nome', 'tel'])"
+        },
+
+        "chat": {
+          ".read": "auth != null && (root.child('users').child(auth.uid).child('regional').val() === $regional || root.child('system-admins').child(auth.uid).exists())",
+          ".write": "auth != null && (root.child('users').child(auth.uid).child('regional').val() === $regional || root.child('system-admins').child(auth.uid).exists())",
+          ".validate": "newData.hasChildren(['uid', 'nome', 'texto', 'timestamp'])"
+        },
+
+        "logs": {
+          ".read": "auth != null && (root.child('admins').child(auth.uid).child('regional').val() === $regional || root.child('system-admins').child(auth.uid).exists())",
+          ".write": "false"
+        }
+      }
+    },
+
+    /* ========================================
+       3. TABELAS DE CONTROLE DE ACESSO
+       Definem quem tem acesso a qual regional
+       ======================================== */
+
+    "14-regional-users": {
+      ".read": "false",
+      ".write": "false",
+      "$user_uid": {
+        ".read": "auth.uid === $user_uid",
+        ".write": "false"
+      }
+    },
+
+    "14-regional-admins": {
+      ".read": "false",
+      ".write": "false",
+      "$admin_uid": {
+        ".read": "auth.uid === $admin_uid",
+        ".write": "false"
+      }
+    },
+
+    "users": {
+      ".read": "false",
+      ".write": "false",
+      "$user_uid": {
+        ".read": "auth.uid === $user_uid",
+        ".write": "false"
+      }
+    },
+
+    "admins": {
+      ".read": "false",
+      ".write": "false",
+      "$admin_uid": {
+        ".read": "auth.uid === $admin_uid",
+        ".write": "false"
+      }
+    },
+
+    "system-admins": {
+      ".read": "false",
+      ".write": "false"
+    },
+
+    /* ========================================
+       4. CONFIGURAÇÕES GLOBAIS
+       ======================================== */
+
+    ".read": "false",
+    ".write": "false"
+  }
+}
