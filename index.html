@@ -2568,7 +2568,8 @@
           const chegada = new Date(v.chegada).toLocaleString('pt-BR');
           const motivo = v.motivo ? v.motivo.replace(/"/g, '""').replace(/\n/g, ' ') : '';
           const roteiro = v.trajetoExibicao ? v.trajetoExibicao.replace(/"/g, '""').replace(/\n/g, ' | ') : '';
-          const solicitante = getNomeSolicitante(v) ? getNomeSolicitante(v).replace(/"/g, '""') : '';
+          const nomeSolicitante = getNomeSolicitante(v);
+          const solicitante = nomeSolicitante ? nomeSolicitante.replace(/"/g, '""') : '';
           csv += `"${status}","${saida}","${chegada}","${solicitante}","${motivo}","${roteiro}"\n`;
         });
         
