@@ -2319,13 +2319,13 @@
         if (id) {
           update(getRegionalRef(DB_PATHS.FOLGAS, id), dadosFolga).then(() => {
             registrarLog('Edição de Folga/Bloqueio', `Período editado para ${new Date(inicio + "T00:00:00").toLocaleDateString('pt-BR')} a ${new Date(fim + "T00:00:00").toLocaleDateString('pt-BR')}. Motivo: ${motivo}`);
-            alert('Bloqueio atualizado com sucesso!');
+            showToast('Bloqueio atualizado com sucesso!', 'success');
             limparFormFolga();
           });
         } else {
           push(getRegionalRef(DB_PATHS.FOLGAS), dadosFolga).then(() => {
             registrarLog('Criação de Folga/Bloqueio', `Período de ${new Date(inicio + "T00:00:00").toLocaleDateString('pt-BR')} a ${new Date(fim + "T00:00:00").toLocaleDateString('pt-BR')} foi criado. Motivo: ${motivo}`);
-            alert('Bloqueio adicionado com sucesso!');
+            showToast('Bloqueio adicionado com sucesso!', 'success');
             limparFormFolga();
           });
         }
