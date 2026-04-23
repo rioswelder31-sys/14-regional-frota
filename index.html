@@ -1020,7 +1020,6 @@
       };
       window.AppState = AppState; // Expor para depuração no console
 
-      // Constantes para evitar "magic strings"
       // Constantes para caminhos do DB, evitando "magic strings"
       const STATUS = { PENDENTE: 'Pendente', CONFIRMADO: 'Confirmado', FINALIZADO: 'Finalizado', REJEITADO: 'Rejeitado', CANCELADO: 'Cancelado' };
       const DB_PATHS = { VIAGENS: 'viagens', FOLGAS: 'folgas', UNIDADES: 'unidades', EQUIPE: 'equipe', MOTORISTA: 'motorista' };
@@ -1118,10 +1117,6 @@
           document.querySelectorAll('[id$="-screen"]').forEach(c => c.classList.add('hidden')); 
           document.getElementById('unit-screen').classList.remove('hidden');
         }
-      };
-      window.voltarParaRegionais = () => { 
-        document.querySelectorAll('[id$="-screen"]').forEach(c => c.classList.add('hidden')); 
-        document.getElementById('unit-screen').classList.remove('hidden'); 
       };
       window.selecionarUnidade = (id, nome) => { AppState.regionalID = id; AppState.regionalNome = nome; localStorage.setItem('regionalID', id); localStorage.setItem('regionalNome', nome); document.querySelectorAll('[id$="-screen"]').forEach(c => c.classList.add('hidden')); document.getElementById('login-screen').classList.remove('hidden'); document.getElementById('login-title').innerText = nome; };
       window.irParaRegistro = () => { document.getElementById('login-screen').classList.add('hidden'); document.getElementById('register-screen').classList.remove('hidden'); };
@@ -1581,22 +1576,7 @@
           alert("Adicione pelo menos um trecho ao roteiro para visualizar no mapa!");
           return;
         }
-        
-        // Extrai todas as cidades do roteiro em ordem
-        let cidades = [];
-        AppState.roteiroAtual.forEach((t, i) => {
-          const origem = t.origem.split(' - ')[1] || t.origem;
-          if (i === 0) cidades.push(origem);
-          const destino = t.destino.split(' - ')[1] || t.destino;
-          cidades.push(destino);
-        });
-        
-        // Remove duplicatas consecutivas
-        cidades = cidades.filter((c, i) => i === 0 || c !== cidades[i-1]);
-        
-        // Constrói URL do Google Maps com os pontos
-        const mapsUrl = `https://www.google.com/maps/dir/${cidades.map(c => encodeURIComponent(c)).join('/')}`;
-        window.open(mapsUrl, '_blank');
+        abrirMapa(AppState.roteiroAtual);
       };
 
       window.abrirRotaGoogleMaps = (id) => {
@@ -1605,10 +1585,12 @@
           alert("Nenhuma rota disponível para esta viagem!");
           return;
         }
-        
-        // Extrai todas as cidades do roteiro em ordem
+        abrirMapa(v.roteiroArray);
+      };
+
+      function abrirMapa(roteiro) {
         let cidades = [];
-        v.roteiroArray.forEach((t, i) => {
+        roteiro.forEach((t, i) => {
           const origem = t.origem.split(' - ')[1] || t.origem;
           if (i === 0) cidades.push(origem);
           const destino = t.destino.split(' - ')[1] || t.destino;
@@ -1618,7 +1600,6 @@
         // Remove duplicatas consecutivas
         cidades = cidades.filter((c, i) => i === 0 || c !== cidades[i-1]);
         
-        // Constrói URL do Google Maps com os pontos
         const mapsUrl = `https://www.google.com/maps/dir/${cidades.map(c => encodeURIComponent(c)).join('/')}`;
         window.open(mapsUrl, '_blank');
       };
