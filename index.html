@@ -330,7 +330,6 @@
       html[data-theme="dark"] .card-hover,
       html[data-theme="dark"] #profile-modal-content, 
       html[data-theme="dark"] #unit-settings-modal-content,
-      html[data-theme="dark"] #chat-modal-content,
       html[data-theme="dark"] #help-modal-content {
         background: #2D3748;
         color: var(--dark-text);
@@ -415,53 +414,6 @@
       html[data-theme="dark"] #help-modal-content strong { color: var(--dark-text); }
       html[data-theme="dark"] #profile-modal-close, html[data-theme="dark"] #help-modal-close, html[data-theme="dark"] #unit-settings-modal-close { color: #A0AEC0; }
       html[data-theme="dark"] #profile-modal-close:hover, html[data-theme="dark"] #help-modal-close:hover, html[data-theme="dark"] #unit-settings-modal-close:hover { color: var(--dark-text); }
-
-      /* Chat Styles */
-      #chat-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1002; display: flex; align-items: center; justify-content: center; padding: 20px; }
-      #chat-modal-content { background: white; padding: 20px; border-radius: 8px; max-width: 450px; width: 100%; position: relative; animation: fadeInUp 0.3s ease-out; display: flex; flex-direction: column; max-height: 85vh; }
-      #chat-messages { flex: 1; overflow-y: auto; background: #e5ddd5; padding: 15px; border-radius: 8px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px; min-height: 350px; max-height: 450px; }
-      .msg-bubble { max-width: 85%; padding: 8px 12px; border-radius: 8px; font-size: 0.95em; position: relative; word-wrap: break-word; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-      .msg-sent { background: #dcf8c6; align-self: flex-end; border-bottom-right-radius: 0; }
-      .msg-received { background: #ffffff; align-self: flex-start; border-bottom-left-radius: 0; }
-      .msg-header { font-size: 0.75em; font-weight: bold; color: #555; margin-bottom: 3px; }
-      .msg-time { font-size: 0.7em; color: #888; text-align: right; margin-top: 4px; }
-      
-      html[data-theme="dark"] #chat-messages { background: #1A202C; }
-      html[data-theme="dark"] .msg-sent { background: #056162; color: #E2E8F0; }
-      html[data-theme="dark"] .msg-received { background: #262D31; color: #E2E8F0; }
-      html[data-theme="dark"] .msg-header, html[data-theme="dark"] .msg-time { color: #A0AEC0; }
-
-      /* Modal para Adicionar Membro */
-      #add-member-modal { 
-        position: fixed; 
-        top: 0; 
-        left: 0; 
-        width: 100%; 
-        height: 100%; 
-        background: rgba(0,0,0,0.6); 
-        z-index: 1003; 
-        display: flex; 
-        align-items: center; 
-        justify-content: center; 
-        padding: 20px; 
-      }
-      #add-member-modal > div {
-        background: white;
-        max-height: 90vh;
-        overflow-y: auto;
-      }
-      html[data-theme="dark"] #add-member-modal > div {
-        background: #2D3748;
-        color: var(--dark-text);
-      }
-
-      #chat-input-container:not(.hidden) {
-        display: flex !important;
-      }
-      
-      #chat-input-container.hidden {
-        display: none !important;
-      }
 
       /* Dashboard de Resumo */
       .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px; animation: fadeInUp 0.5s ease-out; }
@@ -617,7 +569,6 @@
             <span id="nome-usuario" style="font-weight: bold; margin-right: 7px;"></span>
             <button id="theme-toggle-btn" style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px; font-size: 1.2rem; line-height: 1;" onclick="toggleTheme()">🌙</button>
             <button id="unit-settings-btn" class="hidden" style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px;" onclick="toggleUnitSettingsModal(true)">⚙️ Gestão da Unidade</button>
-            <button style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px;" onclick="toggleChatModal(true)">💬 Chat</button>
             <button style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px;" onclick="toggleProfileModal(true)">Meu Perfil</button>
             <button style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px;" onclick="fazerLogout()">Sair</button>
           </div>
@@ -962,74 +913,6 @@
       </div>
     </div>
 
-    <!-- Modal do Chat -->
-    <div id="chat-modal" class="hidden" onclick="if (event.target === this) toggleChatModal(false)">
-      <div id="chat-modal-content">
-        <span style="position: absolute; top: 10px; right: 15px; font-size: 2.5rem; cursor: pointer; color: #888; line-height: 1;" onclick="toggleChatModal(false)">×</span>
-        <h3 style="color: var(--primary); margin-bottom: 15px; font-size: 1.5rem;">💬 Chat da Unidade</h3>
-        
-        <!-- Seletor de Contatos -->
-        <div style="margin-bottom: 15px;">
-          <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555; font-size: 0.95em;">Selecionar Contato:</label>
-          <select id="chat-user-select" onchange="selecionarUsuarioChat()" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 1em;">
-            <option value="">-- Selecione um contato --</option>
-          </select>
-          <button style="width: 100%; margin-top: 8px; padding: 10px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 0.9em;" onclick="abrirFormAdicionarMembro()">➕ Adicionar Novo Membro</button>
-        </div>
-
-        <!-- Área de Mensagens -->
-        <div id="chat-messages" style="flex: 1; overflow-y: auto; background: #e5ddd5; padding: 15px; border-radius: 8px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px; min-height: 350px; max-height: 450px;"></div>
-        
-        <!-- Container de Input (oculto até selecionar contato) -->
-        <div id="chat-input-container" class="hidden" style="gap: 8px;">
-          <input type="text" id="chat-input" placeholder="Digite uma mensagem..." style="flex: 1; margin: 0; padding: 12px; border: 1px solid #ccc; border-radius: 5px;" onkeypress="if(event.key === 'Enter') enviarMensagemChat()" />
-          <button class="btn-primary" style="width: auto; margin: 0; padding: 0 20px;" onclick="enviarMensagemChat()">Enviar</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal para Adicionar Novo Membro -->
-    <div id="add-member-modal" class="hidden" onclick="if (event.target === this) fecharFormAdicionarMembro()">
-      <div style="background: white; padding: 30px; border-radius: 8px; max-width: 450px; width: 100%; position: relative; animation: fadeInUp 0.4s ease-out;">
-        <span style="position: absolute; top: 10px; right: 15px; font-size: 2.5rem; font-weight: bold; color: #888; cursor: pointer; line-height: 1;" onclick="fecharFormAdicionarMembro()">×</span>
-        <h3 style="color: var(--primary); margin-bottom: 20px; font-size: 1.5rem;">➕ Adicionar Novo Membro</h3>
-        
-        <div style="margin-bottom: 15px;">
-          <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">Nome:</label>
-          <input type="text" id="novo-membro-nome" placeholder="Nome completo" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 1em;" />
-        </div>
-
-        <div style="margin-bottom: 15px;">
-          <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">E-mail (opcional):</label>
-          <input type="email" id="novo-membro-email" placeholder="usuario@defensoria.ba.def.br" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 1em;" />
-        </div>
-
-        <div style="margin-bottom: 15px;">
-          <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">Telefone:</label>
-          <input type="tel" id="novo-membro-tel" placeholder="Apenas números: 7133001234" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 1em;" />
-        </div>
-
-        <div style="margin-bottom: 20px;">
-          <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">Tipo:</label>
-          <select id="novo-membro-tipo" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 1em;">
-            <option value="Defensor">Defensor</option>
-            <option value="Defensora">Defensora</option>
-            <option value="Servidor">Servidor</option>
-            <option value="Servidora">Servidora</option>
-            <option value="Motorista">Motorista</option>
-            <option value="Assistente Social">Assistente Social</option>
-            <option value="Psicólogo">Psicólogo</option>
-            <option value="Outro">Outro</option>
-          </select>
-        </div>
-
-        <div style="display: flex; gap: 10px;">
-          <button style="flex: 1; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 1em;" onclick="salvarNovoMembro()">Salvar Membro</button>
-          <button style="flex: 1; padding: 12px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 1em;" onclick="fecharFormAdicionarMembro()">Cancelar</button>
-        </div>
-      </div>
-    </div>
-
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
       import { getDatabase, ref, push, onValue, remove, update, query, orderByChild, startAt, endAt, set } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
@@ -1127,7 +1010,6 @@
         regionalID: "",
         regionalNome: "",
         unsubscribeViagens: null,
-        unsubscribeChat: null,
         user: { email: "", uid: "", podeTudo: false, isMotorista: false },
         roteiroAtual: [],
         viagens: [],
@@ -1141,7 +1023,7 @@
       // Constantes para evitar "magic strings"
       // Constantes para caminhos do DB, evitando "magic strings"
       const STATUS = { PENDENTE: 'Pendente', CONFIRMADO: 'Confirmado', FINALIZADO: 'Finalizado', REJEITADO: 'Rejeitado', CANCELADO: 'Cancelado' };
-      const DB_PATHS = { VIAGENS: 'viagens', FOLGAS: 'folgas', UNIDADES: 'unidades', EQUIPE: 'equipe', MOTORISTA: 'motorista', CHAT: 'chat' };
+      const DB_PATHS = { VIAGENS: 'viagens', FOLGAS: 'folgas', UNIDADES: 'unidades', EQUIPE: 'equipe', MOTORISTA: 'motorista' };
 
       /*
        * NOTA SOBRE DADOS LEGADOS: O objeto `CONTATOS` abaixo é mantido como um "fallback" (plano B).
@@ -1215,166 +1097,6 @@
           } else {
               modal.classList.add('hidden');
           }
-      };
-
-      window.toggleChatModal = (show) => {
-        const modal = document.getElementById('chat-modal');
-        if (show) {
-          modal.classList.remove('hidden');
-          popularListaUsuariosChat();
-          document.getElementById('chat-messages').innerHTML = '<div style="text-align:center; color:#888; margin-top:20px;">Selecione um contato acima para iniciar a conversa.</div>';
-          document.getElementById('chat-input-container').classList.add('hidden');
-        } else {
-          modal.classList.add('hidden');
-          if (AppState.unsubscribeChat) { 
-            AppState.unsubscribeChat(); 
-            AppState.unsubscribeChat = null; 
-          }
-        }
-      };
-
-      window.popularListaUsuariosChat = () => {
-        const select = document.getElementById('chat-user-select');
-        if (!select) return;
-        select.innerHTML = '<option value="">-- Selecione um contato --</option>';
-        
-        // Filtra os membros removendo a si próprio e os perfis legados (que não possuem conta para responder)
-        const contatos = AppState.unidade.equipe.filter(m => m.uid && m.uid !== AppState.user.uid && !String(m.uid).startsWith('antigo_'));
-        
-        if (contatos.length === 0) {
-            select.innerHTML = '<option value="">Nenhum contato disponível</option>';
-            select.disabled = true;
-            return;
-        }
-        
-        select.disabled = false;
-        contatos.sort((a, b) => a.nome.localeCompare(b.nome)).forEach(m => {
-            const tipo = m.isMotorista ? 'Motorista' : (m.tipo || 'Servidor');
-            select.innerHTML += `<option value="${m.uid}">${m.nome} (${tipo})</option>`;
-        });
-      };
-
-      window.selecionarUsuarioChat = () => {
-        const targetUid = document.getElementById('chat-user-select').value;
-        if (!targetUid) {
-            document.getElementById('chat-messages').innerHTML = '<div style="text-align:center; color:#888; font-size:0.9em; margin-top:20px;">Selecione um contato acima para iniciar a conversa.</div>';
-            document.getElementById('chat-input-container').classList.add('hidden');
-            if (AppState.unsubscribeChat) { 
-                AppState.unsubscribeChat(); 
-                AppState.unsubscribeChat = null; 
-            }
-            return;
-        }
-        
-        document.getElementById('chat-input-container').classList.remove('hidden');
-        iniciarEscutaChatIndividual(targetUid);
-        setTimeout(() => { document.getElementById('chat-input').focus(); }, 100);
-      };
-
-      function iniciarEscutaChatIndividual(targetUid) {
-        if (AppState.unsubscribeChat) { AppState.unsubscribeChat(); }
-        
-        // Cria um ID de sala único para a dupla (sempre ordenado alfabeticamente para dar o mesmo resultado em ambos os lados)
-        const roomId = AppState.user.uid < targetUid ? `${AppState.user.uid}_${targetUid}` : `${targetUid}_${AppState.user.uid}`;
-        const chatRef = query(getRegionalRef(DB_PATHS.CHAT, roomId), orderByChild('timestamp'));
-        
-        AppState.unsubscribeChat = onValue(chatRef, (snap) => {
-          const messagesContainer = document.getElementById('chat-messages');
-          messagesContainer.innerHTML = '';
-          if (snap.exists()) {
-            snap.forEach(childSnap => {
-              const msg = childSnap.val();
-              const isMe = msg.uid === AppState.user.uid;
-              const bubble = document.createElement('div');
-              bubble.className = `msg-bubble ${isMe ? 'msg-sent' : 'msg-received'}`;
-              const timeStr = new Date(msg.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-              bubble.innerHTML = `<div class="msg-header">${isMe ? 'Você' : escapeHtml(msg.nome)}</div><div>${escapeHtml(msg.texto)}</div><div class="msg-time">${timeStr}</div>`;
-              messagesContainer.appendChild(bubble);
-            });
-            setTimeout(() => { messagesContainer.scrollTop = messagesContainer.scrollHeight; }, 50);
-          } else {
-            messagesContainer.innerHTML = '<div style="text-align:center; color:#888; font-size:0.9em; margin-top:20px;">Nenhuma mensagem ainda. Seja o primeiro a dizer olá! 👋</div>';
-          }
-        });
-      }
-
-      window.enviarMensagemChat = () => {
-        const input = document.getElementById('chat-input');
-        const texto = input.value.trim();
-        const targetUid = document.getElementById('chat-user-select').value;
-        
-        if (!texto || !targetUid) return;
-        
-        const currentUserProfile = AppState.unidade.equipe.find(m => m.uid === AppState.user.uid);
-        const nomeSender = currentUserProfile ? currentUserProfile.nome : (AppState.user.isMotorista ? AppState.unidade.motorista.nome : AppState.user.email);
-
-        // Envia a mensagem especificamente para a sala criada entre a dupla
-        const roomId = AppState.user.uid < targetUid ? `${AppState.user.uid}_${targetUid}` : `${targetUid}_${AppState.user.uid}`;
-        push(getRegionalRef(DB_PATHS.CHAT, roomId), { uid: AppState.user.uid, nome: nomeSender, texto: texto, timestamp: Date.now() });
-        input.value = '';
-      };
-
-      window.abrirFormAdicionarMembro = () => {
-        document.getElementById('add-member-modal').classList.remove('hidden');
-      };
-
-      window.fecharFormAdicionarMembro = () => {
-        document.getElementById('add-member-modal').classList.add('hidden');
-        document.getElementById('novo-membro-nome').value = '';
-        document.getElementById('novo-membro-email').value = '';
-        document.getElementById('novo-membro-tel').value = '';
-        document.getElementById('novo-membro-tipo').value = 'Servidor';
-      };
-
-      window.salvarNovoMembro = () => {
-        const nome = document.getElementById('novo-membro-nome').value.trim();
-        const email = document.getElementById('novo-membro-email').value.trim();
-        let tel = document.getElementById('novo-membro-tel').value.replace(/\D/g, '');
-        const tipo = document.getElementById('novo-membro-tipo').value;
-
-        if (!nome) return alert('Por favor, preencha o nome do membro.');
-        
-        // Se o telefone foi preenchido, valida
-        if (tel) {
-          if (tel.length < 8) return alert('Telefone inválido. Use pelo menos 8 dígitos.');
-          // Garante que o telefone tenha o código de país 55 para consistência
-          if (!tel.startsWith('55')) {
-            tel = '55' + tel;
-          }
-        } else {
-          // Se não preencheu telefone, usa um placeholder
-          tel = '55' + (new Date().getTime() % 9000000000).toString().padStart(10, '0');
-        }
-
-        // Cria um UID único para o novo membro (será criado no Firebase se tiver email registrado)
-        const novoUID = 'temp_' + Date.now() + '_' + Math.random().toString(36).substring(7);
-        
-        const novoMembro = {
-          uid: novoUID,
-          nome: nome,
-          email: email || '',
-          telefone: tel,
-          tipo: tipo,
-          isMotorista: tipo === 'Motorista',
-          dataCadastro: new Date().toISOString()
-        };
-
-        // Salva no Firebase
-        set(getRegionalRef(DB_PATHS.EQUIPE, novoUID), novoMembro).then(() => {
-          registrarLog('Novo Membro Adicionado', `${nome} foi adicionado à equipe como ${tipo}.`);
-          showToast(`${nome} adicionado à equipe com sucesso!`, 'success');
-          
-          // Atualiza a lista local
-          AppState.unidade.equipe.push(novoMembro);
-          
-          // Atualiza o select de contatos
-          popularListaUsuariosChat();
-          
-          // Fecha o formulário
-          fecharFormAdicionarMembro();
-        }).catch(err => {
-          alert('Erro ao adicionar membro: ' + err.message);
-        });
       };
 
       window.recuperarSenha = () => { 
