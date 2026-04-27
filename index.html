@@ -465,13 +465,13 @@
   </head>
   <body>
     
-    <div id="toast-container"></div>
+    <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
 
     <div id="unit-screen" class="hidden">
       <div class="min-h-screen bg-gradient-to-b from-gray-100 to-gray-50 flex flex-col relative">
         
         <!-- Dark Mode Toggle (Tela Inicial) -->
-        <button id="theme-toggle-btn-home" class="theme-btn-home" style="position: absolute; top: 15px; right: 15px; width: 45px; height: 45px; border-radius: 50%; border: 1px solid #ccc; font-size: 1.5rem; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 10; display: flex; justify-content: center; align-items: center;" onclick="toggleTheme()" title="Alternar Tema">🌙</button>
+        <button id="theme-toggle-btn-home" class="theme-btn-home" aria-label="Alternar tema claro e escuro" style="position: absolute; top: 15px; right: 15px; width: 45px; height: 45px; border-radius: 50%; border: 1px solid #ccc; font-size: 1.5rem; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 10; display: flex; justify-content: center; align-items: center;" onclick="toggleTheme()" title="Alternar Tema">🌙</button>
 
         <!-- Hero Section -->
         <div class="flex-1 flex items-center justify-center px-4 py-20">
@@ -561,7 +561,7 @@
       <input type="email" id="login-user" placeholder="Seu e-mail" style="margin-bottom: 20px;" />
       <div class="password-container">
         <input type="password" id="login-pass" placeholder="Sua senha" />
-        <span class="toggle-password" onclick="togglePassword('login-pass')">👁️</span>
+        <button type="button" class="toggle-password" aria-label="Mostrar ou ocultar senha" onclick="togglePassword('login-pass')" style="background: none; border: none;">👁️</button>
       </div>
       <p style="text-align: right; margin-bottom: 25px;"><a href="#" style="font-size: 0.9em; color: var(--primary); text-decoration: none;" onclick="recuperarSenha()">Esqueceu a senha?</a></p>
       <button class="btn-primary" style="margin-bottom: 20px;" onclick="realizarLogin()">Entrar</button>
@@ -579,7 +579,7 @@
       <input type="tel" id="reg-tel" placeholder="Seu WhatsApp (Ex: 73999999999)" style="margin-bottom: 20px;" />
       <div class="password-container">
         <input type="password" id="reg-pass" placeholder="Crie uma senha (mín. 6 dígitos)" />
-        <span class="toggle-password" onclick="togglePassword('reg-pass')">👁️</span>
+        <button type="button" class="toggle-password" aria-label="Mostrar ou ocultar senha" onclick="togglePassword('reg-pass')" style="background: none; border: none;">👁️</button>
       </div>
       <button class="btn-primary" style="background:var(--success); margin-top:20px; margin-bottom: 20px;" onclick="realizarCadastro()">Registrar e Entrar</button>
       <button class="btn-tertiary" onclick="voltarLogin()">⬅ Voltar para Login</button>
@@ -601,8 +601,8 @@
           
           <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">
             <span id="nome-usuario" style="font-weight: bold; margin-right: 7px;"></span>
-            <button style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px; font-size: 1.2rem; line-height: 1;" onclick="lerTextoEmVozAlta('Painel Principal. Aqui você visualiza o motorista disponível, pode registrar um novo agendamento e acompanhar a agenda de viagens da sua unidade.')" title="Ouvir Resumo da Tela">🔊</button>
-            <button id="theme-toggle-btn" style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px; font-size: 1.2rem; line-height: 1;" onclick="toggleTheme()">🌙</button>
+            <button aria-label="Ouvir resumo da tela principal" style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px; font-size: 1.2rem; line-height: 1;" onclick="lerTextoEmVozAlta('Painel Principal. Aqui você visualiza o motorista disponível, pode registrar um novo agendamento e acompanhar a agenda de viagens da sua unidade.')" title="Ouvir Resumo da Tela">🔊</button>
+            <button id="theme-toggle-btn" aria-label="Alternar tema claro e escuro" style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px; font-size: 1.2rem; line-height: 1;" onclick="toggleTheme()">🌙</button>
             <button id="unit-settings-btn" class="hidden" style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px;" onclick="toggleUnitSettingsModal(true)">⚙️ Gestão da Unidade</button>
             <button style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px;" onclick="toggleProfileModal(true)">Meu Perfil</button>
             <button style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px;" onclick="fazerLogout()">Sair</button>
@@ -616,8 +616,8 @@
         <div id="painel-add-folga" class="hidden" style="margin-top: 15px; border-top: 1px dashed #bbb; padding-top: 10px;">
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                 <input type="hidden" id="folga-id" />
-                <input type="date" id="folga-inicio" style="flex:1"><input type="date" id="folga-fim" style="flex:1">
-                <input type="text" id="folga-motivo" placeholder="Motivo" style="flex:2">
+                <input type="date" id="folga-inicio" aria-label="Data de início do bloqueio" style="flex:1"><input type="date" id="folga-fim" aria-label="Data de fim do bloqueio" style="flex:1">
+                <input type="text" id="folga-motivo" aria-label="Motivo do bloqueio" placeholder="Motivo" style="flex:2">
                 <button id="btn-salvar-folga" style="background:white; color:black; width: auto; border:1px solid #ccc;" onclick="salvarFolga()">Bloquear</button>
                 <button id="btn-cancelar-folga" class="hidden" style="background:#f8d7da; color:#721c24; width: auto; border:1px solid #f5c6cb;" onclick="limparFormFolga()">Cancelar</button>
             </div>
@@ -633,24 +633,24 @@
           <h3 id="form-title" style="color: var(--primary)">📝 Novo Agendamento</h3>
           <input type="hidden" id="edit-id" />
           <div class="form-row">
-            <div class="col" style="flex: 2"><label>Solicitante:</label><input type="text" id="solicitante" list="lista-solicitantes" required /><datalist id="lista-solicitantes"></datalist></div>
-            <div class="col"><label>Setor:</label><input type="text" id="setor" value="Geral" /></div>
+            <div class="col" style="flex: 2"><label for="solicitante">Solicitante:</label><input type="text" id="solicitante" list="lista-solicitantes" required /><datalist id="lista-solicitantes"></datalist></div>
+            <div class="col"><label for="setor">Setor:</label><input type="text" id="setor" value="Geral" /></div>
           </div>
           
           <div class="roteiro-box">
               <div class="roteiro-controls" style="gap: 15px;">
                   <div style="flex: 1 1 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; min-width: 280px;">
                       <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
-                          <label style="margin-bottom: 0; color: var(--primary); font-size: 0.9em; text-transform: uppercase;">📍 De (Origem):</label>
+                          <label for="cidade-origem" style="margin-bottom: 0; color: var(--primary); font-size: 0.9em; text-transform: uppercase;">📍 De (Origem):</label>
                           <div style="display: flex; gap: 4px;">
-                              <select id="uf-origem" style="width:70px; flex-shrink: 0;" onchange="carregarCidades('origem')"></select>
+                              <select id="uf-origem" aria-label="Estado de origem" style="width:70px; flex-shrink: 0;" onchange="carregarCidades('origem')"></select>
                               <input type="text" id="cidade-origem" list="list-origem" placeholder="Origem" style="flex: 1; min-width: 0;">
                           </div>
                       </div>
                       <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
-                          <label style="margin-bottom: 0; color: var(--primary); font-size: 0.9em; text-transform: uppercase;">🎯 Para (Destino):</label>
+                          <label for="cidade-destino" style="margin-bottom: 0; color: var(--primary); font-size: 0.9em; text-transform: uppercase;">🎯 Para (Destino):</label>
                           <div style="display: flex; gap: 4px;">
-                              <select id="uf-destino" style="width:70px; flex-shrink: 0;" onchange="carregarCidades('destino')"></select>
+                              <select id="uf-destino" aria-label="Estado de destino" style="width:70px; flex-shrink: 0;" onchange="carregarCidades('destino')"></select>
                               <input type="text" id="cidade-destino" list="list-destino" placeholder="Destino" style="flex: 1; min-width: 0;">
                           </div>
                       </div>
@@ -665,10 +665,10 @@
           </div>
 
           <div class="form-row">
-            <div class="col"><label>Saída:</label><input type="datetime-local" id="saida" /></div>
-            <div class="col"><label>Retorno:</label><input type="datetime-local" id="chegada" /></div>
+            <div class="col"><label for="saida">Saída:</label><input type="datetime-local" id="saida" /></div>
+            <div class="col"><label for="chegada">Retorno:</label><input type="datetime-local" id="chegada" /></div>
           </div>
-          <label>Motivo:</label><textarea id="motivo" rows="2"></textarea>
+          <label for="motivo">Motivo:</label><textarea id="motivo" rows="2"></textarea>
           <button id="btn-save" class="btn-primary" style="margin-top: 15px;" onclick="salvarNoFirebase()">✅ Salvar Solicitação</button>
           <button id="btn-whatsapp-manual" class="btn-wpp-notif hidden" onclick="abrirWhatsAppManual()">📱 Clique Aqui para Notificar o Motorista</button>
         </div>
@@ -697,8 +697,8 @@
       <div style="overflow-x:auto;"><table class="table-custom"><thead class="table-header-custom"><tr><th style="padding:12px;">Status</th><th style="padding:12px;">Saída</th><th style="padding:12px;">Retorno</th><th style="padding:12px;">Solicitante</th><th style="padding:12px;">Motivo</th><th style="padding:12px;">Roteiro</th><th style="padding:12px; text-align:center;">Ações</th></tr></thead><tbody id="tb-corpo"></tbody></table></div>
     </div>
 
-    <div id="help-fab" onclick="toggleHelpModal(true)">?</div>
-    <div id="hover-read-fab" onclick="toggleLeituraMouse()" title="Ativar/Desativar Leitura ao Passar o Mouse">🖱️🔊</div>
+    <button id="help-fab" aria-label="Abrir manual de ajuda" onclick="toggleHelpModal(true)">?</button>
+    <button id="hover-read-fab" aria-label="Ativar leitura ao passar o mouse" onclick="toggleLeituraMouse()" title="Ativar/Desativar Leitura ao Passar o Mouse">🖱️🔊</button>
 
     <div id="help-modal" class="hidden" onclick="if (event.target === this) toggleHelpModal(false)">
       <div id="help-modal-content">
@@ -848,7 +848,7 @@
 
     <div id="profile-modal" class="hidden" onclick="if (event.target === this) toggleProfileModal(false)">
       <div id="profile-modal-content">
-        <span id="profile-modal-close" onclick="toggleProfileModal(false)">×</span>
+        <button id="profile-modal-close" aria-label="Fechar janela de perfil" onclick="toggleProfileModal(false)" style="background:none; border:none;">×</button>
         <h3 style="color: var(--primary); margin-bottom: 15px;">Meu Perfil</h3>
         <div style="text-align: center; margin-bottom: 25px;">
           <button onclick="lerTextoEmVozAlta('Tela de Perfil. Aqui você pode alterar seu nome e WhatsApp. Caso seja administrador, pode também alterar o motorista titular da Regional.')" class="btn-tertiary" style="width: auto; border-radius: 20px; padding: 8px 16px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">🔊 Ouvir Texto</button>
@@ -899,7 +899,7 @@
 
     <div id="unit-settings-modal" class="hidden" onclick="if (event.target === this) toggleUnitSettingsModal(false)">
       <div id="unit-settings-modal-content">
-        <span id="unit-settings-modal-close" onclick="toggleUnitSettingsModal(false)">×</span>
+        <button id="unit-settings-modal-close" aria-label="Fechar janela de gestão de unidade" onclick="toggleUnitSettingsModal(false)" style="background:none; border:none;">×</button>
         <h3 style="color: var(--primary); margin-bottom: 20px;">⚙️ Gestão da Unidade</h3>
         
         <h4 style="margin-bottom: 10px; font-size: 1.1rem;">Equipe da Regional</h4>
@@ -1405,8 +1405,8 @@
                   tdActions.style.padding = '10px 8px';
                   tdActions.style.textAlign = 'right';
                   tdActions.innerHTML = `
-                      <button class="btn-edit" style="margin-right: 5px;" onclick="editTeamMember('${member.uid}')" title="Editar">✏️</button>
-                      <button class="btn-delete" onclick="removeTeamMember('${member.uid}', '${member.nome}')" title="Remover">🗑️</button>
+                      <button class="btn-edit" aria-label="Editar membro" style="margin-right: 5px;" onclick="editTeamMember('${member.uid}')" title="Editar">✏️</button>
+                      <button class="btn-delete" aria-label="Remover membro" onclick="removeTeamMember('${member.uid}', '${member.nome}')" title="Remover">🗑️</button>
                   `;
 
                   tr.appendChild(tdNome);
@@ -2045,16 +2045,16 @@
       function createActionButtons(v, status) {
           const temPermissao = AppState.user.podeTudo || v.registradoPor === AppState.user.email || v.solicitanteUID === AppState.user.uid;
           let btns = "";
-          if (temPermissao && status !== STATUS.FINALIZADO && status !== STATUS.CANCELADO) btns += `<button class="btn-edit" onclick="prepararEdicao('${v.id}')" title="Editar viagem">✏️</button>`;
-          if (temPermissao && (status === STATUS.PENDENTE || status === STATUS.CONFIRMADO)) btns += `<button style="background:#3498db; color:white; width: 36px; height: 36px; padding: 0; font-size: 1.1em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" onclick="reenviarNotificacao('${v.id}')" title="Reenviar notificação para o motorista">🔄</button>`;
+          if (temPermissao && status !== STATUS.FINALIZADO && status !== STATUS.CANCELADO) btns += `<button class="btn-edit" aria-label="Editar viagem" onclick="prepararEdicao('${v.id}')" title="Editar viagem">✏️</button>`;
+          if (temPermissao && (status === STATUS.PENDENTE || status === STATUS.CONFIRMADO)) btns += `<button aria-label="Reenviar notificação" style="background:#3498db; color:white; width: 36px; height: 36px; padding: 0; font-size: 1.1em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" onclick="reenviarNotificacao('${v.id}')" title="Reenviar notificação para o motorista">🔄</button>`;
           if ((AppState.user.isMotorista || AppState.user.podeTudo) && status === STATUS.PENDENTE) {
-              btns += `<button class="btn-confirm" onclick="confirmar('${v.id}')" title="Confirmar viagem">✅</button>`;
-              btns += `<button class="btn-reject" onclick="rejeitar('${v.id}')" title="Rejeitar viagem">❌</button>`;
+              btns += `<button class="btn-confirm" aria-label="Confirmar viagem" onclick="confirmar('${v.id}')" title="Confirmar viagem">✅</button>`;
+              btns += `<button class="btn-reject" aria-label="Rejeitar viagem" onclick="rejeitar('${v.id}')" title="Rejeitar viagem">❌</button>`;
           }
-          if ((AppState.user.isMotorista || AppState.user.podeTudo) && status === STATUS.CONFIRMADO) btns += `<button style="background:#27ae60; color:white; width: 36px; height: 36px; padding: 0; font-size: 1.1em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" onclick="reenviarConfirmacao('${v.id}')" title="Reenviar confirmação para o solicitante">🔄</button>`;
-          if (temPermissao && status !== STATUS.FINALIZADO && status !== STATUS.CANCELADO && status !== STATUS.REJEITADO) btns += `<button style="background:#e67e22; color:white; width: 36px; height: 36px; padding: 0; font-size: 1.1em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" onclick="cancelar('${v.id}')" title="Cancelar viagem">🚫</button>`;
-          if (status !== STATUS.FINALIZADO && status !== STATUS.CANCELADO) btns += `<button style="background:#16a085; color:white; width: 36px; height: 36px; padding: 0; font-size: 1.1em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" onclick="abrirRotaGoogleMaps('${v.id}')" title="Abrir rota no Google Maps">🗺️</button>`;
-          if (temPermissao && status !== STATUS.FINALIZADO) btns += `<button class="btn-delete" onclick="deletar('${v.id}')" title="Excluir viagem">🗑️</button>`;
+          if ((AppState.user.isMotorista || AppState.user.podeTudo) && status === STATUS.CONFIRMADO) btns += `<button aria-label="Reenviar confirmação" style="background:#27ae60; color:white; width: 36px; height: 36px; padding: 0; font-size: 1.1em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" onclick="reenviarConfirmacao('${v.id}')" title="Reenviar confirmação para o solicitante">🔄</button>`;
+          if (temPermissao && status !== STATUS.FINALIZADO && status !== STATUS.CANCELADO && status !== STATUS.REJEITADO) btns += `<button aria-label="Cancelar viagem" style="background:#e67e22; color:white; width: 36px; height: 36px; padding: 0; font-size: 1.1em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" onclick="cancelar('${v.id}')" title="Cancelar viagem">🚫</button>`;
+          if (status !== STATUS.FINALIZADO && status !== STATUS.CANCELADO) btns += `<button aria-label="Abrir rota no mapa" style="background:#16a085; color:white; width: 36px; height: 36px; padding: 0; font-size: 1.1em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" onclick="abrirRotaGoogleMaps('${v.id}')" title="Abrir rota no Google Maps">🗺️</button>`;
+          if (temPermissao && status !== STATUS.FINALIZADO) btns += `<button class="btn-delete" aria-label="Excluir viagem" onclick="deletar('${v.id}')" title="Excluir viagem">🗑️</button>`;
           return btns;
       };
 
@@ -2205,6 +2205,7 @@
             btnEdit.style.cssText = "background:none; color:inherit; width:auto; border:none; cursor:pointer; margin-right: 5px;";
             btnEdit.textContent = '✏️';
             btnEdit.title = "Editar bloqueio";
+            btnEdit.setAttribute('aria-label', 'Editar bloqueio');
             btnEdit.onclick = () => prepararEdicaoFolga(f.id);
             div.appendChild(btnEdit);
 
@@ -2212,6 +2213,7 @@
             button.style.cssText = "background:none; color:red; width:auto; border:none; cursor:pointer;";
             button.textContent = '🗑️';
             button.title = "Excluir bloqueio";
+            button.setAttribute('aria-label', 'Excluir bloqueio');
             button.onclick = () => deletarFolga(f.id);
             div.appendChild(button);
           }
