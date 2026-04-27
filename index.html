@@ -198,6 +198,30 @@
         background-color: #f0f0f0;
       }
 
+      /* Hover Reader Floating Button */
+      #hover-read-fab {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        width: 60px;
+        height: 60px;
+        background-color: white;
+        color: var(--primary);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 1000;
+        transition: transform 0.2s ease-in-out, background-color 0.3s, color 0.3s;
+        border: 2px solid var(--primary);
+      }
+      #hover-read-fab:hover {
+        transform: scale(1.1);
+      }
+
       /* Help Modal */
       #help-modal, #profile-modal, #unit-settings-modal {
         position: fixed;
@@ -516,7 +540,10 @@
     </div>
 
     <div id="comarca-screen" class="container hidden">
-      <h2 class="text-2xl font-bold mb-6" style="color: var(--primary); text-align: center;">Selecione a Comarca</h2>
+      <h2 class="text-2xl font-bold mb-4" style="color: var(--primary); text-align: center;">Selecione a Comarca</h2>
+      <div style="text-align: center; margin-bottom: 25px;">
+        <button onclick="lerTextoEmVozAlta('Selecione a Comarca. Porto Seguro ou Eunápolis.')" class="btn-tertiary" style="width: auto; border-radius: 20px; padding: 8px 16px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">🔊 Ouvir Texto</button>
+      </div>
       
       <button class="btn-primary mb-3" onclick="selecionarUnidade('PORTO SEGURO', '9ª Regional - Porto Seguro')">Porto Seguro</button>
       <button class="btn-primary mb-3" onclick="selecionarUnidade('EUNAPOLIS', '9ª Regional - Eunápolis')">Eunápolis</button>
@@ -527,7 +554,10 @@
     </div>
 
     <div id="login-screen" class="container hidden">
-      <h2 id="login-title" style="color: var(--primary); margin-bottom: 30px;">Acesso</h2>
+      <h2 id="login-title" style="color: var(--primary); margin-bottom: 15px;">Acesso</h2>
+      <div style="text-align: center; margin-bottom: 25px;">
+        <button onclick="lerTextoEmVozAlta('Tela de Acesso. Informe seu e-mail e senha para entrar. Ou clique abaixo para criar uma nova conta.')" class="btn-tertiary" style="width: auto; border-radius: 20px; padding: 8px 16px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">🔊 Ouvir Texto</button>
+      </div>
       <input type="email" id="login-user" placeholder="Seu e-mail" style="margin-bottom: 20px;" />
       <div class="password-container">
         <input type="password" id="login-pass" placeholder="Sua senha" />
@@ -540,7 +570,10 @@
     </div>
 
     <div id="register-screen" class="container hidden">
-      <h2 style="color: var(--primary); margin-bottom: 25px;">Criar Nova Conta</h2>
+      <h2 style="color: var(--primary); margin-bottom: 15px;">Criar Nova Conta</h2>
+      <div style="text-align: center; margin-bottom: 25px;">
+        <button onclick="lerTextoEmVozAlta('Tela de criação de nova conta. Informe seu nome completo, e-mail institucional, número de WhatsApp e crie uma senha com no mínimo 6 dígitos.')" class="btn-tertiary" style="width: auto; border-radius: 20px; padding: 8px 16px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">🔊 Ouvir Texto</button>
+      </div>
       <input type="text" id="reg-nome" placeholder="Seu nome completo" style="margin-bottom: 20px;" />
       <input type="email" id="reg-user" placeholder="Digite seu e-mail" style="margin-bottom: 20px;" />
       <input type="tel" id="reg-tel" placeholder="Seu WhatsApp (Ex: 73999999999)" style="margin-bottom: 20px;" />
@@ -568,6 +601,7 @@
           
           <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">
             <span id="nome-usuario" style="font-weight: bold; margin-right: 7px;"></span>
+            <button style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px; font-size: 1.2rem; line-height: 1;" onclick="lerTextoEmVozAlta('Painel Principal. Aqui você visualiza o motorista disponível, pode registrar um novo agendamento e acompanhar a agenda de viagens da sua unidade.')" title="Ouvir Resumo da Tela">🔊</button>
             <button id="theme-toggle-btn" style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px; font-size: 1.2rem; line-height: 1;" onclick="toggleTheme()">🌙</button>
             <button id="unit-settings-btn" class="hidden" style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px;" onclick="toggleUnitSettingsModal(true)">⚙️ Gestão da Unidade</button>
             <button style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px;" onclick="toggleProfileModal(true)">Meu Perfil</button>
@@ -664,11 +698,15 @@
     </div>
 
     <div id="help-fab" onclick="toggleHelpModal(true)">?</div>
+    <div id="hover-read-fab" onclick="toggleLeituraMouse()" title="Ativar/Desativar Leitura ao Passar o Mouse">🖱️🔊</div>
 
     <div id="help-modal" class="hidden" onclick="if (event.target === this) toggleHelpModal(false)">
       <div id="help-modal-content">
         <span id="help-modal-close" onclick="toggleHelpModal(false)">&times;</span>
         <h3>📑 MANUAL DO USUÁRIO: SAD V81.0</h3>
+        <div style="text-align: center; margin-bottom: 15px;">
+          <button onclick="lerElementoEmVozAlta('help-modal-content')" class="btn-tertiary" style="width: auto; border-radius: 20px; padding: 8px 16px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">🔊 Ouvir Manual Completo</button>
+        </div>
         <p style="text-align: center; font-style: italic; margin-bottom: 20px;">SAD agendamento de frota - Extremo Sul DPE BAHIA</p>
         
         <h4>🔐 ACESSO E CONTA (AUTOATENDIMENTO)</h4>
@@ -811,7 +849,10 @@
     <div id="profile-modal" class="hidden" onclick="if (event.target === this) toggleProfileModal(false)">
       <div id="profile-modal-content">
         <span id="profile-modal-close" onclick="toggleProfileModal(false)">×</span>
-        <h3 style="color: var(--primary); margin-bottom: 25px;">Meu Perfil</h3>
+        <h3 style="color: var(--primary); margin-bottom: 15px;">Meu Perfil</h3>
+        <div style="text-align: center; margin-bottom: 25px;">
+          <button onclick="lerTextoEmVozAlta('Tela de Perfil. Aqui você pode alterar seu nome e WhatsApp. Caso seja administrador, pode também alterar o motorista titular da Regional.')" class="btn-tertiary" style="width: auto; border-radius: 20px; padding: 8px 16px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">🔊 Ouvir Texto</button>
+        </div>
         
         <div style="margin-bottom: 20px;">
           <label for="profile-nome">Meu Nome:</label>
@@ -995,17 +1036,71 @@
         }, 3500);
       };
 
-    // Sistema de Leitura em Voz Alta (Web Speech API)
+    // Variáveis globais para o Sistema de Leitura
+    window.ultimoTextoLido = "";
+    window.leituraAoPassarMouseAtiva = false;
+    window.ultimoTextoLidoHover = "";
+
+    window.toggleLeituraMouse = () => {
+      window.leituraAoPassarMouseAtiva = !window.leituraAoPassarMouseAtiva;
+      const fab = document.getElementById('hover-read-fab');
+      if (window.leituraAoPassarMouseAtiva) {
+        fab.style.backgroundColor = "var(--primary)";
+        fab.style.color = "white";
+        showToast("Leitura ao passar o mouse ativada!", "info");
+      } else {
+        fab.style.backgroundColor = "white";
+        fab.style.color = "var(--primary)";
+        window.speechSynthesis.cancel();
+        window.ultimoTextoLidoHover = "";
+        showToast("Leitura ao passar o mouse desativada.", "info");
+      }
+    };
+
+    // Leitura ao passar o mouse em elementos de texto
+    document.addEventListener('mouseover', (e) => {
+      if (!window.leituraAoPassarMouseAtiva) return;
+      const target = e.target;
+      const readableTags = ['H1', 'H2', 'H3', 'H4', 'H5', 'P', 'SPAN', 'A', 'BUTTON', 'LABEL', 'LI', 'TD', 'TH', 'STRONG'];
+      
+      if (readableTags.includes(target.tagName)) {
+          const text = target.innerText || target.textContent;
+          if (text && text.trim().length > 0 && text.trim() !== window.ultimoTextoLidoHover) {
+              window.ultimoTextoLidoHover = text.trim();
+              window.speechSynthesis.cancel();
+              const utterance = new SpeechSynthesisUtterance(text.trim());
+              utterance.lang = 'pt-BR';
+              window.speechSynthesis.speak(utterance);
+          }
+      }
+    });
+
+    // Sistema de Leitura em Voz Alta com Pausa/Retomar
     window.lerTextoEmVozAlta = (texto) => {
       if ('speechSynthesis' in window) {
-        // Cancela qualquer leitura em andamento para as vozes não se sobreporem
+        // Se clicou de novo no mesmo texto, alterna entre pausar e retomar
+        if (window.ultimoTextoLido === texto && (window.speechSynthesis.speaking || window.speechSynthesis.paused)) {
+          if (window.speechSynthesis.paused) {
+            window.speechSynthesis.resume();
+            showToast("Leitura retomada", "info");
+          } else {
+            window.speechSynthesis.pause();
+            showToast("Leitura pausada", "info");
+          }
+          return;
+        }
+
+        // Cancela leitura anterior e inicia a nova
         window.speechSynthesis.cancel();
+        window.ultimoTextoLido = texto;
         
         const utterance = new SpeechSynthesisUtterance(texto);
         utterance.lang = 'pt-BR'; // Define o idioma para Português do Brasil
         utterance.rate = 1.0;     // Velocidade da fala (0.1 a 10)
         utterance.pitch = 1.0;    // Tom da voz (0 a 2)
         
+        utterance.onend = () => { window.ultimoTextoLido = ""; };
+
         window.speechSynthesis.speak(utterance);
       } else {
         showToast("Seu navegador não suporta leitura de texto em voz alta.", "error");
