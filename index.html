@@ -561,7 +561,7 @@
       <input type="email" id="login-user" placeholder="Seu e-mail" style="margin-bottom: 20px;" />
       <div class="password-container">
         <input type="password" id="login-pass" placeholder="Sua senha" />
-        <button type="button" class="toggle-password" aria-label="Mostrar ou ocultar senha" onclick="togglePassword('login-pass')" style="background: none; border: none;">👁️</button>
+        <button type="button" class="toggle-password" aria-label="Mostrar ou ocultar senha" onclick="togglePassword('login-pass')" style="background: none; border: none; width: auto; padding: 0; margin: 0;">👁️</button>
       </div>
       <p style="text-align: right; margin-bottom: 25px;"><a href="#" style="font-size: 0.9em; color: var(--primary); text-decoration: none;" onclick="recuperarSenha()">Esqueceu a senha?</a></p>
       <button class="btn-primary" style="margin-bottom: 20px;" onclick="realizarLogin()">Entrar</button>
@@ -579,7 +579,7 @@
       <input type="tel" id="reg-tel" placeholder="Seu WhatsApp (Ex: 73999999999)" style="margin-bottom: 20px;" />
       <div class="password-container">
         <input type="password" id="reg-pass" placeholder="Crie uma senha (mín. 6 dígitos)" />
-        <button type="button" class="toggle-password" aria-label="Mostrar ou ocultar senha" onclick="togglePassword('reg-pass')" style="background: none; border: none;">👁️</button>
+        <button type="button" class="toggle-password" aria-label="Mostrar ou ocultar senha" onclick="togglePassword('reg-pass')" style="background: none; border: none; width: auto; padding: 0; margin: 0;">👁️</button>
       </div>
       <button class="btn-primary" style="background:var(--success); margin-top:20px; margin-bottom: 20px;" onclick="realizarCadastro()">Registrar e Entrar</button>
       <button class="btn-tertiary" onclick="voltarLogin()">⬅ Voltar para Login</button>
@@ -1057,23 +1057,45 @@
       }
     };
 
-    // Leitura ao passar o mouse em elementos de texto
-    document.addEventListener('mouseover', (e) => {
+    // Função centralizada para ler elementos focados, clicados (mobile) ou com mouse em cima
+    const lerElemento = (e) => {
       if (!window.leituraAoPassarMouseAtiva) return;
       const target = e.target;
-      const readableTags = ['H1', 'H2', 'H3', 'H4', 'H5', 'P', 'SPAN', 'A', 'BUTTON', 'LABEL', 'LI', 'TD', 'TH', 'STRONG'];
+      const readableTags = ['H1', 'H2', 'H3', 'H4', 'H5', 'P', 'SPAN', 'A', 'BUTTON', 'LABEL', 'LI', 'TD', 'TH', 'STRONG', 'DIV'];
+      const formTags = ['INPUT', 'TEXTAREA', 'SELECT'];
       
-      if (readableTags.includes(target.tagName)) {
-          const text = target.innerText || target.textContent;
-          if (text && text.trim().length > 0 && text.trim() !== window.ultimoTextoLidoHover) {
-              window.ultimoTextoLidoHover = text.trim();
-              window.speechSynthesis.cancel();
+      let text = "";
+
+      if (formTags.includes(target.tagName)) {
+          if (target.tagName === 'SELECT' && target.options.length > 0 && target.selectedIndex >= 0) {
+              text = target.options[target.selectedIndex].text;
+          } else {
+              text = target.value || target.placeholder || target.getAttribute('aria-label') || "";
+          }
+      } else if (readableTags.includes(target.tagName)) {
+          if (target.tagName === 'DIV' && target.children.length > 1) return; // Evita ler blocos gigantes de uma vez
+          text = target.innerText || target.textContent;
+      }
+
+      if (text && text.trim().length > 0 && text.trim() !== window.ultimoTextoLidoHover) {
+          window.ultimoTextoLidoHover = text.trim();
+          
+          window.speechSynthesis.cancel();
+          // Delay necessário para que o áudio seja processado sem engasgos em celulares (iOS/Android)
+          setTimeout(() => {
               const utterance = new SpeechSynthesisUtterance(text.trim());
               utterance.lang = 'pt-BR';
+              utterance.volume = 1.0;
+              utterance.rate = 1.0;
+              utterance.pitch = 1.0;
               window.speechSynthesis.speak(utterance);
-          }
+          }, 50);
       }
-    });
+    };
+
+    // Suporte para Desktop (hover) e Celulares (toque na tela)
+    document.addEventListener('mouseover', lerElemento);
+    document.addEventListener('touchstart', lerElemento, {passive: true});
 
     // Sistema de Leitura em Voz Alta com Pausa/Retomar
     window.lerTextoEmVozAlta = (texto) => {
@@ -1094,14 +1116,17 @@
         window.speechSynthesis.cancel();
         window.ultimoTextoLido = texto;
         
-        const utterance = new SpeechSynthesisUtterance(texto);
-        utterance.lang = 'pt-BR'; // Define o idioma para Português do Brasil
-        utterance.rate = 1.0;     // Velocidade da fala (0.1 a 10)
-        utterance.pitch = 1.0;    // Tom da voz (0 a 2)
-        
-        utterance.onend = () => { window.ultimoTextoLido = ""; };
+        setTimeout(() => {
+            const utterance = new SpeechSynthesisUtterance(texto);
+            utterance.lang = 'pt-BR'; // Define o idioma para Português do Brasil
+            utterance.volume = 1.0;
+            utterance.rate = 1.0;     // Velocidade da fala (0.1 a 10)
+            utterance.pitch = 1.0;    // Tom da voz (0 a 2)
+            
+            utterance.onend = () => { window.ultimoTextoLido = ""; };
 
-        window.speechSynthesis.speak(utterance);
+            window.speechSynthesis.speak(utterance);
+        }, 50);
       } else {
         showToast("Seu navegador não suporta leitura de texto em voz alta.", "error");
       }
