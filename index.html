@@ -457,6 +457,7 @@
   <img src="logo-dpe.png" alt="Logo Defensoria Pública Bahia" class="mx-auto h-24 md:h-28 mb-6 object-contain" />
   <h1 class="text-5xl font-bold text-gray-900 mb-4">Sistema de Gestão de Frota</h1>
   <p class="text-xl text-gray-600">Defensoria Pública do Estado da Bahia</p>
+  <button onclick="lerTextoEmVozAlta('Sistema de Gestão de Frota. Defensoria Pública do Estado da Bahia.')" class="btn-tertiary" style="width: auto; margin-top: 15px; border-radius: 20px; padding: 8px 16px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">🔊 Ouvir Texto</button>
   <div class="w-24 h-1 bg-blue-600 mx-auto mt-6"></div>
 </div>
 
@@ -993,6 +994,30 @@
           setTimeout(() => toast.remove(), 400);
         }, 3500);
       };
+
+    // Sistema de Leitura em Voz Alta (Web Speech API)
+    window.lerTextoEmVozAlta = (texto) => {
+      if ('speechSynthesis' in window) {
+        // Cancela qualquer leitura em andamento para as vozes não se sobreporem
+        window.speechSynthesis.cancel();
+        
+        const utterance = new SpeechSynthesisUtterance(texto);
+        utterance.lang = 'pt-BR'; // Define o idioma para Português do Brasil
+        utterance.rate = 1.0;     // Velocidade da fala (0.1 a 10)
+        utterance.pitch = 1.0;    // Tom da voz (0 a 2)
+        
+        window.speechSynthesis.speak(utterance);
+      } else {
+        showToast("Seu navegador não suporta leitura de texto em voz alta.", "error");
+      }
+    };
+
+    window.lerElementoEmVozAlta = (idElemento) => {
+      const elemento = document.getElementById(idElemento);
+      if (elemento) {
+          lerTextoEmVozAlta(elemento.innerText);
+      }
+    };
 
       const errosAuth = {
         'auth/invalid-email': 'E-mail inválido.',
