@@ -725,15 +725,17 @@
         <p><strong>MEMBROS E PERMISSÕES:</strong> Administradores e motoristas têm acesso ao botão [⚙️ Gestão da Unidade]. Nele é possível editar os dados da equipe, definir o tipo de vínculo (Servidor, Defensor) e conceder a permissão de "Atuar como Motorista" a qualquer membro (liberando os botões de confirmar/rejeitar).</p>
         <p><strong>MOTORISTA TITULAR:</strong> Dentro de "Meu Perfil", há uma seção administrativa dedicada para alterar o Motorista Oficial que recebe os alertas primários via WhatsApp na Regional.</p>
 
-        <h4>📝 FLUXO DE AGENDAMENTO INTELIGENTE</h4>
+        <h4>📝 FLUXO DE AGENDAMENTO COM APROVAÇÃO DO ADMIN</h4>
         <p><strong>SOLICITANTE:</strong> Selecione seu nome (o sistema já carrega seu Zap).</p>
         <p><strong>ROTEIRO POR TRECHOS:</strong> Selecione Origem ➔ Destino e clique em [Add].</p>
         <p><em>Dica: Para viagens com múltiplas paradas, adicione cada trecho individualmente.</em></p>
         <p><strong>BOTÃO [LIMPAR]:</strong> Use para resetar o roteiro caso precise recomeçar a lista de cidades.</p>
+        <p><strong>FLUXO DE APROVAÇÃO:</strong> Ao salvar a viagem, o ADMINISTRADOR recebe uma mensagem no WhatsApp para revisar. Quando o admin clica em "👁️ Dar Ciência" na agenda, o MOTORISTA recebe o aviso para confirmar ou recusar.</p>
         <p><strong>LOGS DE AUDITORIA 📜:</strong> Cada ação (criar, editar, excluir) gera um log de segurança com data, hora e seu usuário.</p>
     
         <h4>🔄 SISTEMA DE REENVIO (ANTIPERDA)</h4>
-        <p><strong>PARA MOTORISTA:</strong> Se a viagem estiver 🟡 Pendente, use o botão [🔄 Reenviar] na agenda para disparar um novo alerta ao motorista.</p>
+        <p><strong>STATUS PENDENTE:</strong> Se a viagem estiver 🟡 Pendente, o admin pode usar [🔄 Reenviar] para enviar novo aviso de revisão.</p>
+        <p><strong>STATUS CIENTE:</strong> Se a viagem estiver 👁️ Ciente, pode reenviar a notificação para o motorista revisar novamente.</p>
         <p><strong>PARA SOLICITANTE:</strong> Se a viagem estiver 🟢 Confirmada, o motorista/admin pode clicar em [🔄 Reenviar Confirmação] para mandar os dados de saída e rota direto para o Zap do servidor.</p>
     
         <h4>🛡️ REGRAS DE SEGURANÇA (ALGORITMO)</h4>
@@ -741,7 +743,7 @@
         <p><strong>BLOQUEIOS (FOLGAS/MANUTENÇÃO):</strong> O SAD bloqueia salvamentos em datas indisponíveis. Administradores e motoristas podem criar, editar (✏️) e excluir (🗑️) bloqueios diretamente no painel superior. Após salvar, o formulário é limpo automaticamente.</p>
     
         <h4>🚛 PAINEL DO MOTORISTA & GPS</h4>
-        <p><strong>ACEITE REAL-TIME:</strong> O motorista possui botões de ✅ Confirmar ou ❌ Rejeitar com retorno automático via Zap.</p>
+        <p><strong>ACEITE REAL-TIME:</strong> O motorista possui botões de ✅ Confirmar ou ❌ Rejeitar com retorno automático via Zap, mas APENAS após o administrador dar ciência.</p>
         <p><strong>MAPA INTELIGENTE 🗺️:</strong> Ao clicar no ícone de Mapa, o Google Maps abre com todo o roteiro (todas as paradas) já traçado em ordem.</p>
     
         <h4>📊 GESTÃO E EXPORTAÇÃO</h4>
@@ -789,15 +791,21 @@
           </div>
         </div>
           <div class="accordion-item">
+            <button class="accordion-question" onclick="toggleAccordion(this)">Como funciona a aprovação da viagem pelo administrador?</button>
+            <div class="accordion-answer">
+              <p><strong>R:</strong> O fluxo possui duas etapas: 1️⃣ Ao salvar uma viagem, o ADMINISTRADOR recebe uma mensagem no WhatsApp pedindo para revisar. 2️⃣ O admin entra no aplicativo e clica no botão 👁️ "Dar Ciência" para aprovar a viagem. 3️⃣ Depois disso, o MOTORISTA recebe o alerta para confirmar ou recusar a viagem.</p>
+            </div>
+          </div>
+          <div class="accordion-item">
             <button class="accordion-question" onclick="toggleAccordion(this)">Salvei a viagem, o motorista já está sabendo?</button>
             <div class="accordion-answer">
-              <p><strong>R:</strong> Não. O motorista só recebe o alerta se você clicar no botão pulsante [Notificar Motorista] após salvar. Isso abrirá o seu WhatsApp com a mensagem pronta para envio.</p>
+              <p><strong>R:</strong> Não. Primeiro o ADMINISTRADOR recebe um aviso para revisar a viagem. Após o admin dar ciência (botão 👁️), o motorista recebe o alerta para confirmar ou recusar. O sistema funciona em dois passos para maior controle.</p>
             </div>
           </div>
           <div class="accordion-item">
             <button class="accordion-question" onclick="toggleAccordion(this)">O motorista não respondeu. Como mando os dados de novo?</button>
             <div class="accordion-answer">
-              <p><strong>R:</strong> Na tabela "Agenda de Viagens", localize sua solicitação e clique no botão [🔄 Reenviar]. O sistema gerará uma nova notificação para o WhatsApp do motorista.</p>
+              <p><strong>R:</strong> Na tabela "Agenda de Viagens", localize sua solicitação e clique no botão [🔄 Reenviar]. Se estiver "Pendente", reenvia para o admin. Se estiver "Ciente", reenvia para o motorista. O sistema gerará uma nova notificação no WhatsApp.</p>
             </div>
           </div>
           <div class="accordion-item">
@@ -809,7 +817,7 @@
           <div class="accordion-item">
             <button class="accordion-question" onclick="toggleAccordion(this)">O que acontece quando o motorista clica em Confirmar ou Rejeitar?</button>
             <div class="accordion-answer">
-              <p><strong>R:</strong> O status na agenda muda instantaneamente e o sistema abre o WhatsApp do motorista para enviar uma confirmação (ou aviso de recusa) automática para o seu telefone.</p>
+              <p><strong>R:</strong> O motorista só vê esses botões após o administrador dar ciência da viagem. Quando clica em Confirmar ou Rejeitar, o status muda instantaneamente na agenda e o sistema abre o WhatsApp para enviar uma confirmação (ou aviso de recusa) automática para o solicitante.</p>
             </div>
           </div>
           <div class="accordion-item">
@@ -1628,6 +1636,7 @@
           carregarDadosDaUnidade().then(() => {
               // Determina se o usuário é motorista após carregar os dados da unidade
               const currentUserProfile = AppState.unidade.equipe.find(m => m.uid === user.uid);
+              AppState.user.telefone = currentUserProfile ? currentUserProfile.telefone : null;
               const isMotoristaPorEmail = ["motorista", "cleones", "ramona", "neyrailson", "frota"].some(termo => AppState.user.email.includes(termo));
               
               // Verifica se o usuário logado é o motorista ATIVO da unidade (comparando telefones)
@@ -1908,6 +1917,8 @@
 
         const msgMotorista = `🔔 *NOVO AGENDAMENTO RECEBIDO*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${dados.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${dados.trajetoExibicao}\n📝 *Motivo:* ${dados.motivo}\n\n*Acesse o aplicativo para confirmar ou recusar a viagem.*`;
 
+        const msgAdmin = `📋 *NOVA SOLICITAÇÃO DE VIAGEM PARA REVISAR*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${dados.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${dados.trajetoExibicao}\n📝 *Motivo:* ${dados.motivo}\n\n✅ *Clique em 'Dar Ciência' no aplicativo para aprovar e notificar o motorista.*`;
+
         if(id) {
           update(getRegionalRef(DB_PATHS.VIAGENS, id), dados).then(() => {
             registrarLog('Edição de Viagem', `Viagem ID ${id} para ${dados.solicitanteNome} foi editada.`);
@@ -1922,10 +1933,19 @@
           dados.dataCriacao = new Date().toISOString();
           push(getRegionalRef(DB_PATHS.VIAGENS), dados).then((newRef) => {
             registrarLog('Criação de Viagem', `Nova viagem ID ${newRef.key} para ${dados.solicitanteNome} foi criada.`);
-            AppState.dadosWppTemp = msgMotorista;
-            document.getElementById("btn-whatsapp-manual").classList.remove("hidden"); 
-            document.getElementById("btn-save").classList.add("hidden");
-            showToast("Salvo! Clique para notificar o motorista.", "success");
+            
+            // Se o usuário logado é admin, enviar para o admin; senão guardar para notificar motorista
+            if (AppState.user.podeTudo && AppState.user.telefone) {
+              const telAdmin = AppState.user.telefone;
+              window.open(`https://wa.me/${telAdmin}?text=${encodeURIComponent(msgAdmin)}`, '_blank');
+              showToast("Viagem salva! Mensagem enviada para você revisar.", "success");
+            } else {
+              AppState.dadosWppTemp = msgMotorista;
+              document.getElementById("btn-whatsapp-manual").classList.remove("hidden"); 
+              document.getElementById("btn-save").classList.add("hidden");
+              showToast("Salvo! Clique para notificar o motorista.", "success");
+            }
+            resetForm();
           });
         }
       };
@@ -2170,9 +2190,12 @@
               registrarLog('Ciência de Viagem', `Viagem ID ${id} de ${v.solicitanteNome} recebeu ciência do administrador.`);
               const telMotorista = AppState.unidade.motorista.tel;
               const dataSaidaFormatada = new Date(v.saida).toLocaleString('pt-BR');
-              const msgCiencia = `👁️ *VIAGEM AGUARDANDO CONFIRMAÇÃO*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n📍 *Roteiro:* ${v.trajetoExibicao.replace(/\n/g, ' ')}\n📝 *Motivo:* ${v.motivo || 'Não especificado'}\n\n✅ *Administração já conferiu a viagem!*\n\nPor favor, acesse o aplicativo para confirmar ou recusar esta viagem.`;
+              const dataRetornoFormatada = new Date(v.chegada).toLocaleString('pt-BR');
+              const msgMotoristaConfirma = `✅ *VIAGEM PRONTA PARA CONFIRMAÇÃO*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${v.trajetoExibicao}\n📝 *Motivo:* ${v.motivo || 'Não especificado'}\n\n🔔 *Administração já aprovou! Acesse o aplicativo para confirmar ou recusar a viagem.*`;
               if(telMotorista) {
-                window.open(`https://wa.me/${telMotorista}?text=${encodeURIComponent(msgCiencia)}`, '_blank');
+                window.open(`https://wa.me/${telMotorista}?text=${encodeURIComponent(msgMotoristaConfirma)}`, '_blank');
+              } else {
+                alert("Telefone do motorista não encontrado!");
               }
               showToast("Ciência registrada! Motorista notificado.", "success");
           }).catch(err => alert("Erro ao dar ciência: " + err.message));
