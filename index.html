@@ -1843,6 +1843,31 @@
         return null; // Retorna null para que o || 'N/D' funcione
       }
 
+      function obterTelefoneAdmin() {
+        // Procura pelo administrador na equipe da unidade
+        // Admins conhecidos: Welder, Esther, Silvana
+        const emailsAdmin = [
+          "welder.rios@defensoria.ba.def.br",
+          "esther.bobbio@defensoria.ba.def.br",
+          "silvana.cardoso@defensoria.ba.def.br"
+        ];
+        
+        // Primeiro tenta encontrar o admin atual (se estiver logado)
+        if (AppState.user.podeTudo && AppState.user.telefone) {
+          return AppState.user.telefone;
+        }
+        
+        // Procura na equipe por algum admin conhecido
+        for (let admin of AppState.unidade.equipe) {
+          if (emailsAdmin.includes(admin.email) && admin.telefone) {
+            return admin.telefone;
+          }
+        }
+        
+        // Se não encontrar, retorna null
+        return null;
+      }
+
       function temConflito(novaSaida, novaChegada, ignorarId = null) {
           const buffer = 5 * 60 * 1000;
           const iniN = new Date(novaSaida).getTime();
@@ -1934,16 +1959,14 @@
           push(getRegionalRef(DB_PATHS.VIAGENS), dados).then((newRef) => {
             registrarLog('Criação de Viagem', `Nova viagem ID ${newRef.key} para ${dados.solicitanteNome} foi criada.`);
             
-            // Se o usuário logado é admin, enviar para o admin; senão guardar para notificar motorista
-            if (AppState.user.podeTudo && AppState.user.telefone) {
-              const telAdmin = AppState.user.telefone;
+            // SEMPRE enviar para o administrador revisar
+            const telAdmin = obterTelefoneAdmin();
+            if (telAdmin) {
               window.open(`https://wa.me/${telAdmin}?text=${encodeURIComponent(msgAdmin)}`, '_blank');
-              showToast("Viagem salva! Mensagem enviada para você revisar.", "success");
+              showToast("Viagem salva! Mensagem enviada para o administrador revisar.", "success");
             } else {
-              AppState.dadosWppTemp = msgMotorista;
-              document.getElementById("btn-whatsapp-manual").classList.remove("hidden"); 
-              document.getElementById("btn-save").classList.add("hidden");
-              showToast("Salvo! Clique para notificar o motorista.", "success");
+              alert("Telefone do administrador não encontrado. Verifique as configurações.");
+              showToast("Erro: Não foi possível enviar para o admin.", "error");
             }
             resetForm();
           });
