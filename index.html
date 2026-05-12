@@ -157,6 +157,7 @@
       
       .status-badge { padding: 5px 10px; border-radius: 15px; font-size: 0.85em; font-weight: bold; display: inline-block; color: white; }
       .status-pendente { background-color: var(--warning); color: #333; }
+      .status-ciente { background-color: #17a2b8; color: white; }
       .status-confirmado { background-color: var(--success); color: white; }
       .status-finalizado { background-color: #6c757d; color: white; }
       .status-rejeitado { background-color: var(--danger); color: white; }
@@ -1166,7 +1167,7 @@
       window.AppState = AppState; // Expor para depuração no console
 
       // Constantes para caminhos do DB, evitando "magic strings"
-      const STATUS = { PENDENTE: 'Pendente', CONFIRMADO: 'Confirmado', FINALIZADO: 'Finalizado', REJEITADO: 'Rejeitado', CANCELADO: 'Cancelado' };
+      const STATUS = { PENDENTE: 'Pendente', CIENTE: 'Ciente', CONFIRMADO: 'Confirmado', FINALIZADO: 'Finalizado', REJEITADO: 'Rejeitado', CANCELADO: 'Cancelado' };
       const DB_PATHS = { VIAGENS: 'viagens', FOLGAS: 'folgas', UNIDADES: 'unidades', EQUIPE: 'equipe', MOTORISTA: 'motorista' };
 
       /*
@@ -1889,9 +1890,17 @@
           solicitanteNome: solicitante.nome, 
           solicitanteUID: solicitante.uid,
           setor: document.getElementById("setor").value, saida, chegada, motivo: document.getElementById("motivo").value, 
-          trajetoExibicao: trajetoString, status: STATUS.PENDENTE, 
+          trajetoExibicao: trajetoString, 
           roteiroArray: AppState.roteiroAtual
         };
+        
+        // Se é edição, preservar o status atual; se é novo, começar com PENDENTE
+        if(id) {
+          const viagemAtual = AppState.viagens.find(v => v.id === id);
+          dados.status = viagemAtual ? viagemAtual.status : STATUS.PENDENTE;
+        } else {
+          dados.status = STATUS.PENDENTE;
+        }
         
         const motoristaNome = AppState.unidade.motorista.nome;
         const dataSaidaFormatada = new Date(dados.saida).toLocaleString('pt-BR');
@@ -1938,10 +1947,12 @@
         const dataRetornoFormatada = new Date(v.chegada).toLocaleString('pt-BR');
 
         let msgReenvio;
-        if (v.status === 'Confirmado') {
+        if (v.status === STATUS.CONFIRMADO) {
           msgReenvio = `🔄 *LEMBRETE DE VIAGEM CONFIRMADA*\n\n(Este é um lembrete para uma viagem que já foi confirmada)\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${v.trajetoExibicao}\n📝 *Motivo:* ${v.motivo || ''}\n\n*Esta viagem já está confirmada na agenda do motorista.*`;
+        } else if (v.status === STATUS.CIENTE) {
+          msgReenvio = `👁️ *VIAGEM AGUARDANDO CONFIRMAÇÃO*\n\n(Administração já conferiu esta viagem)\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${v.trajetoExibicao}\n📝 *Motivo:* ${v.motivo || ''}\n\n✅ *Administração já conferiu a viagem!*\n\n*Por favor, acesse o aplicativo para confirmar ou recusar esta viagem.*`;
         } else {
-          msgReenvio = `🔄 *REENVIO DE SOLICITAÇÃO DE VIAGEM*\n\n(Esta é uma notificação reenviada para uma viagem já solicitada)\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${v.trajetoExibicao}\n📝 *Motivo:* ${v.motivo || ''}\n\n*Acesse o aplicativo para confirmar ou recusar a viagem.*`;
+          msgReenvio = `🔄 *REENVIO DE SOLICITAÇÃO DE VIAGEM*\n\n(Esta é uma notificação reenviada para uma viagem já solicitada)\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${v.trajetoExibicao}\n📝 *Motivo:* ${v.motivo || ''}\n\n*Acesse o aplicativo para confirmar ou recusar a viagem.*`;
         }
 
         const telMotorista = AppState.unidade.motorista.tel;
@@ -2002,13 +2013,13 @@
 
                 // Contabiliza para o Dashboard
                 total++;
-                if (status === STATUS.PENDENTE) pendentes++;
+                if (status === STATUS.PENDENTE || status === STATUS.CIENTE) pendentes++;
                 else if (status === STATUS.CONFIRMADO || status === STATUS.FINALIZADO) concluidas++;
                 else if (status === STATUS.CANCELADO || status === STATUS.REJEITADO) canceladas++;
 
                 const nomeParaExibir = getNomeSolicitante(v);
                 const classeLinha = (status === STATUS.FINALIZADO || status === STATUS.CANCELADO) ? 'linha-confirmada' : '';
-                const badgeCor = status === STATUS.CONFIRMADO ? 'status-confirmado' : status === STATUS.FINALIZADO ? 'status-finalizado' : status === STATUS.REJEITADO ? 'status-rejeitado' : status === STATUS.CANCELADO ? 'status-cancelado' : 'status-pendente';
+                const badgeCor = status === STATUS.CONFIRMADO ? 'status-confirmado' : status === STATUS.FINALIZADO ? 'status-finalizado' : status === STATUS.REJEITADO ? 'status-rejeitado' : status === STATUS.CANCELADO ? 'status-cancelado' : status === STATUS.CIENTE ? 'status-ciente' : 'status-pendente';
                 
                 const tr = document.createElement('tr');
                 tr.className = classeLinha;
@@ -2071,11 +2082,19 @@
           const temPermissao = AppState.user.podeTudo || v.registradoPor === AppState.user.email || v.solicitanteUID === AppState.user.uid;
           let btns = "";
           if (temPermissao && status !== STATUS.FINALIZADO && status !== STATUS.CANCELADO) btns += `<button class="btn-edit" aria-label="Editar viagem" onclick="prepararEdicao('${v.id}')" title="Editar viagem">✏️</button>`;
-          if (temPermissao && (status === STATUS.PENDENTE || status === STATUS.CONFIRMADO)) btns += `<button aria-label="Reenviar notificação" style="background:#3498db; color:white; width: 36px; height: 36px; padding: 0; font-size: 1.1em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" onclick="reenviarNotificacao('${v.id}')" title="Reenviar notificação para o motorista">🔄</button>`;
-          if ((AppState.user.isMotorista || AppState.user.podeTudo) && status === STATUS.PENDENTE) {
+          if (temPermissao && (status === STATUS.PENDENTE || status === STATUS.CIENTE || status === STATUS.CONFIRMADO)) btns += `<button aria-label="Reenviar notificação" style="background:#3498db; color:white; width: 36px; height: 36px; padding: 0; font-size: 1.1em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" onclick="reenviarNotificacao('${v.id}')" title="Reenviar notificação para o motorista">🔄</button>`;
+          
+          // Botão para administrador dar ciência da viagem
+          if ((AppState.user.podeTudo) && status === STATUS.PENDENTE) {
+              btns += `<button aria-label="Dar ciência da viagem" style="background:#f39c12; color:white; width: 36px; height: 36px; padding: 0; font-size: 1.1em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" onclick="darCiencia('${v.id}')" title="Dar ciência da viagem para o motorista confirmar">👁️</button>`;
+          }
+          
+          // Botões para motorista confirmar/rejeitar apenas após administrador dar ciência
+          if ((AppState.user.isMotorista || AppState.user.podeTudo) && status === STATUS.CIENTE) {
               btns += `<button class="btn-confirm" aria-label="Confirmar viagem" onclick="confirmar('${v.id}')" title="Confirmar viagem">✅</button>`;
               btns += `<button class="btn-reject" aria-label="Rejeitar viagem" onclick="rejeitar('${v.id}')" title="Rejeitar viagem">❌</button>`;
           }
+          
           if ((AppState.user.isMotorista || AppState.user.podeTudo) && status === STATUS.CONFIRMADO) btns += `<button aria-label="Reenviar confirmação" style="background:#27ae60; color:white; width: 36px; height: 36px; padding: 0; font-size: 1.1em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" onclick="reenviarConfirmacao('${v.id}')" title="Reenviar confirmação para o solicitante">🔄</button>`;
           if (temPermissao && status !== STATUS.FINALIZADO && status !== STATUS.CANCELADO && status !== STATUS.REJEITADO) btns += `<button aria-label="Cancelar viagem" style="background:#e67e22; color:white; width: 36px; height: 36px; padding: 0; font-size: 1.1em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" onclick="cancelar('${v.id}')" title="Cancelar viagem">🚫</button>`;
           if (status !== STATUS.FINALIZADO && status !== STATUS.CANCELADO) btns += `<button aria-label="Abrir rota no mapa" style="background:#16a085; color:white; width: 36px; height: 36px; padding: 0; font-size: 1.1em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" onclick="abrirRotaGoogleMaps('${v.id}')" title="Abrir rota no Google Maps">🗺️</button>`;
@@ -2142,6 +2161,21 @@
               }
               showToast("Viagem rejeitada! Solicitante notificado.", "success");
           }).catch(err => alert("Erro ao rejeitar: " + err.message));
+      };
+
+      window.darCiencia = (id) => {
+          const v = AppState.viagens.find(x => x.id === id);
+          if(!v) return alert("Viagem não encontrada!");
+          update(getRegionalRef(DB_PATHS.VIAGENS, id), {status: STATUS.CIENTE}).then(() => {              
+              registrarLog('Ciência de Viagem', `Viagem ID ${id} de ${v.solicitanteNome} recebeu ciência do administrador.`);
+              const telMotorista = AppState.unidade.motorista.tel;
+              const dataSaidaFormatada = new Date(v.saida).toLocaleString('pt-BR');
+              const msgCiencia = `👁️ *VIAGEM AGUARDANDO CONFIRMAÇÃO*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n📍 *Roteiro:* ${v.trajetoExibicao.replace(/\n/g, ' ')}\n📝 *Motivo:* ${v.motivo || 'Não especificado'}\n\n✅ *Administração já conferiu a viagem!*\n\nPor favor, acesse o aplicativo para confirmar ou recusar esta viagem.`;
+              if(telMotorista) {
+                window.open(`https://wa.me/${telMotorista}?text=${encodeURIComponent(msgCiencia)}`, '_blank');
+              }
+              showToast("Ciência registrada! Motorista notificado.", "success");
+          }).catch(err => alert("Erro ao dar ciência: " + err.message));
       };
 
       window.deletar = (id) => { 
