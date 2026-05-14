@@ -1813,8 +1813,12 @@
                 viagensFirebase.forEach(v => {
                     const viagemAntiga = AppState.viagens.find(antiga => antiga.id === v.id);
                     
-                    if (AppState.user.isMotorista && !viagemAntiga && v.status === STATUS.PENDENTE) {
-                        mostrarNotificacaoPush('Novo Agendamento 🚘', `Solicitante: ${v.solicitanteNome}\nSaída: ${new Date(v.saida).toLocaleString('pt-BR')}`);
+                    if (AppState.user.isMotorista) {
+                        if (!viagemAntiga && v.status === STATUS.PENDENTE) {
+                            mostrarNotificacaoPush('Novo Agendamento 🚘', `Solicitante: ${v.solicitanteNome}\nSaída: ${new Date(v.saida).toLocaleString('pt-BR')}`);
+                        } else if (viagemAntiga && (viagemAntiga.saida !== v.saida || viagemAntiga.chegada !== v.chegada || viagemAntiga.trajetoExibicao !== v.trajetoExibicao)) {
+                            mostrarNotificacaoPush('Viagem Editada 🔄', `A viagem de ${v.solicitanteNome} foi alterada.\nVerifique as novas informações na agenda.`);
+                        }
                     }
                     
                     if (!AppState.user.isMotorista && AppState.user.uid === v.solicitanteUID && viagemAntiga && viagemAntiga.status !== v.status) {
@@ -1847,31 +1851,6 @@
         // Fallback para registros muito antigos que podem ter apenas o campo 'solicitante'
         if (v.solicitante) return v.solicitante; 
         return null; // Retorna null para que o || 'N/D' funcione
-      }
-
-      function obterTelefoneAdmin() {
-        // Procura pelo administrador na equipe da unidade
-        // Admins conhecidos: Welder, Esther, Silvana
-        const emailsAdmin = [
-          "welder.rios@defensoria.ba.def.br",
-          "esther.bobbio@defensoria.ba.def.br",
-          "silvana.cardoso@defensoria.ba.def.br"
-        ];
-        
-        // Primeiro tenta encontrar o admin atual (se estiver logado)
-        if (AppState.user.podeTudo && AppState.user.telefone) {
-          return AppState.user.telefone;
-        }
-        
-        // Procura na equipe por algum admin conhecido
-        for (let admin of AppState.unidade.equipe) {
-          if (emailsAdmin.includes(admin.email) && admin.telefone) {
-            return admin.telefone;
-          }
-        }
-        
-        // Se não encontrar, retorna null
-        return null;
       }
 
       function temConflito(novaSaida, novaChegada, ignorarId = null) {
