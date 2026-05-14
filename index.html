@@ -698,7 +698,7 @@
         <div class="dash-card border-warning"><div class="dash-title">Pendentes</div><div class="dash-value" id="dash-pendentes">0</div></div>
         <div class="dash-card border-success"><div class="dash-title">Confirmadas / Fim</div><div class="dash-value" id="dash-concluidas">0</div></div>
         <div class="dash-card border-danger"><div class="dash-title">Canceladas / Rej.</div><div class="dash-value" id="dash-canceladas">0</div></div>
-        <div class="dash-card border-info"><div class="dash-title">Falta Ciência</div><div class="dash-value" id="dash-ciencia">0</div></div>
+        <div id="card-falta-ciencia" class="dash-card border-info hidden"><div class="dash-title">Falta Ciência</div><div class="dash-value" id="dash-ciencia">0</div></div>
       </div>
 
       <div style="overflow-x:auto;"><table class="table-custom"><thead class="table-header-custom"><tr><th style="padding:12px;">Status</th><th style="padding:12px;">Saída</th><th style="padding:12px;">Retorno</th><th style="padding:12px;">Solicitante</th><th style="padding:12px;">Motivo</th><th style="padding:12px;">Roteiro</th><th style="padding:12px; text-align:center;">Ações</th></tr></thead><tbody id="tb-corpo"></tbody></table></div>
@@ -1665,6 +1665,14 @@
               // O formulário de agendamento fica oculto para qualquer usuário com perfil de motorista.
               if (AppState.user.isMotorista) {
                 document.getElementById('form-content').classList.add('hidden');
+              }
+              
+              // O card "Falta Ciência" fica visível apenas para admin e motorista
+              const cardFaltaCiencia = document.getElementById('card-falta-ciencia');
+              if (AppState.user.podeTudo || AppState.user.isMotorista) {
+                cardFaltaCiencia.classList.remove('hidden');
+              } else {
+                cardFaltaCiencia.classList.add('hidden');
               }
 
               solicitarPermissaoNotificacao();
