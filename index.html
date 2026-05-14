@@ -1210,6 +1210,13 @@
         return unsafe.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
       }
 
+      // Função auxiliar para formatar números para links do WhatsApp
+      function formatarTelefoneWpp(tel) {
+        if (!tel) return '';
+        let phone = String(tel).replace(/\D/g, '');
+        return (phone.length > 9 && !phone.startsWith('55')) ? '55' + phone : phone;
+      }
+
       window.togglePassword = (id) => { const i = document.getElementById(id); i.type = i.type === "password" ? "text" : "password"; };
       window.toggleHelpModal = (show) => {
         const modal = document.getElementById('help-modal');
@@ -1948,8 +1955,7 @@
             const telMotorista = AppState.unidade.motorista.tel;
             const msgEdicao = `🔄 *VIAGEM EDITADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${dados.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${dados.trajetoExibicao}\n📝 *Motivo:* ${dados.motivo}\n\n*A viagem foi editada. Acesse o aplicativo para confirmar ou recusar.*`;
             if (telMotorista) {
-              let phone = String(telMotorista).replace(/\D/g, '');
-              if (phone.length > 9 && !phone.startsWith('55')) phone = '55' + phone;
+              let phone = formatarTelefoneWpp(telMotorista);
               window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msgEdicao)}`, '_blank');
             }
             resetForm();
@@ -1963,8 +1969,7 @@
             // Enviar mensagem direto para o motorista
             const telMotorista = AppState.unidade.motorista.tel;
             if (telMotorista) {
-              let phone = String(telMotorista).replace(/\D/g, '');
-              if (phone.length > 9 && !phone.startsWith('55')) phone = '55' + phone;
+              let phone = formatarTelefoneWpp(telMotorista);
               window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msgMotorista)}`, '_blank');
               showToast("Viagem salva! Mensagem enviada para o motorista.", "success");
             } else {
@@ -1979,8 +1984,7 @@
       window.abrirWhatsAppManual = () => { 
         if (!AppState.dadosWppTemp) return alert("Não há dados de notificação para enviar. Por favor, salve uma nova viagem primeiro.");
         const telMotorista = AppState.unidade.motorista.tel;
-        let phone = String(telMotorista).replace(/\D/g, '');
-        if (phone.length > 9 && !phone.startsWith('55')) phone = '55' + phone;
+        let phone = formatarTelefoneWpp(telMotorista);
         const encodedMsg = encodeURIComponent(AppState.dadosWppTemp);
         window.open(`https://wa.me/${phone}?text=${encodedMsg}`, '_blank', 'noopener,noreferrer');
         AppState.dadosWppTemp = "";
@@ -2004,8 +2008,7 @@
         }
 
         const telMotorista = AppState.unidade.motorista.tel;
-        let phone = String(telMotorista).replace(/\D/g, '');
-        if (phone.length > 9 && !phone.startsWith('55')) phone = '55' + phone;
+        let phone = formatarTelefoneWpp(telMotorista);
         const encodedMsg = encodeURIComponent(msgReenvio);
         window.open(`https://wa.me/${phone}?text=${encodedMsg}`, '_blank');
       };
@@ -2021,8 +2024,7 @@
         const dataRetornoFormatada = new Date(v.chegada).toLocaleString('pt-BR');
         const msgConfReenvio = `🔄 *REENVIO DE CONFIRMAÇÃO DE VIAGEM*\n\n(Esta é uma notificação reenviada para uma viagem já confirmada)\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:* ${v.trajetoExibicao.replace(/\n/g, ' ')}\n\nSua viagem foi confirmada pelo motorista!`;
         
-        let phone = String(solicitante.telefone).replace(/\D/g, '');
-        if (phone.length > 9 && !phone.startsWith('55')) phone = '55' + phone;
+        let phone = formatarTelefoneWpp(solicitante.telefone);
         window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msgConfReenvio)}`, '_blank');
         alert("Notificação de confirmação reenviada para o solicitante.");
       };
@@ -2180,8 +2182,7 @@
           const quemCancelou = AppState.user.podeTudo ? "A administração" : "O solicitante";
           const msgCancelamento = `🚫 *VIAGEM CANCELADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída Original:* ${dataSaidaFormatada}\n🔙 *Retorno Original:* ${dataRetornoFormatada}\n📍 *Roteiro:* ${v.trajetoExibicao.replace(/\n/g, ' ')}\n\n${quemCancelou} cancelou esta viagem no sistema. Por favor, desconsidere-a da sua agenda.`;
           if(telMotorista) {
-            let phone = String(telMotorista).replace(/\D/g, '');
-            if (phone.length > 9 && !phone.startsWith('55')) phone = '55' + phone;
+            let phone = formatarTelefoneWpp(telMotorista);
             window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msgCancelamento)}`, '_blank');
           } else {
             alert("Telefone do motorista não encontrado.");
@@ -2210,8 +2211,7 @@
               const dataRetornoFormatada = new Date(v.chegada).toLocaleString('pt-BR');
               const msgConf = `✅ *VIAGEM CONFIRMADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:* ${v.trajetoExibicao.replace(/\n/g, ' ')}\n\nSua viagem foi confirmada pelo motorista!`;
               if(telSol) {
-                let phone = String(telSol).replace(/\D/g, '');
-                if (phone.length > 9 && !phone.startsWith('55')) phone = '55' + phone;
+                let phone = formatarTelefoneWpp(telSol);
                 window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msgConf)}`, '_blank');
               }
               showToast("Viagem confirmada! Solicitante notificado.", "success");
@@ -2229,8 +2229,7 @@
               const dataRetornoFormatada = new Date(v.chegada).toLocaleString('pt-BR');
               const msgRejeicao = `❌ *VIAGEM REJEITADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:* ${v.trajetoExibicao.replace(/\n/g, ' ')}\n\nInfelizmente, sua viagem foi rejeitada pelo motorista. Tente agendar em outro horário.`;
               if(telSol) {
-                let phone = String(telSol).replace(/\D/g, '');
-                if (phone.length > 9 && !phone.startsWith('55')) phone = '55' + phone;
+                let phone = formatarTelefoneWpp(telSol);
                 window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msgRejeicao)}`, '_blank');
               }
               showToast("Viagem rejeitada! Solicitante notificado.", "success");
