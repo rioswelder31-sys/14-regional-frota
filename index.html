@@ -2122,7 +2122,7 @@
           if (temPermissao && (status === STATUS.PENDENTE || status === STATUS.CIENTE || status === STATUS.CONFIRMADO)) btns += `<button aria-label="Reenviar notificação" style="background:#3498db; color:white; width: 36px; height: 36px; padding: 0; font-size: 1.1em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" onclick="reenviarNotificacao('${v.id}')" title="Reenviar notificação para o motorista">🔄</button>`;
           
           // Botão para administrador dar ciência da viagem
-          if ((AppState.user.podeTudo) && status === STATUS.PENDENTE) {
+          if (AppState.user.podeTudo && !v.cienciaAdmin && status !== STATUS.CIENTE) {
               btns += `<button aria-label="Dar ciência da viagem" style="background:#f39c12; color:white; width: 36px; height: 36px; padding: 0; font-size: 1.1em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" onclick="darCiencia('${v.id}')" title="Dar ciência da viagem (Apenas controle interno)">👁️</button>`;
           }
           
@@ -2209,7 +2209,13 @@
       window.darCiencia = (id) => {
           const v = AppState.viagens.find(x => x.id === id);
           if(!v) return alert("Viagem não encontrada!");
-          update(getRegionalRef(DB_PATHS.VIAGENS, id), {status: STATUS.CIENTE}).then(() => {              
+          
+          const updates = { cienciaAdmin: true };
+          if (v.status === STATUS.PENDENTE) {
+              updates.status = STATUS.CIENTE;
+          }
+          
+          update(getRegionalRef(DB_PATHS.VIAGENS, id), updates).then(() => {              
               registrarLog('Ciência de Viagem', `Viagem ID ${id} de ${v.solicitanteNome} recebeu ciência do administrador para controle interno.`);
               showToast("Ciência registrada para controle interno.", "success");
           }).catch(err => alert("Erro ao dar ciência: " + err.message));
