@@ -742,8 +742,8 @@
         <p><strong>BUFFER DE 5 MINUTOS:</strong> O sistema impede agendamentos "colados". É necessário um intervalo mínimo de 5 minutos entre o fim de uma viagem e o início da próxima para o mesmo veículo.</p>
         <p><strong>BLOQUEIOS (FOLGAS/MANUTENÇÃO):</strong> O SAD bloqueia salvamentos em datas indisponíveis. Administradores e motoristas podem criar, editar (✏️) e excluir (🗑️) bloqueios diretamente no painel superior. Após salvar, o formulário é limpo automaticamente.</p>
     
-        <h4>🚛 PAINEL DO MOTORISTA & GPS</h4>
-        <p><strong>ACEITE REAL-TIME:</strong> O motorista possui botões de ✅ Confirmar ou ❌ Rejeitar com retorno automático via Zap, mas APENAS após o administrador dar ciência.</p>
+        <h4>� PAINEL DO MOTORISTA & GPS</h4>
+        <p><strong>ACEITE REAL-TIME:</strong> O motorista possui botões de ✅ Confirmar ou ❌ Rejeitar disponíveis no status "Pendente" e pode confirmar ou rejeitar a viagem em qualquer momento, independentemente de o administrador ter dado ciência.</p>
         <p><strong>MAPA INTELIGENTE 🗺️:</strong> Ao clicar no ícone de Mapa, o Google Maps abre com todo o roteiro (todas as paradas) já traçado em ordem.</p>
     
         <h4>📊 GESTÃO E EXPORTAÇÃO</h4>
@@ -803,9 +803,9 @@
             </div>
           </div>
           <div class="accordion-item">
-            <button class="accordion-question" onclick="toggleAccordion(this)">O motorista não respondeu. Como mando os dados de novo?</button>
+            <button class="accordion-question" onclick="toggleAccordion(this)">Como reenviar uma viagem para o administrador?</button>
             <div class="accordion-answer">
-              <p><strong>R:</strong> Na tabela "Agenda de Viagens", localize sua solicitação e clique no botão [🔄 Reenviar]. Se estiver "Pendente", reenvia para o admin. Se estiver "Ciente", reenvia para o motorista. O sistema gerará uma nova notificação no WhatsApp.</p>
+              <p><strong>R:</strong> Na tabela "Agenda de Viagens", localize sua solicitação e clique no botão [🔄 Reenviar]. Se estiver "Pendente", reenvia para o administrador revisar. Se estiver "Ciente", reenvia para o motorista. O sistema gerará uma nova notificação no WhatsApp.</p>
             </div>
           </div>
           <div class="accordion-item">
@@ -817,7 +817,13 @@
           <div class="accordion-item">
             <button class="accordion-question" onclick="toggleAccordion(this)">O que acontece quando o motorista clica em Confirmar ou Rejeitar?</button>
             <div class="accordion-answer">
-              <p><strong>R:</strong> O motorista só vê esses botões após o administrador dar ciência da viagem. Quando clica em Confirmar ou Rejeitar, o status muda instantaneamente na agenda e o sistema abre o WhatsApp para enviar uma confirmação (ou aviso de recusa) automática para o solicitante.</p>
+              <p><strong>R:</strong> Quando o motorista clica em Confirmar ou Rejeitar, o status muda instantaneamente na agenda e o sistema abre o WhatsApp para enviar uma confirmação (ou aviso de recusa) automática para o solicitante. Isso pode acontecer em qualquer momento, mesmo antes do admin dar ciência.</p>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-question" onclick="toggleAccordion(this)">O motorista precisa esperar o admin dar ciência para confirmar?</button>
+            <div class="accordion-answer">
+              <p><strong>R:</strong> Não! O motorista pode confirmar ou rejeitar a viagem diretamente quando ela está em status "Pendente", sem depender da ação do administrador. Os botões de ✅ Confirmar e ❌ Rejeitar estão sempre disponíveis.</p>
             </div>
           </div>
           <div class="accordion-item">
@@ -1623,7 +1629,7 @@
           const isWelder = AppState.user.email === "welder.rios@defensoria.ba.def.br";
           const isEsther = AppState.user.email === "esther.bobbio@defensoria.ba.def.br";
           const isSilvana = AppState.user.email === "silvana.cardoso@defensoria.ba.def.br";
-          AppState.user.podeTudo = isWelder || (isEsther && AppState.regionalID === 'EUNAPOLIS') || (isSilvana && (AppState.regionalID === 'PORTO SEGURO' || AppState.regionalID === 'EUNAPOLIS'));          
+          AppState.user.podeTudo = isWelder || (isEsther && AppState.regionalID === 'EUNAPOLIS') || (isSilvana && AppState.regionalID === 'PORTO SEGURO');          
 
           document.querySelectorAll('[id$="-screen"]').forEach(c => c.classList.add('hidden'));
           document.getElementById('app-screen').classList.remove('hidden');
@@ -2132,8 +2138,8 @@
               btns += `<button aria-label="Dar ciência da viagem" style="background:#f39c12; color:white; width: 36px; height: 36px; padding: 0; font-size: 1.1em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" onclick="darCiencia('${v.id}')" title="Dar ciência da viagem para o motorista confirmar">👁️</button>`;
           }
           
-          // Botões para motorista confirmar/rejeitar apenas após administrador dar ciência
-          if ((AppState.user.isMotorista || AppState.user.podeTudo) && status === STATUS.CIENTE) {
+          // Botões para motorista confirmar/rejeitar em qualquer momento (mesmo antes do admin dar ciência)
+          if ((AppState.user.isMotorista || AppState.user.podeTudo) && (status === STATUS.PENDENTE || status === STATUS.CIENTE)) {
               btns += `<button class="btn-confirm" aria-label="Confirmar viagem" onclick="confirmar('${v.id}')" title="Confirmar viagem">✅</button>`;
               btns += `<button class="btn-reject" aria-label="Rejeitar viagem" onclick="rejeitar('${v.id}')" title="Rejeitar viagem">❌</button>`;
           }
