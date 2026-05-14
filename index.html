@@ -163,6 +163,7 @@
       .status-rejeitado { background-color: var(--danger); color: white; }
       .status-cancelado { background-color: #d35400; color: white; }
       .linha-confirmada { background-color: #d4edda !important; color: #155724; }
+      .linha-ciente { background-color: #fffbe6 !important; }
       .btn-confirm { background: var(--success); color: white; width: auto; padding: 8px 12px; font-size: 0.9em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer; }
       .btn-reject { background: var(--danger); color: white; width: auto; padding: 8px 12px; font-size: 0.9em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer; }
 
@@ -408,6 +409,9 @@
         background-color: #2c5282 !important;
         color: #bee3f8;
       }
+      html[data-theme="dark"] .linha-ciente {
+        background-color: #3b3524 !important;
+      }
 
       html[data-theme="dark"] .btn-outline {
         background: #2D3748;
@@ -450,6 +454,7 @@
       .border-warning { border-left-color: var(--warning); }
       .border-success { border-left-color: var(--success); }
       .border-danger { border-left-color: var(--danger); }
+      .border-info { border-left-color: #17a2b8; }
       html[data-theme="dark"] .dash-card { background: #2D3748; box-shadow: 0 2px 10px rgba(0,0,0,0.2); border-color: transparent; border-left-color: inherit; }
       html[data-theme="dark"] .dash-title { color: #A0AEC0; }
       html[data-theme="dark"] .dash-value { color: #F7FAFC; }
@@ -693,6 +698,7 @@
         <div class="dash-card border-warning"><div class="dash-title">Pendentes</div><div class="dash-value" id="dash-pendentes">0</div></div>
         <div class="dash-card border-success"><div class="dash-title">Confirmadas / Fim</div><div class="dash-value" id="dash-concluidas">0</div></div>
         <div class="dash-card border-danger"><div class="dash-title">Canceladas / Rej.</div><div class="dash-value" id="dash-canceladas">0</div></div>
+        <div class="dash-card border-info"><div class="dash-title">Falta Ciência</div><div class="dash-value" id="dash-ciencia">0</div></div>
       </div>
 
       <div style="overflow-x:auto;"><table class="table-custom"><thead class="table-header-custom"><tr><th style="padding:12px;">Status</th><th style="padding:12px;">Saída</th><th style="padding:12px;">Retorno</th><th style="padding:12px;">Solicitante</th><th style="padding:12px;">Motivo</th><th style="padding:12px;">Roteiro</th><th style="padding:12px; text-align:center;">Ações</th></tr></thead><tbody id="tb-corpo"></tbody></table></div>
@@ -2018,7 +2024,7 @@
 
         tb.innerHTML = ""; // Limpa a tabela de uma vez
         
-        let total = 0, pendentes = 0, concluidas = 0, canceladas = 0;
+        let total = 0, pendentes = 0, concluidas = 0, canceladas = 0, faltaCiencia = 0;
 
         if (viagensParaExibir.length === 0) {
             const selectMes = document.getElementById('filtro-mes');
@@ -2029,6 +2035,7 @@
             document.getElementById('dash-pendentes').innerText = '0';
             document.getElementById('dash-concluidas').innerText = '0';
             document.getElementById('dash-canceladas').innerText = '0';
+            document.getElementById('dash-ciencia').innerText = '0';
             return;
         }
 
@@ -2053,9 +2060,12 @@
                 if (status === STATUS.PENDENTE || status === STATUS.CIENTE) pendentes++;
                 else if (status === STATUS.CONFIRMADO || status === STATUS.FINALIZADO) concluidas++;
                 else if (status === STATUS.CANCELADO || status === STATUS.REJEITADO) canceladas++;
+                
+                if (!v.cienciaAdmin && status !== STATUS.CIENTE && status !== STATUS.CANCELADO && status !== STATUS.REJEITADO) faltaCiencia++;
 
                 const nomeParaExibir = getNomeSolicitante(v);
-                const classeLinha = (status === STATUS.FINALIZADO || status === STATUS.CANCELADO) ? 'linha-confirmada' : '';
+                let classeLinha = (status === STATUS.FINALIZADO || status === STATUS.CANCELADO) ? 'linha-confirmada' : '';
+                if (!classeLinha && v.cienciaAdmin) classeLinha = 'linha-ciente';
                 const badgeCor = status === STATUS.CONFIRMADO ? 'status-confirmado' : status === STATUS.FINALIZADO ? 'status-finalizado' : status === STATUS.REJEITADO ? 'status-rejeitado' : status === STATUS.CANCELADO ? 'status-cancelado' : status === STATUS.CIENTE ? 'status-ciente' : 'status-pendente';
                 
                 const tr = document.createElement('tr');
@@ -2063,11 +2073,19 @@
 
                 // Célula Status
                 const tdStatus = tr.insertCell();
-                tdStatus.style.cssText = 'padding:12px; text-align:center';
+                tdStatus.style.cssText = 'padding:12px; text-align:center; white-space:nowrap;';
                 const statusBadge = document.createElement('span');
                 statusBadge.className = `status-badge ${badgeCor}`;
                 statusBadge.textContent = status;
                 tdStatus.appendChild(statusBadge);
+                
+                if (v.cienciaAdmin) {
+                    const cienciaIcon = document.createElement('span');
+                    cienciaIcon.innerHTML = '👁️✓';
+                    cienciaIcon.title = 'Ciência registrada pela administração';
+                    cienciaIcon.style.cssText = 'font-size: 0.95em; margin-left: 6px; cursor: help; color: #f39c12;';
+                    tdStatus.appendChild(cienciaIcon);
+                }
 
                 // Célula Saída
                 const tdSaida = tr.insertCell();
@@ -2110,6 +2128,7 @@
         document.getElementById('dash-pendentes').innerText = pendentes;
         document.getElementById('dash-concluidas').innerText = concluidas;
         document.getElementById('dash-canceladas').innerText = canceladas;
+        document.getElementById('dash-ciencia').innerText = faltaCiencia;
 
         tb.innerHTML = ''; // Limpa a tabela antes de adicionar o novo conteúdo
         tb.appendChild(fragment);
