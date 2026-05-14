@@ -2018,7 +2018,8 @@
         if (!solicitante || !solicitante.telefone) return alert(`Telefone do solicitante '${v.solicitanteNome}' não encontrado para enviar a notificação.`);
 
         const dataSaidaFormatada = new Date(v.saida).toLocaleString('pt-BR');
-        const msgConfReenvio = `🔄 *REENVIO DE CONFIRMAÇÃO DE VIAGEM*\n\n(Esta é uma notificação reenviada para uma viagem já confirmada)\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n📍 *Roteiro:* ${v.trajetoExibicao.replace(/\n/g, ' ')}\n\nSua viagem foi confirmada pelo motorista!`;
+        const dataRetornoFormatada = new Date(v.chegada).toLocaleString('pt-BR');
+        const msgConfReenvio = `🔄 *REENVIO DE CONFIRMAÇÃO DE VIAGEM*\n\n(Esta é uma notificação reenviada para uma viagem já confirmada)\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:* ${v.trajetoExibicao.replace(/\n/g, ' ')}\n\nSua viagem foi confirmada pelo motorista!`;
         
         let phone = String(solicitante.telefone).replace(/\D/g, '');
         if (phone.length > 9 && !phone.startsWith('55')) phone = '55' + phone;
@@ -2175,8 +2176,9 @@
         if(confirm("Deseja avisar o motorista sobre o cancelamento via WhatsApp agora?")) {
           const telMotorista = AppState.unidade.motorista.tel;
           const dataSaidaFormatada = new Date(v.saida).toLocaleString('pt-BR');
+          const dataRetornoFormatada = new Date(v.chegada).toLocaleString('pt-BR');
           const quemCancelou = AppState.user.podeTudo ? "A administração" : "O solicitante";
-          const msgCancelamento = `🚫 *VIAGEM CANCELADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída Original:* ${dataSaidaFormatada}\n📍 *Roteiro:* ${v.trajetoExibicao.replace(/\n/g, ' ')}\n\n${quemCancelou} cancelou esta viagem no sistema. Por favor, desconsidere-a da sua agenda.`;
+          const msgCancelamento = `🚫 *VIAGEM CANCELADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída Original:* ${dataSaidaFormatada}\n🔙 *Retorno Original:* ${dataRetornoFormatada}\n📍 *Roteiro:* ${v.trajetoExibicao.replace(/\n/g, ' ')}\n\n${quemCancelou} cancelou esta viagem no sistema. Por favor, desconsidere-a da sua agenda.`;
           if(telMotorista) {
             let phone = String(telMotorista).replace(/\D/g, '');
             if (phone.length > 9 && !phone.startsWith('55')) phone = '55' + phone;
@@ -2205,7 +2207,8 @@
               const solicitante = AppState.unidade.equipe.find(m => m.uid === v.solicitanteUID);
               const telSol = solicitante ? solicitante.telefone : null;
               const dataSaidaFormatada = new Date(v.saida).toLocaleString('pt-BR');
-              const msgConf = `✅ *VIAGEM CONFIRMADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n📍 *Roteiro:* ${v.trajetoExibicao.replace(/\n/g, ' ')}\n\nSua viagem foi confirmada pelo motorista!`;
+              const dataRetornoFormatada = new Date(v.chegada).toLocaleString('pt-BR');
+              const msgConf = `✅ *VIAGEM CONFIRMADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:* ${v.trajetoExibicao.replace(/\n/g, ' ')}\n\nSua viagem foi confirmada pelo motorista!`;
               if(telSol) {
                 let phone = String(telSol).replace(/\D/g, '');
                 if (phone.length > 9 && !phone.startsWith('55')) phone = '55' + phone;
@@ -2223,7 +2226,8 @@
               const solicitante = AppState.unidade.equipe.find(m => m.uid === v.solicitanteUID);
               const telSol = solicitante ? solicitante.telefone : null;
               const dataSaidaFormatada = new Date(v.saida).toLocaleString('pt-BR');
-              const msgRejeicao = `❌ *VIAGEM REJEITADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n📍 *Roteiro:* ${v.trajetoExibicao.replace(/\n/g, ' ')}\n\nInfelizmente, sua viagem foi rejeitada pelo motorista. Tente agendar em outro horário.`;
+              const dataRetornoFormatada = new Date(v.chegada).toLocaleString('pt-BR');
+              const msgRejeicao = `❌ *VIAGEM REJEITADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:* ${v.trajetoExibicao.replace(/\n/g, ' ')}\n\nInfelizmente, sua viagem foi rejeitada pelo motorista. Tente agendar em outro horário.`;
               if(telSol) {
                 let phone = String(telSol).replace(/\D/g, '');
                 if (phone.length > 9 && !phone.startsWith('55')) phone = '55' + phone;
