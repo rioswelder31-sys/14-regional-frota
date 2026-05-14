@@ -730,7 +730,7 @@
         <p><strong>ROTEIRO POR TRECHOS:</strong> Selecione Origem ➔ Destino e clique em [Add].</p>
         <p><em>Dica: Para viagens com múltiplas paradas, adicione cada trecho individualmente.</em></p>
         <p><strong>BOTÃO [LIMPAR]:</strong> Use para resetar o roteiro caso precise recomeçar a lista de cidades.</p>
-        <p><strong>FLUXO DE APROVAÇÃO:</strong> Ao salvar a viagem, o ADMINISTRADOR recebe uma mensagem no WhatsApp para revisar. Quando o admin clica em "👁️ Dar Ciência" na agenda, o MOTORISTA recebe o aviso para confirmar ou recusar.</p>
+        <p><strong>FLUXO DE APROVAÇÃO:</strong> Ao salvar a viagem, o MOTORISTA recebe uma mensagem no WhatsApp para revisar. O ADMINISTRADOR pode dar ciência na agenda apenas para controle interno. O motorista confirma ou rejeita diretamente, e o SOLICITANTE recebe a resposta automaticamente.</p>
         <p><strong>LOGS DE AUDITORIA 📜:</strong> Cada ação (criar, editar, excluir) gera um log de segurança com data, hora e seu usuário.</p>
     
         <h4>🔄 SISTEMA DE REENVIO (ANTIPERDA)</h4>
@@ -793,13 +793,13 @@
           <div class="accordion-item">
             <button class="accordion-question" onclick="toggleAccordion(this)">Como funciona a aprovação da viagem pelo administrador?</button>
             <div class="accordion-answer">
-              <p><strong>R:</strong> O fluxo possui duas etapas: 1️⃣ Ao salvar uma viagem, o ADMINISTRADOR recebe uma mensagem no WhatsApp pedindo para revisar. 2️⃣ O admin entra no aplicativo e clica no botão 👁️ "Dar Ciência" para aprovar a viagem. 3️⃣ Depois disso, o MOTORISTA recebe o alerta para confirmar ou recusar a viagem.</p>
+              <p><strong>R:</strong> O MOTORISTA recebe a notificação direto no WhatsApp assim que a viagem é criada. O ADMINISTRADOR pode dar ciência na agenda apenas para CONTROLE INTERNO - isso não afeta o fluxo. O motorista confirma ou rejeita a viagem, e o solicitante recebe a resposta.</p>
             </div>
           </div>
           <div class="accordion-item">
             <button class="accordion-question" onclick="toggleAccordion(this)">Salvei a viagem, o motorista já está sabendo?</button>
             <div class="accordion-answer">
-              <p><strong>R:</strong> Não. Primeiro o ADMINISTRADOR recebe um aviso para revisar a viagem. Após o admin dar ciência (botão 👁️), o motorista recebe o alerta para confirmar ou recusar. O sistema funciona em dois passos para maior controle.</p>
+              <p><strong>R:</strong> Sim! O MOTORISTA recebe a notificação direto no WhatsApp assim que a viagem é criada. O administrador pode dar ciência na agenda apenas para controle interno, sem gerar novas mensagens. O motorista confirma ou rejeita a viagem, e você recebe a resposta diretamente dele.</p>
             </div>
           </div>
           <div class="accordion-item">
@@ -1948,15 +1948,17 @@
 
         const msgMotorista = `🔔 *NOVO AGENDAMENTO RECEBIDO*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${dados.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${dados.trajetoExibicao}\n📝 *Motivo:* ${dados.motivo}\n\n*Acesse o aplicativo para confirmar ou recusar a viagem.*`;
 
-        const msgAdmin = `📋 *NOVA SOLICITAÇÃO DE VIAGEM PARA REVISAR*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${dados.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${dados.trajetoExibicao}\n📝 *Motivo:* ${dados.motivo}\n\n✅ *Clique em 'Dar Ciência' no aplicativo para aprovar e notificar o motorista.*`;
-
         if(id) {
           update(getRegionalRef(DB_PATHS.VIAGENS, id), dados).then(() => {
             registrarLog('Edição de Viagem', `Viagem ID ${id} para ${dados.solicitanteNome} foi editada.`);
             showToast("Viagem editada! Notifique o motorista.", "success");
             const telMotorista = AppState.unidade.motorista.tel;
             const msgEdicao = `🔄 *VIAGEM EDITADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${dados.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${dados.trajetoExibicao}\n📝 *Motivo:* ${dados.motivo}\n\n*A viagem foi editada. Acesse o aplicativo para confirmar ou recusar.*`;
-            window.open(`https://wa.me/${telMotorista}?text=${encodeURIComponent(msgEdicao)}`, '_blank');
+            if (telMotorista) {
+              let phone = String(telMotorista).replace(/\D/g, '');
+              if (phone.length > 9 && !phone.startsWith('55')) phone = '55' + phone;
+              window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msgEdicao)}`, '_blank');
+            }
             resetForm();
           });
         } else {
@@ -1965,14 +1967,16 @@
           push(getRegionalRef(DB_PATHS.VIAGENS), dados).then((newRef) => {
             registrarLog('Criação de Viagem', `Nova viagem ID ${newRef.key} para ${dados.solicitanteNome} foi criada.`);
             
-            // SEMPRE enviar para o administrador revisar
-            const telAdmin = obterTelefoneAdmin();
-            if (telAdmin) {
-              window.open(`https://wa.me/${telAdmin}?text=${encodeURIComponent(msgAdmin)}`, '_blank');
-              showToast("Viagem salva! Mensagem enviada para o administrador revisar.", "success");
+            // Enviar mensagem direto para o motorista
+            const telMotorista = AppState.unidade.motorista.tel;
+            if (telMotorista) {
+              let phone = String(telMotorista).replace(/\D/g, '');
+              if (phone.length > 9 && !phone.startsWith('55')) phone = '55' + phone;
+              window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msgMotorista)}`, '_blank');
+              showToast("Viagem salva! Mensagem enviada para o motorista.", "success");
             } else {
-              alert("Telefone do administrador não encontrado. Verifique as configurações.");
-              showToast("Erro: Não foi possível enviar para o admin.", "error");
+              alert("Telefone do motorista não encontrado. Verifique as configurações.");
+              showToast("Erro: Não foi possível enviar para o motorista.", "error");
             }
             resetForm();
           });
@@ -1982,8 +1986,10 @@
       window.abrirWhatsAppManual = () => { 
         if (!AppState.dadosWppTemp) return alert("Não há dados de notificação para enviar. Por favor, salve uma nova viagem primeiro.");
         const telMotorista = AppState.unidade.motorista.tel;
+        let phone = String(telMotorista).replace(/\D/g, '');
+        if (phone.length > 9 && !phone.startsWith('55')) phone = '55' + phone;
         const encodedMsg = encodeURIComponent(AppState.dadosWppTemp);
-        window.open(`https://wa.me/${telMotorista}?text=${encodedMsg}`, '_blank', 'noopener,noreferrer');
+        window.open(`https://wa.me/${phone}?text=${encodedMsg}`, '_blank', 'noopener,noreferrer');
         AppState.dadosWppTemp = "";
         resetForm();
       };
@@ -2005,9 +2011,10 @@
         }
 
         const telMotorista = AppState.unidade.motorista.tel;
+        let phone = String(telMotorista).replace(/\D/g, '');
+        if (phone.length > 9 && !phone.startsWith('55')) phone = '55' + phone;
         const encodedMsg = encodeURIComponent(msgReenvio);
-        
-        window.open(`https://wa.me/${telMotorista}?text=${encodedMsg}`, '_blank');
+        window.open(`https://wa.me/${phone}?text=${encodedMsg}`, '_blank');
       };
 
       window.reenviarConfirmacao = (id) => {
@@ -2020,7 +2027,9 @@
         const dataSaidaFormatada = new Date(v.saida).toLocaleString('pt-BR');
         const msgConfReenvio = `🔄 *REENVIO DE CONFIRMAÇÃO DE VIAGEM*\n\n(Esta é uma notificação reenviada para uma viagem já confirmada)\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n📍 *Roteiro:* ${v.trajetoExibicao.replace(/\n/g, ' ')}\n\nSua viagem foi confirmada pelo motorista!`;
         
-        window.open(`https://api.whatsapp.com/send?phone=55${solicitante.telefone}&text=${encodeURIComponent(msgConfReenvio)}`, '_blank');
+        let phone = String(solicitante.telefone).replace(/\D/g, '');
+        if (phone.length > 9 && !phone.startsWith('55')) phone = '55' + phone;
+        window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msgConfReenvio)}`, '_blank');
         alert("Notificação de confirmação reenviada para o solicitante.");
       };
 
@@ -2135,7 +2144,7 @@
           
           // Botão para administrador dar ciência da viagem
           if ((AppState.user.podeTudo) && status === STATUS.PENDENTE) {
-              btns += `<button aria-label="Dar ciência da viagem" style="background:#f39c12; color:white; width: 36px; height: 36px; padding: 0; font-size: 1.1em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" onclick="darCiencia('${v.id}')" title="Dar ciência da viagem para o motorista confirmar">👁️</button>`;
+              btns += `<button aria-label="Dar ciência da viagem" style="background:#f39c12; color:white; width: 36px; height: 36px; padding: 0; font-size: 1.1em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" onclick="darCiencia('${v.id}')" title="Dar ciência da viagem (Apenas controle interno)">👁️</button>`;
           }
           
           // Botões para motorista confirmar/rejeitar em qualquer momento (mesmo antes do admin dar ciência)
@@ -2163,7 +2172,9 @@
           const quemCancelou = AppState.user.podeTudo ? "A administração" : "O solicitante";
           const msgCancelamento = `🚫 *VIAGEM CANCELADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída Original:* ${dataSaidaFormatada}\n📍 *Roteiro:* ${v.trajetoExibicao.replace(/\n/g, ' ')}\n\n${quemCancelou} cancelou esta viagem no sistema. Por favor, desconsidere-a da sua agenda.`;
           if(telMotorista) {
-            window.open(`https://wa.me/${telMotorista}?text=${encodeURIComponent(msgCancelamento)}`, '_blank');
+            let phone = String(telMotorista).replace(/\D/g, '');
+            if (phone.length > 9 && !phone.startsWith('55')) phone = '55' + phone;
+            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msgCancelamento)}`, '_blank');
           } else {
             alert("Telefone do motorista não encontrado.");
           }
@@ -2190,7 +2201,9 @@
               const dataSaidaFormatada = new Date(v.saida).toLocaleString('pt-BR');
               const msgConf = `✅ *VIAGEM CONFIRMADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n📍 *Roteiro:* ${v.trajetoExibicao.replace(/\n/g, ' ')}\n\nSua viagem foi confirmada pelo motorista!`;
               if(telSol) {
-                window.open(`https://wa.me/55${telSol}?text=${encodeURIComponent(msgConf)}`, '_blank');
+                let phone = String(telSol).replace(/\D/g, '');
+                if (phone.length > 9 && !phone.startsWith('55')) phone = '55' + phone;
+                window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msgConf)}`, '_blank');
               }
               showToast("Viagem confirmada! Solicitante notificado.", "success");
           }).catch(err => alert("Erro ao confirmar: " + err.message));
@@ -2206,7 +2219,9 @@
               const dataSaidaFormatada = new Date(v.saida).toLocaleString('pt-BR');
               const msgRejeicao = `❌ *VIAGEM REJEITADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n📍 *Roteiro:* ${v.trajetoExibicao.replace(/\n/g, ' ')}\n\nInfelizmente, sua viagem foi rejeitada pelo motorista. Tente agendar em outro horário.`;
               if(telSol) {
-                window.open(`https://wa.me/55${telSol}?text=${encodeURIComponent(msgRejeicao)}`, '_blank');
+                let phone = String(telSol).replace(/\D/g, '');
+                if (phone.length > 9 && !phone.startsWith('55')) phone = '55' + phone;
+                window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msgRejeicao)}`, '_blank');
               }
               showToast("Viagem rejeitada! Solicitante notificado.", "success");
           }).catch(err => alert("Erro ao rejeitar: " + err.message));
@@ -2216,17 +2231,8 @@
           const v = AppState.viagens.find(x => x.id === id);
           if(!v) return alert("Viagem não encontrada!");
           update(getRegionalRef(DB_PATHS.VIAGENS, id), {status: STATUS.CIENTE}).then(() => {              
-              registrarLog('Ciência de Viagem', `Viagem ID ${id} de ${v.solicitanteNome} recebeu ciência do administrador.`);
-              const telMotorista = AppState.unidade.motorista.tel;
-              const dataSaidaFormatada = new Date(v.saida).toLocaleString('pt-BR');
-              const dataRetornoFormatada = new Date(v.chegada).toLocaleString('pt-BR');
-              const msgMotoristaConfirma = `✅ *VIAGEM PRONTA PARA CONFIRMAÇÃO*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${v.trajetoExibicao}\n📝 *Motivo:* ${v.motivo || 'Não especificado'}\n\n🔔 *Administração já aprovou! Acesse o aplicativo para confirmar ou recusar a viagem.*`;
-              if(telMotorista) {
-                window.open(`https://wa.me/${telMotorista}?text=${encodeURIComponent(msgMotoristaConfirma)}`, '_blank');
-              } else {
-                alert("Telefone do motorista não encontrado!");
-              }
-              showToast("Ciência registrada! Motorista notificado.", "success");
+              registrarLog('Ciência de Viagem', `Viagem ID ${id} de ${v.solicitanteNome} recebeu ciência do administrador para controle interno.`);
+              showToast("Ciência registrada para controle interno.", "success");
           }).catch(err => alert("Erro ao dar ciência: " + err.message));
       };
 
