@@ -2175,7 +2175,12 @@
         
         if(!confirm("Tem certeza que deseja cancelar esta viagem? O registro será mantido com status 'Cancelado'.")) return;
         
-        if(confirm("Deseja avisar o motorista sobre o cancelamento via WhatsApp agora?")) {
+        let avisar = v.status === STATUS.CONFIRMADO;
+        if (!avisar) {
+          avisar = confirm("Deseja avisar o motorista sobre o cancelamento via WhatsApp agora?");
+        }
+
+        if(avisar) {
           const telMotorista = AppState.unidade.motorista.tel;
           const dataSaidaFormatada = new Date(v.saida).toLocaleString('pt-BR');
           const dataRetornoFormatada = new Date(v.chegada).toLocaleString('pt-BR');
@@ -2252,13 +2257,33 @@
       };
 
       window.deletar = (id) => { 
+        const v = AppState.viagens.find(x => x.id === id);
+        if(!v) return alert("Viagem não encontrada!");
+        
         if(confirm("Tem certeza que deseja excluir esta viagem?")) { 
-          const v = AppState.viagens.find(x => x.id === id);
-          remove(getRegionalRef(DB_PATHS.VIAGENS, id)).then(() => {
-            if (v) {
-              registrarLog('Exclusão de Viagem', `Viagem de ${v.solicitanteNome} (Saída: ${new Date(v.saida).toLocaleString('pt-BR')}) foi excluída.`);
+          let avisar = v.status === STATUS.CONFIRMADO;
+          if (!avisar) {
+            avisar = confirm("Deseja avisar o motorista sobre a exclusão via WhatsApp agora?");
+          }
+          
+          if(avisar) {
+            const telMotorista = AppState.unidade.motorista.tel;
+            const dataSaidaFormatada = new Date(v.saida).toLocaleString('pt-BR');
+            const dataRetornoFormatada = new Date(v.chegada).toLocaleString('pt-BR');
+            const quemExcluiu = AppState.user.podeTudo ? "A administração" : "O solicitante";
+            const msgExclusao = `🗑️ *VIAGEM EXCLUÍDA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída Original:* ${dataSaidaFormatada}\n🔙 *Retorno Original:* ${dataRetornoFormatada}\n📍 *Roteiro:* ${v.trajetoExibicao.replace(/\n/g, ' ')}\n\n${quemExcluiu} excluiu esta viagem do sistema. Por favor, desconsidere-a da sua agenda.`;
+            if(telMotorista) {
+              let phone = formatarTelefoneWpp(telMotorista);
+              window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msgExclusao)}`, '_blank');
+            } else {
+              alert("Telefone do motorista não encontrado.");
             }
-          });
+          }
+
+          remove(getRegionalRef(DB_PATHS.VIAGENS, id)).then(() => {
+            registrarLog('Exclusão de Viagem', `Viagem de ${v.solicitanteNome} (Saída: ${new Date(v.saida).toLocaleString('pt-BR')}) foi excluída.`);
+            showToast("Viagem excluída com sucesso!", "success");
+          }).catch(err => alert("Erro ao excluir: " + err.message));
         } 
       };
       window.salvarFolga = () => { 
