@@ -628,7 +628,7 @@
         <div id="painel-add-folga" class="hidden" style="margin-top: 15px; border-top: 1px dashed #bbb; padding-top: 10px;">
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                 <input type="hidden" id="folga-id" />
-                <input type="date" id="folga-inicio" aria-label="Data de início do bloqueio" style="flex:1"><input type="date" id="folga-fim" aria-label="Data de fim do bloqueio" style="flex:1">
+                <input type="datetime-local" id="folga-inicio" aria-label="Data e hora de início do bloqueio" style="flex:1"><input type="datetime-local" id="folga-fim" aria-label="Data e hora de fim do bloqueio" style="flex:1">
                 <input type="text" id="folga-motivo" aria-label="Motivo do bloqueio" placeholder="Motivo" style="flex:2">
                 <button id="btn-salvar-folga" style="background:white; color:black; width: auto; border:1px solid #ccc;" onclick="salvarFolga()">Bloquear</button>
                 <button id="btn-cancelar-folga" class="hidden" style="background:#f8d7da; color:#721c24; width: auto; border:1px solid #f5c6cb;" onclick="limparFormFolga()">Cancelar</button>
@@ -1886,13 +1886,19 @@
         return null; // Retorna null para que o || 'N/D' funcione
       }
 
+      function parseFolgaDate(dateStr, isEnd = false) {
+        if (!dateStr) return new Date();
+        if (dateStr.includes("T")) return new Date(dateStr);
+        return new Date(dateStr + (isEnd ? "T23:59:59" : "T00:00:00"));
+      }
+
       function temConflito(novaSaida, novaChegada, ignorarId = null) {
           const buffer = 5 * 60 * 1000;
           const iniN = new Date(novaSaida).getTime();
           const fimN = new Date(novaChegada).getTime();
           for(let f of AppState.folgas) {
-              const iniF = new Date(f.inicio + "T00:00:00").getTime();
-              const fimF = new Date(f.fim + "T23:59:59").getTime();
+              const iniF = parseFolgaDate(f.inicio, false).getTime();
+              const fimF = parseFolgaDate(f.fim, true).getTime();
               if(iniN <= fimF && fimN >= iniF) return { tipo: 'folga', motivo: f.motivo };
           }
           for(let v of AppState.viagens) {
@@ -2310,13 +2316,13 @@
         
         if (id) {
           update(getRegionalRef(DB_PATHS.FOLGAS, id), dadosFolga).then(() => {
-            registrarLog('Edição de Folga/Bloqueio', `Período editado para ${new Date(inicio + "T00:00:00").toLocaleDateString('pt-BR')} a ${new Date(fim + "T00:00:00").toLocaleDateString('pt-BR')}. Motivo: ${motivo}`);
+            registrarLog('Edição de Folga/Bloqueio', `Período editado para ${parseFolgaDate(inicio, false).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })} a ${parseFolgaDate(fim, true).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}. Motivo: ${motivo}`);
             showToast('Bloqueio atualizado com sucesso!', 'success');
             limparFormFolga();
           });
         } else {
           push(getRegionalRef(DB_PATHS.FOLGAS), dadosFolga).then(() => {
-            registrarLog('Criação de Folga/Bloqueio', `Período de ${new Date(inicio + "T00:00:00").toLocaleDateString('pt-BR')} a ${new Date(fim + "T00:00:00").toLocaleDateString('pt-BR')} foi criado. Motivo: ${motivo}`);
+            registrarLog('Criação de Folga/Bloqueio', `Período de ${parseFolgaDate(inicio, false).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })} a ${parseFolgaDate(fim, true).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })} foi criado. Motivo: ${motivo}`);
             showToast('Bloqueio adicionado com sucesso!', 'success');
             limparFormFolga();
           });
@@ -2338,8 +2344,8 @@
         const folga = AppState.folgas.find(f => f.id === id);
         if (!folga) return alert('Bloqueio não encontrado!');
         
-        document.getElementById('folga-inicio').value = folga.inicio;
-        document.getElementById('folga-fim').value = folga.fim;
+        document.getElementById('folga-inicio').value = folga.inicio.includes('T') ? folga.inicio : folga.inicio + 'T00:00';
+        document.getElementById('folga-fim').value = folga.fim.includes('T') ? folga.fim : folga.fim + 'T23:59';
         document.getElementById('folga-motivo').value = folga.motivo;
         if (document.getElementById('folga-id')) document.getElementById('folga-id').value = id;
         
@@ -2354,7 +2360,7 @@
       window.deletarFolga = (id) => { 
         const folga = AppState.folgas.find(f => f.id === id);
         remove(getRegionalRef(DB_PATHS.FOLGAS, id)).then(() => {
-          if (folga) registrarLog('Exclusão de Folga/Bloqueio', `Período de ${new Date(folga.inicio + "T00:00:00").toLocaleDateString('pt-BR')} a ${new Date(folga.fim + "T00:00:00").toLocaleDateString('pt-BR')} foi excluído. Motivo: ${folga.motivo}`);
+          if (folga) registrarLog('Exclusão de Folga/Bloqueio', `Período de ${parseFolgaDate(folga.inicio, false).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })} a ${parseFolgaDate(folga.fim, true).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })} foi excluído. Motivo: ${folga.motivo}`);
         });
       };
       window.renderFolgas = () => { 
@@ -2368,10 +2374,10 @@
         const dataFimMes = new Date(anoFiltro, mesFiltro + 1, 0, 23, 59, 59, 999).getTime();
 
         const folgasFiltradas = AppState.folgas.filter(f => {
-            const iniF = new Date(f.inicio + "T00:00:00").getTime();
-            const fimF = new Date(f.fim + "T23:59:59").getTime();
+            const iniF = parseFolgaDate(f.inicio, false).getTime();
+            const fimF = parseFolgaDate(f.fim, true).getTime();
             return iniF <= dataFimMes && fimF >= dataInicioMes;
-        }).sort((a, b) => new Date(a.inicio) - new Date(b.inicio));
+        }).sort((a, b) => parseFolgaDate(a.inicio, false) - parseFolgaDate(b.inicio, false));
 
         if (folgasFiltradas.length === 0) {
             container.innerHTML = "<div style='font-style: italic; opacity: 0.8; margin-top: 10px;'>Nenhum bloqueio registrado para este mês.</div>";
@@ -2383,7 +2389,7 @@
           div.className = 'folga-item';
 
           const strong = document.createElement('strong');
-          strong.textContent = `🚫 ${new Date(f.inicio + "T00:00:00").toLocaleDateString('pt-BR')} a ${new Date(f.fim + "T00:00:00").toLocaleDateString('pt-BR')}`;
+          strong.textContent = `🚫 ${parseFolgaDate(f.inicio, false).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })} a ${parseFolgaDate(f.fim, true).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}`;
           div.appendChild(strong);
           div.appendChild(document.createTextNode(`: ${f.motivo} `));
           if (AppState.user.podeTudo || AppState.user.isMotorista) {
