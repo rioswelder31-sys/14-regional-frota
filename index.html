@@ -618,6 +618,12 @@
 
       <div class="folga-box">
         <h4>🛑 Motorista não disponível</h4>
+        <div style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; align-items: center;">
+          <label for="filtro-mes-folga" style="font-weight: 600; margin-bottom: 0;">Mês:</label>
+          <select id="filtro-mes-folga" onchange="renderFolgas()" style="padding: 6px; border-radius: 4px; border: 1px solid #ccc;"></select>
+          <label for="filtro-ano-folga" style="font-weight: 600; margin-bottom: 0;">Ano:</label>
+          <select id="filtro-ano-folga" onchange="renderFolgas()" style="padding: 6px; border-radius: 4px; border: 1px solid #ccc;"></select>
+        </div>
         <div id="lista-folgas-visual"></div>
         <div id="painel-add-folga" class="hidden" style="margin-top: 15px; border-top: 1px dashed #bbb; padding-top: 10px;">
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
@@ -1789,21 +1795,27 @@
       function popularFiltrosDeData() {
         const filtroMes = document.getElementById('filtro-mes');
         const filtroAno = document.getElementById('filtro-ano');
+        const filtroMesFolga = document.getElementById('filtro-mes-folga');
+        const filtroAnoFolga = document.getElementById('filtro-ano-folga');
         const hoje = new Date();
         const anoAtual = hoje.getFullYear();
         const mesAtual = hoje.getMonth();
 
         const meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
         filtroMes.innerHTML = '';
+        if (filtroMesFolga) filtroMesFolga.innerHTML = '';
         meses.forEach((mes, index) => {
             filtroMes.innerHTML += `<option value="${index}" ${index === mesAtual ? 'selected' : ''}>${mes}</option>`;
+            if (filtroMesFolga) filtroMesFolga.innerHTML += `<option value="${index}" ${index === mesAtual ? 'selected' : ''}>${mes}</option>`;
         });
 
         filtroAno.innerHTML = '';
+        if (filtroAnoFolga) filtroAnoFolga.innerHTML = '';
         // O ano a ser selecionado por padrão. Se o ano atual for menor que 2025, seleciona 2025.
         const anoPadrao = anoAtual < 2025 ? 2025 : anoAtual;
         for (let i = 2030; i >= 2025; i--) { // Loop de 2030 a 2025
             filtroAno.innerHTML += `<option value="${i}" ${i === anoPadrao ? 'selected' : ''}>${i}</option>`;
+            if (filtroAnoFolga) filtroAnoFolga.innerHTML += `<option value="${i}" ${i === anoPadrao ? 'selected' : ''}>${i}</option>`;
         }
       }
 
@@ -2345,11 +2357,28 @@
           if (folga) registrarLog('Exclusão de Folga/Bloqueio', `Período de ${new Date(folga.inicio + "T00:00:00").toLocaleDateString('pt-BR')} a ${new Date(folga.fim + "T00:00:00").toLocaleDateString('pt-BR')} foi excluído. Motivo: ${folga.motivo}`);
         });
       };
-      function renderFolgas() { 
+      window.renderFolgas = () => { 
         const container = document.getElementById('lista-folgas-visual'); 
         container.innerHTML = ""; 
         const fragment = document.createDocumentFragment();
-        AppState.folgas.forEach(f => { 
+        
+        const mesFiltro = parseInt(document.getElementById('filtro-mes-folga').value, 10);
+        const anoFiltro = parseInt(document.getElementById('filtro-ano-folga').value, 10);
+        const dataInicioMes = new Date(anoFiltro, mesFiltro, 1).getTime();
+        const dataFimMes = new Date(anoFiltro, mesFiltro + 1, 0, 23, 59, 59, 999).getTime();
+
+        const folgasFiltradas = AppState.folgas.filter(f => {
+            const iniF = new Date(f.inicio + "T00:00:00").getTime();
+            const fimF = new Date(f.fim + "T23:59:59").getTime();
+            return iniF <= dataFimMes && fimF >= dataInicioMes;
+        }).sort((a, b) => new Date(a.inicio) - new Date(b.inicio));
+
+        if (folgasFiltradas.length === 0) {
+            container.innerHTML = "<div style='font-style: italic; opacity: 0.8; margin-top: 10px;'>Nenhum bloqueio registrado para este mês.</div>";
+            return;
+        }
+
+        folgasFiltradas.forEach(f => { 
           const div = document.createElement('div');
           div.className = 'folga-item';
 
@@ -2377,7 +2406,8 @@
           fragment.appendChild(div);
         }); 
         container.appendChild(fragment);
-      }
+      };
+      function renderFolgas() { window.renderFolgas(); }
       
       window.toggleMotivoVisibilidade = (el) => {
         if (el.style.whiteSpace === 'normal') {
