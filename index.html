@@ -2040,7 +2040,8 @@
 
         const dataSaidaFormatada = new Date(v.saida).toLocaleString('pt-BR');
         const dataRetornoFormatada = new Date(v.chegada).toLocaleString('pt-BR');
-        const msgConfReenvio = `🔄 *REENVIO DE CONFIRMAÇÃO DE VIAGEM*\n\n(Esta é uma notificação reenviada para uma viagem já confirmada)\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:* ${v.trajetoExibicao.replace(/\n/g, ' ')}\n\nSua viagem foi confirmada pelo motorista!`;
+        const trajeto = v.trajetoExibicao ? v.trajetoExibicao.replace(/\n/g, ' ') : 'Rota não informada';
+        const msgConfReenvio = `🔄 *REENVIO DE CONFIRMAÇÃO DE VIAGEM*\n\n(Esta é uma notificação reenviada para uma viagem já confirmada)\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:* ${trajeto}\n\nSua viagem foi confirmada pelo motorista!`;
         
         let phone = formatarTelefoneWpp(solicitante.telefone);
         window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msgConfReenvio)}`, '_blank');
@@ -2203,7 +2204,8 @@
           const dataSaidaFormatada = new Date(v.saida).toLocaleString('pt-BR');
           const dataRetornoFormatada = new Date(v.chegada).toLocaleString('pt-BR');
           const quemCancelou = AppState.user.podeTudo ? "A administração" : "O solicitante";
-          const msgCancelamento = `🚫 *VIAGEM CANCELADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída Original:* ${dataSaidaFormatada}\n🔙 *Retorno Original:* ${dataRetornoFormatada}\n📍 *Roteiro:* ${v.trajetoExibicao.replace(/\n/g, ' ')}\n\n${quemCancelou} cancelou esta viagem no sistema. Por favor, desconsidere-a da sua agenda.`;
+            const trajeto = v.trajetoExibicao ? v.trajetoExibicao.replace(/\n/g, ' ') : 'Rota não informada';
+            const msgCancelamento = `🚫 *VIAGEM CANCELADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída Original:* ${dataSaidaFormatada}\n🔙 *Retorno Original:* ${dataRetornoFormatada}\n📍 *Roteiro:* ${trajeto}\n\n${quemCancelou} cancelou esta viagem no sistema. Por favor, desconsidere-a da sua agenda.`;
           if(telMotorista) {
             let phone = formatarTelefoneWpp(telMotorista);
             window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msgCancelamento)}`, '_blank');
@@ -2232,7 +2234,8 @@
               const telSol = solicitante ? solicitante.telefone : null;
               const dataSaidaFormatada = new Date(v.saida).toLocaleString('pt-BR');
               const dataRetornoFormatada = new Date(v.chegada).toLocaleString('pt-BR');
-              const msgConf = `✅ *VIAGEM CONFIRMADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:* ${v.trajetoExibicao.replace(/\n/g, ' ')}\n\nSua viagem foi confirmada pelo motorista!`;
+                const trajeto = v.trajetoExibicao ? v.trajetoExibicao.replace(/\n/g, ' ') : 'Rota não informada';
+                const msgConf = `✅ *VIAGEM CONFIRMADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:* ${trajeto}\n\nSua viagem foi confirmada pelo motorista!`;
               if(telSol) {
                 let phone = formatarTelefoneWpp(telSol);
                 window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msgConf)}`, '_blank');
@@ -2250,7 +2253,8 @@
               const telSol = solicitante ? solicitante.telefone : null;
               const dataSaidaFormatada = new Date(v.saida).toLocaleString('pt-BR');
               const dataRetornoFormatada = new Date(v.chegada).toLocaleString('pt-BR');
-              const msgRejeicao = `❌ *VIAGEM REJEITADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:* ${v.trajetoExibicao.replace(/\n/g, ' ')}\n\nInfelizmente, sua viagem foi rejeitada pelo motorista. Tente agendar em outro horário.`;
+              const trajeto = v.trajetoExibicao ? v.trajetoExibicao.replace(/\n/g, ' ') : 'Rota não informada';
+              const msgRejeicao = `❌ *VIAGEM REJEITADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:* ${trajeto}\n\nInfelizmente, sua viagem foi rejeitada pelo motorista. Tente agendar em outro horário.`;
               if(telSol) {
                 let phone = formatarTelefoneWpp(telSol);
                 window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msgRejeicao)}`, '_blank');
@@ -2289,7 +2293,8 @@
             const dataSaidaFormatada = new Date(v.saida).toLocaleString('pt-BR');
             const dataRetornoFormatada = new Date(v.chegada).toLocaleString('pt-BR');
             const quemExcluiu = AppState.user.podeTudo ? "A administração" : "O solicitante";
-            const msgExclusao = `🗑️ *VIAGEM EXCLUÍDA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída Original:* ${dataSaidaFormatada}\n🔙 *Retorno Original:* ${dataRetornoFormatada}\n📍 *Roteiro:* ${v.trajetoExibicao.replace(/\n/g, ' ')}\n\n${quemExcluiu} excluiu esta viagem do sistema. Por favor, desconsidere-a da sua agenda.`;
+            const trajeto = v.trajetoExibicao ? v.trajetoExibicao.replace(/\n/g, ' ') : 'Rota não informada';
+            const msgExclusao = `🗑️ *VIAGEM EXCLUÍDA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída Original:* ${dataSaidaFormatada}\n🔙 *Retorno Original:* ${dataRetornoFormatada}\n📍 *Roteiro:* ${trajeto}\n\n${quemExcluiu} excluiu esta viagem do sistema. Por favor, desconsidere-a da sua agenda.`;
             if(telMotorista) {
               let phone = formatarTelefoneWpp(telMotorista);
               window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msgExclusao)}`, '_blank');
