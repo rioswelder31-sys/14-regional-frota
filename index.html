@@ -1946,16 +1946,26 @@
         btnSave.innerText = "⏳ Validando...";
 
         try {
-            // Busca viagens diretamente do banco para o mês do agendamento (previne falhas do filtro da tela e reduz race conditions)
+            // Criar uma janela de busca de -7 a +7 dias (usando strings locais) para pegar viagens de fronteira de mês e evitar furos de fuso horário
             const dataSaidaObj = new Date(saida);
-            const dataInicioISO = new Date(dataSaidaObj.getFullYear(), dataSaidaObj.getMonth(), 1).toISOString();
-            const dataFimISO = new Date(dataSaidaObj.getFullYear(), dataSaidaObj.getMonth() + 1, 0, 23, 59, 59, 999).toISOString();
+            const dataInicioBusca = new Date(dataSaidaObj.getTime() - (7 * 24 * 60 * 60 * 1000));
+            const dataFimBusca = new Date(dataSaidaObj.getTime() + (7 * 24 * 60 * 60 * 1000));
             
-            const viagensQuery = query(getRegionalRef(DB_PATHS.VIAGENS), orderByChild('saida'), startAt(dataInicioISO), endAt(dataFimISO));
+            const pad = (n) => n.toString().padStart(2, '0');
+            const startStr = `${dataInicioBusca.getFullYear()}-${pad(dataInicioBusca.getMonth() + 1)}-${pad(dataInicioBusca.getDate())}T00:00`;
+            const endStr = `${dataFimBusca.getFullYear()}-${pad(dataFimBusca.getMonth() + 1)}-${pad(dataFimBusca.getDate())}T23:59`;
+            
+            const viagensQuery = query(getRegionalRef(DB_PATHS.VIAGENS), orderByChild('saida'), startAt(startStr), endAt(endStr));
             const snapshot = await get(viagensQuery);
             const viagensBanco = snapshot.val() ? Object.keys(snapshot.val()).map(k => ({...snapshot.val()[k], id: k})) : [];
 
-            const conflito = temConflito(saida, chegada, id, viagensBanco);
+            // Mesclar dados do banco com a memória local atual da tela para redundância máxima
+            const mapaViagens = new Map();
+            AppState.viagens.forEach(v => mapaViagens.set(v.id, v));
+            viagensBanco.forEach(v => mapaViagens.set(v.id, v));
+            const todasViagensParaChecar = Array.from(mapaViagens.values());
+
+            const conflito = temConflito(saida, chegada, id, todasViagensParaChecar);
             if(conflito) {
                 if(conflito.tipo === 'folga') { showToast(`Motorista indisponível: ${conflito.motivo}`, 'error'); }
                 else { showToast(`Conflito! Horário reservado por: ${conflito.solicitante}`, 'error'); }

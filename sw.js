@@ -1,4 +1,4 @@
-const CACHE_NAME = 'frota-dpe-cache-v7'; // Atualizado para v7 para limpar cache e aplicar a importação do 'get'
+const CACHE_NAME = 'frota-dpe-cache-v8'; // Atualizado para v8 para corrigir o bug de sobreposição de horários
 const urlsToCache = [
   './',
   './index.html',
