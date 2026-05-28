@@ -2611,6 +2611,96 @@
         printWindow.document.close();
       };
 
+      window.toggleCalendarModal = (show) => {
+          const modal = document.getElementById('calendar-modal');
+          if (show) {
+              // Sincroniza os dropdowns do calendário com os da tela principal
+              document.getElementById('cal-mes').innerHTML = document.getElementById('filtro-mes').innerHTML;
+              document.getElementById('cal-ano').innerHTML = document.getElementById('filtro-ano').innerHTML;
+              document.getElementById('cal-mes').value = document.getElementById('filtro-mes').value;
+              document.getElementById('cal-ano').value = document.getElementById('filtro-ano').value;
+              
+              renderCalendario();
+              modal.classList.remove('hidden');
+          } else {
+              modal.classList.add('hidden');
+          }
+      };
+
+      window.renderCalendario = () => {
+          const container = document.getElementById('calendar-container');
+          const mes = parseInt(document.getElementById('cal-mes').value, 10);
+          const ano = parseInt(document.getElementById('cal-ano').value, 10);
+          
+          const primeiroDia = new Date(ano, mes, 1);
+          const ultimoDia = new Date(ano, mes + 1, 0);
+          
+          let html = '<div class="calendar-grid">';
+          const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+          diasSemana.forEach(dia => { html += `<div class="calendar-day-header">${dia}</div>`; });
+          
+          // Células vazias iniciais
+          for (let i = 0; i < primeiroDia.getDay(); i++) { html += `<div class="calendar-day empty-day"></div>`; }
+          
+          // Inicializar matriz de dias
+          const eventosPorDia = {};
+          for (let i = 1; i <= ultimoDia.getDate(); i++) { eventosPorDia[i] = []; }
+          
+          // 1. Processar Viagens (Preenche dias que a viagem cruza)
+          AppState.viagens.forEach(v => {
+              if (v.status === STATUS.CANCELADO || v.status === STATUS.REJEITADO) return;
+              const saida = new Date(v.saida);
+              const chegada = new Date(v.chegada);
+              
+              // Só processa se a viagem tiver algum dia dentro do mês filtrado
+              if (saida.getTime() <= ultimoDia.getTime() && chegada.getTime() >= primeiroDia.getTime()) {
+                  let inicioLoop = (saida.getFullYear() === ano && saida.getMonth() === mes) ? saida.getDate() : 1;
+                  let fimLoop = (chegada.getFullYear() === ano && chegada.getMonth() === mes) ? chegada.getDate() : ultimoDia.getDate();
+                  
+                  for (let d = inicioLoop; d <= fimLoop; d++) {
+                      let horaExibicao = "";
+                      if (d === saida.getDate() && saida.getMonth() === mes) {
+                          horaExibicao = `<strong>${String(saida.getHours()).padStart(2,'0')}:${String(saida.getMinutes()).padStart(2,'0')}</strong> - `;
+                      }
+                      
+                      let tipoStatus = (v.status === STATUS.PENDENTE || v.status === STATUS.CIENTE) ? 'status-pendente' : (v.status === STATUS.CONFIRMADO ? 'status-confirmado' : 'status-finalizado');
+                      const destinoText = v.roteiroArray && v.roteiroArray.length > 0 ? (v.roteiroArray[v.roteiroArray.length-1].destino.split(' - ')[1] || 'Vários') : 'S/ Rota';
+                      const nomeCurto = v.solicitanteNome ? v.solicitanteNome.split(' ')[0] : 'N/D';
+                      const titleText = `De: ${new Date(v.saida).toLocaleString('pt-BR')}\nAté: ${new Date(v.chegada).toLocaleString('pt-BR')}\nSolicitante: ${v.solicitanteNome}\nRoteiro: ${v.trajetoExibicao}`;
+                      
+                      eventosPorDia[d].push({ tipo: 'viagem', dataOrder: (d === saida.getDate() ? saida : new Date(ano, mes, d, 0, 0)), html: `<div class="calendar-event ${tipoStatus}" title="${titleText}">${horaExibicao}🚗 ${destinoText} (${nomeCurto})</div>` });
+                  }
+              }
+          });
+          
+          // 2. Processar Folgas/Manutenção
+          AppState.folgas.forEach(f => {
+              const inicioF = parseFolgaDate(f.inicio, false);
+              const fimF = parseFolgaDate(f.fim, true);
+              
+              if (inicioF.getTime() <= ultimoDia.getTime() && fimF.getTime() >= primeiroDia.getTime()) {
+                  let inicioLoop = (inicioF.getFullYear() === ano && inicioF.getMonth() === mes) ? inicioF.getDate() : 1;
+                  let fimLoop = (fimF.getFullYear() === ano && fimF.getMonth() === mes) ? fimF.getDate() : ultimoDia.getDate();
+                  
+                  for (let d = inicioLoop; d <= fimLoop; d++) {
+                      eventosPorDia[d].push({ tipo: 'folga', dataOrder: new Date(ano, mes, d, 0, 0), html: `<div class="calendar-event status-folga" title="Indisponível: ${f.motivo}">🛑 ${f.motivo}</div>` });
+                  }
+              }
+          });
+          
+          // Renderizar na tela
+          for (let d = 1; d <= ultimoDia.getDate(); d++) {
+              html += `<div class="calendar-day"><div class="calendar-date">${d}</div>`;
+              eventosPorDia[d].sort((a, b) => a.dataOrder - b.dataOrder).forEach(ev => html += ev.html);
+              html += `</div>`;
+          }
+          
+          // Células vazias finais
+          const celulasRestantes = (primeiroDia.getDay() + ultimoDia.getDate()) % 7;
+          if (celulasRestantes !== 0) { for (let i = 0; i < (7 - celulasRestantes); i++) { html += `<div class="calendar-day empty-day"></div>`; } }
+          html += '</div>'; container.innerHTML = html;
+      };
+
       window.exportarCSV = () => {
         console.log('Debug Exportar - Região:', AppState.regionalID);
         console.log('Debug Exportar - ListaViagens:', AppState.viagens);
