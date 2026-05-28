@@ -1896,7 +1896,7 @@
         return new Date(dateStr + (isEnd ? "T23:59:59" : "T00:00:00"));
       }
 
-      function temConflito(novaSaida, novaChegada, ignorarId = null) {
+      function temConflito(novaSaida, novaChegada, ignorarId = null, viagensBuscadas = null) {
           const buffer = 5 * 60 * 1000;
           const iniN = new Date(novaSaida).getTime();
           const fimN = new Date(novaChegada).getTime();
@@ -1905,7 +1905,8 @@
               const fimF = parseFolgaDate(f.fim, true).getTime();
               if(iniN <= fimF && fimN >= iniF) return { tipo: 'folga', motivo: f.motivo };
           }
-          for(let v of AppState.viagens) {
+          const viagensParaChecar = viagensBuscadas || AppState.viagens;
+          for(let v of viagensParaChecar) {
               if(ignorarId && v.id === ignorarId) continue;
               if(v.status === STATUS.REJEITADO || v.status === STATUS.CANCELADO) continue;
               const iniE = new Date(v.saida).getTime();
