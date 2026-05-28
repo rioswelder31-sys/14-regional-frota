@@ -1,4 +1,4 @@
-const CACHE_NAME = 'frota-dpe-cache-v6'; // Atualizado para v6 para aplicar a nova regra de visibilidade do formulário.
+const CACHE_NAME = 'frota-dpe-cache-v7'; // Atualizado para v7 para limpar cache e aplicar a importação do 'get'
 const urlsToCache = [
   './',
   './index.html',
