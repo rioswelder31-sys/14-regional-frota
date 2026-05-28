@@ -1,4 +1,4 @@
-const CACHE_NAME = 'frota-dpe-cache-v10'; // Atualizado para v10 com correção definitiva de conflitos e fusos horários
+const CACHE_NAME = 'frota-dpe-cache-v11'; // Atualizado para preencher Data de Saída automaticamente
 const urlsToCache = [
   './',
   './index.html',

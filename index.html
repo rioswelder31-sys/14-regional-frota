@@ -1714,6 +1714,10 @@
         const usuarioLogado = AppState.unidade.equipe.find(m => m.email === AppState.user.email);
         if (usuarioLogado) document.getElementById('solicitante').value = usuarioLogado.nome;
 
+        const now = new Date();
+        const pad = (n) => n.toString().padStart(2, '0');
+        document.getElementById('saida').value = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+
         document.getElementById('nome-motorista').innerText = AppState.unidade.motorista.nome || 'N/D';
         document.getElementById('tel-motorista').innerText = AppState.unidade.motorista.tel ? `📱 ${AppState.unidade.motorista.tel}` : '';
 
@@ -1916,7 +1920,9 @@
         const usuarioLogado = AppState.unidade.equipe.find(m => m.email === AppState.user.email);
         if (usuarioLogado) document.getElementById('solicitante').value = usuarioLogado.nome;
         
-        document.getElementById('saida').value = '';
+        const now = new Date();
+        const pad = (n) => n.toString().padStart(2, '0');
+        document.getElementById('saida').value = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
         document.getElementById('chegada').value = '';
         document.getElementById('motivo').value = '';
         AppState.roteiroAtual = [];
