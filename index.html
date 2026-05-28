@@ -1900,19 +1900,53 @@
           const buffer = 5 * 60 * 1000;
           const iniN = new Date(novaSaida).getTime();
           const fimN = new Date(novaChegada).getTime();
+          
+          console.log('🔍 DEBUG CONFLITO:', {
+            novaSaida,
+            novaChegada,
+            iniN: new Date(iniN),
+            fimN: new Date(fimN),
+            ignorarId,
+            totalViagensAChecar: (viagensBuscadas || AppState.viagens).length
+          });
+          
           for(let f of AppState.folgas) {
               const iniF = parseFolgaDate(f.inicio, false).getTime();
               const fimF = parseFolgaDate(f.fim, true).getTime();
               if(iniN <= fimF && fimN >= iniF) return { tipo: 'folga', motivo: f.motivo };
           }
+          
           const viagensParaChecar = viagensBuscadas || AppState.viagens;
           for(let v of viagensParaChecar) {
               if(ignorarId && v.id === ignorarId) continue;
-              if(v.status === STATUS.REJEITADO || v.status === STATUS.CANCELADO) continue;
+              
+              // Verificar se deve ser ignorado por status (REJEITADO ou CANCELADO)
+              const statusRejeitado = v.status === 'Rejeitado' || v.status === 'rejeitado' || v.status === STATUS.REJEITADO;
+              const statusCancelado = v.status === 'Cancelado' || v.status === 'cancelado' || v.status === STATUS.CANCELADO;
+              
+              if(statusRejeitado || statusCancelado) {
+                console.log(`⏭️ Pulando viagem ${v.id} com status ${v.status}`);
+                continue;
+              }
+              
               const iniE = new Date(v.saida).getTime();
               const fimE = new Date(v.chegada).getTime();
-              if (iniN < (fimE + buffer) && fimN > (iniE - buffer)) return { tipo: 'viagem', solicitante: getNomeSolicitante(v) || 'Desconhecido' };
+              
+              console.log(`📅 Comparando com viagem ${v.id}:`, {
+                status: v.status,
+                saida: v.saida,
+                chegada: v.chegada,
+                iniE: new Date(iniE),
+                fimE: new Date(fimE),
+                temSobreposicao: (iniN < (fimE + buffer) && fimN > (iniE - buffer))
+              });
+              
+              if (iniN < (fimE + buffer) && fimN > (iniE - buffer)) {
+                console.log('⚠️ CONFLITO DETECTADO!', {novaViagem: {iniN: new Date(iniN), fimN: new Date(fimN)}, viagemExistente: {iniE: new Date(iniE), fimE: new Date(fimE)}});
+                return { tipo: 'viagem', solicitante: getNomeSolicitante(v) || 'Desconhecido' };
+              }
           }
+          console.log('✅ Sem conflitos detectados');
           return null;
       }
 
@@ -1962,17 +1996,20 @@
             const startStr = `${dataInicioBusca.getFullYear()}-${pad(dataInicioBusca.getMonth() + 1)}-${pad(dataInicioBusca.getDate())}T00:00`;
             const endStr = `${dataFimBusca.getFullYear()}-${pad(dataFimBusca.getMonth() + 1)}-${pad(dataFimBusca.getDate())}T23:59`;
             
+            console.log('🚀 INICIANDO VALIDAÇÃO:', {startStr, endStr, saida});
+            
             const viagensQuery = query(getRegionalRef(DB_PATHS.VIAGENS), orderByChild('saida'), startAt(startStr), endAt(endStr));
             const snapshot = await get(viagensQuery);
             const viagensBanco = snapshot.val() ? Object.keys(snapshot.val()).map(k => ({...snapshot.val()[k], id: k})) : [];
 
-            // Mesclar dados do banco com a memória local atual da tela para redundância máxima
-            const mapaViagens = new Map();
-            AppState.viagens.forEach(v => mapaViagens.set(v.id, v));
-            viagensBanco.forEach(v => mapaViagens.set(v.id, v));
-            const todasViagensParaChecar = Array.from(mapaViagens.values());
+            console.log('📊 VIAGENS CARREGADAS DO BANCO:', {
+              total: viagensBanco.length,
+              viagens: viagensBanco.map(v => ({id: v.id, status: v.status, saida: v.saida, solicitante: v.solicitanteNome}))
+            });
 
-            const conflito = temConflito(saida, chegada, id, todasViagensParaChecar);
+            // ⚠️ NÃO USAR AppState.viagens pois pode estar filtrado por mês/ano da tabela
+            // Usar APENAS as viagens do banco de dados com a busca de ±7 dias
+            const conflito = temConflito(saida, chegada, id, viagensBanco);
             if(conflito) {
                 if(conflito.tipo === 'folga') { showToast(`Motorista indisponível: ${conflito.motivo}`, 'error'); }
                 else { showToast(`Conflito! Horário reservado por: ${conflito.solicitante}`, 'error'); }
