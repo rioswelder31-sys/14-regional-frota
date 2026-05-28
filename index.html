@@ -2015,7 +2015,12 @@
               showToast("Erro: Não foi possível enviar para o motorista.", "error");
             }
             resetForm();
-          });
+          }
+        } catch (error) {
+            console.error(error);
+            alert("Erro ao validar/salvar viagem: " + error.message);
+            btnSave.disabled = false;
+            btnSave.innerText = txtOriginal;
         }
       };
 
