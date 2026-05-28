@@ -1922,11 +1922,14 @@
         AppState.roteiroAtual = [];
         renderRoteiro();
         document.getElementById("btn-whatsapp-manual").classList.add("hidden");
-        document.getElementById("btn-save").classList.remove("hidden");
+        const btnSave = document.getElementById("btn-save");
+        btnSave.classList.remove("hidden");
+        btnSave.disabled = false;
+        btnSave.innerText = '✅ Salvar Solicitação';
         document.getElementById('form-title').innerText = '📝 Novo Agendamento';
       }
 
-      window.salvarNoFirebase = () => {
+      window.salvarNoFirebase = async () => {
         const solicitanteNome = document.getElementById("solicitante").value;
         const saida = document.getElementById("saida").value;
         const chegada = document.getElementById("chegada").value;
@@ -1937,11 +1940,29 @@
         const solicitante = AppState.unidade.equipe.find(m => m.nome === solicitanteNome);
         if (!solicitante) return alert("Solicitante inválido. Por favor, selecione um nome da lista ou cadastre-se se for um novo usuário.");
 
-        const conflito = temConflito(saida, chegada, id);
-        if(conflito) {
-            if(conflito.tipo === 'folga') { showToast(`Motorista indisponível: ${conflito.motivo}`, 'error'); return; }
-            else { showToast(`Conflito! Horário reservado por: ${conflito.solicitante}`, 'error'); return; }
-        }
+        const btnSave = document.getElementById("btn-save");
+        const txtOriginal = btnSave.innerText;
+        btnSave.disabled = true;
+        btnSave.innerText = "⏳ Validando...";
+
+        try {
+            // Busca viagens diretamente do banco para o mês do agendamento (previne falhas do filtro da tela e reduz race conditions)
+            const dataSaidaObj = new Date(saida);
+            const dataInicioISO = new Date(dataSaidaObj.getFullYear(), dataSaidaObj.getMonth(), 1).toISOString();
+            const dataFimISO = new Date(dataSaidaObj.getFullYear(), dataSaidaObj.getMonth() + 1, 0, 23, 59, 59, 999).toISOString();
+            
+            const viagensQuery = query(getRegionalRef(DB_PATHS.VIAGENS), orderByChild('saida'), startAt(dataInicioISO), endAt(dataFimISO));
+            const snapshot = await get(viagensQuery);
+            const viagensBanco = snapshot.val() ? Object.keys(snapshot.val()).map(k => ({...snapshot.val()[k], id: k})) : [];
+
+            const conflito = temConflito(saida, chegada, id, viagensBanco);
+            if(conflito) {
+                if(conflito.tipo === 'folga') { showToast(`Motorista indisponível: ${conflito.motivo}`, 'error'); }
+                else { showToast(`Conflito! Horário reservado por: ${conflito.solicitante}`, 'error'); }
+                btnSave.disabled = false;
+                btnSave.innerText = txtOriginal;
+                return;
+            }
 
         const trajetoString = AppState.roteiroAtual.map(t => `🔹 ${t.origem} → ${t.destino}`).join("\n");
         const dados = { 
@@ -1967,7 +1988,7 @@
         const msgMotorista = `🔔 *NOVO AGENDAMENTO RECEBIDO*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${dados.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${dados.trajetoExibicao}\n📝 *Motivo:* ${dados.motivo}\n\n*Acesse o aplicativo para confirmar ou recusar a viagem.*`;
 
         if(id) {
-          update(getRegionalRef(DB_PATHS.VIAGENS, id), dados).then(() => {
+            await update(getRegionalRef(DB_PATHS.VIAGENS, id), dados);
             registrarLog('Edição de Viagem', `Viagem ID ${id} para ${dados.solicitanteNome} foi editada.`);
             showToast("Viagem editada! Notifique o motorista.", "success");
             const telMotorista = AppState.unidade.motorista.tel;
@@ -1977,11 +1998,10 @@
               window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msgEdicao)}`, '_blank');
             }
             resetForm();
-          });
         } else {
           dados.registradoPor = AppState.user.email;
           dados.dataCriacao = new Date().toISOString();
-          push(getRegionalRef(DB_PATHS.VIAGENS), dados).then((newRef) => {
+            const newRef = await push(getRegionalRef(DB_PATHS.VIAGENS), dados);
             registrarLog('Criação de Viagem', `Nova viagem ID ${newRef.key} para ${dados.solicitanteNome} foi criada.`);
             
             // Enviar mensagem direto para o motorista
