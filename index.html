@@ -1830,14 +1830,14 @@
 
         const mes = parseInt(document.getElementById('filtro-mes').value, 10);
         const ano = parseInt(document.getElementById('filtro-ano').value, 10);
-        const dataInicio = new Date(ano, mes, 1);
-        const dataFim = new Date(ano, mes + 1, 0, 23, 59, 59, 999);
-        const dataInicioISO = dataInicio.toISOString();
-        const dataFimISO = dataFim.toISOString();
-
-        console.log(`Atualizando escuta para viagens de ${dataInicioISO} a ${dataFimISO}`);
+        const pad = (n) => n.toString().padStart(2, '0');
         
-        const viagensQuery = query(getRegionalRef(DB_PATHS.VIAGENS), orderByChild('saida'), startAt(dataInicioISO), endAt(dataFimISO));
+        const startStr = `${ano}-${pad(mes + 1)}-01T00:00`;
+        const endStr = `${ano}-${pad(mes + 1)}-31T23:59`;
+
+        console.log(`Atualizando escuta para viagens de ${startStr} a ${endStr}`);
+        
+        const viagensQuery = query(getRegionalRef(DB_PATHS.VIAGENS), orderByChild('saida'), startAt(startStr), endAt(endStr));
 
         AppState.unsubscribeViagens = onValue(viagensQuery, (s) => { 
             const viagensFirebase = s.val() ? Object.keys(s.val()).map(k => ({...s.val()[k], id: k})) : []; 

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'frota-dpe-cache-v9'; // Atualizado para v9 com o novo visualizador de Calendário
+const CACHE_NAME = 'frota-dpe-cache-v10'; // Atualizado para v10 com correção definitiva de conflitos e fusos horários
 const urlsToCache = [
   './',
   './index.html',
