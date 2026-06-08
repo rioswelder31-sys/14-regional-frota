@@ -1468,9 +1468,9 @@
                   // Preencher o select com membros da equipe que NÃO são admins
                   const select = document.getElementById('admin-select-member');
                   select.innerHTML = '<option value="">-- Selecione um membro da equipe --</option>';
-                  const adminsUids = new Set((AppState.unidade.administradores || []).map(a => a.uid));
                   AppState.unidade.equipe
-                      .filter(m => !adminsUids.has(m.uid))
+                      .filter(m => !m.isAdmin) // Filtra apenas os que NÃO são admin
+                      .sort((a, b) => a.nome.localeCompare(b.nome))
                       .forEach(m => {
                           const option = document.createElement('option');
                           option.value = m.uid;
@@ -1579,94 +1579,59 @@
           const member = AppState.unidade.equipe.find(m => m.uid === uid);
           if (!member) return alert('Membro não encontrado.');
 
-          if (AppState.unidade.administradores.some(a => a.uid === uid)) {
+          if (member.isAdmin) {
               return alert(member.nome + ' já é administrador.');
           }
 
-          const novoAdmin = { uid: uid, nome: member.nome, email: member.email, adicionadoEm: new Date().toISOString() };
-          AppState.unidade.administradores.push(novoAdmin);
-
-          const adminData = AppState.unidade.administradores.reduce((acc, a) => { acc[a.uid] = a; return acc; }, {});
-          
-          // Tenta salvar no path 'administradores'
-          update(getRegionalRef('administradores'), adminData).then(() => {
+          // Atualiza o perfil do membro para adicionar a flag isAdmin
+          update(getRegionalRef(DB_PATHS.EQUIPE, uid), { isAdmin: true }).then(() => {
+              // Atualiza na memória
+              member.isAdmin = true;
+              AppState.unidade.administradores = AppState.unidade.equipe.filter(m => m.isAdmin);
+              
               registrarLog('Admin: Novo Administrador', `${AppState.user.email} adicionou ${member.nome} como administrador.`);
               showToast(`${member.nome} agora é administrador!`, 'success');
               select.value = '';
               renderAdministradores();
           }).catch(err => {
-              // Fallback: tenta salvar em um objeto de configuração geral
-              console.warn('Erro ao salvar em administradores, tentando path alternativo...', err);
-              update(getRegionalRef('config'), { administradores: adminData }).then(() => {
-                  registrarLog('Admin: Novo Administrador', `${AppState.user.email} adicionou ${member.nome} como administrador.`);
-                  showToast(`${member.nome} agora é administrador!`, 'success');
-                  select.value = '';
-                  renderAdministradores();
-              }).catch(err2 => {
-                  alert('Erro ao adicionar admin: ' + err2.message + '\n\nVerifique se você tem permissão de escrita no Firebase.');
-                  AppState.unidade.administradores.pop(); // Remove da memória se falhou
-              });
+              alert('Erro ao adicionar admin: ' + err.message + '\n\nVerifique se você tem permissão de escrita no Firebase.');
+              console.error('Erro ao adicionar admin:', err);
           });
       };
 
       window.removerAdministrador = (uid) => {
-          const admin = AppState.unidade.administradores.find(a => a.uid === uid);
+          const admin = AppState.unidade.equipe.find(m => m.uid === uid && m.isAdmin);
           if (!admin) return alert('Administrador não encontrado.');
 
           if (!confirm(`Remover ${admin.nome} do grupo de administradores?`)) return;
 
-          AppState.unidade.administradores = AppState.unidade.administradores.filter(a => a.uid !== uid);
-
-          const adminData = AppState.unidade.administradores.length > 0 
-              ? AppState.unidade.administradores.reduce((acc, a) => { acc[a.uid] = a; return acc; }, {})
-              : null;
-
-          // Tenta salvar no path 'administradores'
-          if (adminData === null) {
-              remove(getRegionalRef('administradores')).then(() => {
-                  registrarLog('Admin: Remoção de Administrador', `${AppState.user.email} removeu ${admin.nome} como administrador.`);
-                  showToast(`${admin.nome} não é mais administrador.`, 'success');
-                  renderAdministradores();
-              }).catch(err => {
-                  console.warn('Erro ao remover, tentando path alternativo...', err);
-                  update(getRegionalRef('config'), { administradores: null }).then(() => {
-                      registrarLog('Admin: Remoção de Administrador', `${AppState.user.email} removeu ${admin.nome} como administrador.`);
-                      showToast(`${admin.nome} não é mais administrador.`, 'success');
-                      renderAdministradores();
-                  }).catch(err2 => {
-                      alert('Erro ao remover admin: ' + err2.message);
-                      AppState.unidade.administradores.push(admin); // Restaura se falhou
-                  });
-              });
-          } else {
-              update(getRegionalRef('administradores'), adminData).then(() => {
-                  registrarLog('Admin: Remoção de Administrador', `${AppState.user.email} removeu ${admin.nome} como administrador.`);
-                  showToast(`${admin.nome} não é mais administrador.`, 'success');
-                  renderAdministradores();
-              }).catch(err => {
-                  console.warn('Erro ao remover, tentando path alternativo...', err);
-                  update(getRegionalRef('config'), { administradores: adminData }).then(() => {
-                      registrarLog('Admin: Remoção de Administrador', `${AppState.user.email} removeu ${admin.nome} como administrador.`);
-                      showToast(`${admin.nome} não é mais administrador.`, 'success');
-                      renderAdministradores();
-                  }).catch(err2 => {
-                      alert('Erro ao remover admin: ' + err2.message);
-                      AppState.unidade.administradores.push(admin); // Restaura se falhou
-                  });
-              });
-          }
+          // Remove a flag isAdmin do perfil do membro
+          update(getRegionalRef(DB_PATHS.EQUIPE, uid), { isAdmin: false }).then(() => {
+              // Atualiza na memória
+              admin.isAdmin = false;
+              AppState.unidade.administradores = AppState.unidade.equipe.filter(m => m.isAdmin);
+              
+              registrarLog('Admin: Remoção de Administrador', `${AppState.user.email} removeu ${admin.nome} como administrador.`);
+              showToast(`${admin.nome} não é mais administrador.`, 'success');
+              renderAdministradores();
+          }).catch(err => {
+              alert('Erro ao remover admin: ' + err.message);
+              console.error('Erro ao remover admin:', err);
+          });
       };
 
       function renderAdministradores() {
           const tbody = document.getElementById('admin-list-tbody');
-          if (!AppState.unidade.administradores || AppState.unidade.administradores.length === 0) {
+          const admins = AppState.unidade.equipe.filter(m => m.isAdmin);
+          
+          if (!admins || admins.length === 0) {
               tbody.innerHTML = '<tr><td colspan="2" style="text-align: center; padding: 10px; color: #999;">Nenhum administrador adicional.</td></tr>';
               return;
           }
 
           tbody.innerHTML = '';
           const fragment = document.createDocumentFragment();
-          AppState.unidade.administradores.forEach(admin => {
+          admins.forEach(admin => {
               const tr = document.createElement('tr');
               tr.style.borderTop = '1px solid var(--border-color)';
 
@@ -1785,19 +1750,11 @@
               AppState.unidade.motoristaTitular = snap.val();
             });
 
-            // 4. Carregar Administradores Personalizados
-            onValue(getRegionalRef('administradores'), (snap) => {
-              const adminsFirebase = snap.val() ? Object.keys(snap.val()).map(uid => ({ uid, ...snap.val()[uid] })) : [];
-              AppState.unidade.administradores = adminsFirebase;
-            });
-
-            // 4b. Fallback: tenta carregar de 'config/administradores'
-            onValue(getRegionalRef('config/administradores'), (snap) => {
-              if (snap.val() && (!AppState.unidade.administradores || AppState.unidade.administradores.length === 0)) {
-                const adminsConfig = snap.val() ? Object.keys(snap.val()).map(uid => ({ uid, ...snap.val()[uid] })) : [];
-                AppState.unidade.administradores = adminsConfig;
-              }
-            });
+            // 4. Carregar Administradores Personalizados (agora como flag nos perfis)
+            // Será feito automaticamente ao carregar a equipe, já que cada membro pode ter isAdmin=true
+            
+            // Nota: Anteriormente tentávamos carregar de um path separado, mas agora
+            // os administradores são identificados pelo campo isAdmin=true em cada membro da equipe
         });
       }
 
@@ -1858,7 +1815,7 @@
               AppState.user.isMotorista = isMotoristaPorEmail || (currentUserProfile && currentUserProfile.isMotorista === true) || isCurrentActiveDriver;
 
               // Atualiza podeTudo incluindo os administradores personalizados
-              const isCustomAdmin = AppState.unidade.administradores && AppState.unidade.administradores.some(a => a.uid === user.uid);
+              const isCustomAdmin = currentUserProfile && currentUserProfile.isAdmin === true;
               const isWelder = AppState.user.email === "welder.rios@defensoria.ba.def.br";
               const isEsther = AppState.user.email === "esther.bobbio@defensoria.ba.def.br";
               const isSilvana = AppState.user.email === "silvana.cardoso@defensoria.ba.def.br";
