@@ -979,6 +979,33 @@
             <button class="btn-secondary" onclick="cancelEditMember()">Cancelar</button>
           </div>
         </div>
+
+        <div id="admin-management-section" class="hidden" style="margin-top: 30px; padding-top: 20px; border-top: 2px solid var(--danger);">
+          <h4 style="color: var(--danger); margin-bottom: 15px;">🔑 Gerenciar Administradores</h4>
+          <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">Defina quem pode gerenciar a regional com permissões de administrador.</p>
+          
+          <div style="margin-bottom: 20px;">
+            <label for="admin-select-member">Adicionar Administrador:</label>
+            <select id="admin-select-member" style="margin-bottom: 10px;">
+              <option value="">-- Selecione um membro da equipe --</option>
+            </select>
+            <button class="btn-primary" style="width: 100%; background: var(--danger);" onclick="adicionarAdministrador()">➕ Adicionar Admin</button>
+          </div>
+
+          <div style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9em;">
+              <thead style="position: sticky; top: -11px; background: white; box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1);">
+                <tr>
+                  <th style="text-align: left; padding: 8px;">Administrador</th>
+                  <th style="text-align: right; padding: 8px;">Ação</th>
+                </tr>
+              </thead>
+              <tbody id="admin-list-tbody">
+                <tr><td colspan="2" style="text-align: center; padding: 10px; color: #999;">Carregando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1187,7 +1214,7 @@
         viagens: [],
         folgas: [],
         dadosWppTemp: "",
-        unidade: { motorista: {}, equipe: [] },
+        unidade: { motorista: {}, equipe: [], administradores: [] },
         viagensIniciaisCarregadas: false,
       };
       window.AppState = AppState; // Expor para depuração no console
@@ -1431,10 +1458,32 @@
           const modal = document.getElementById('unit-settings-modal');
           if (show) {
               renderTeamList();
+              
+              // Mostrar seção de administradores apenas para Welder
+              const adminSection = document.getElementById('admin-management-section');
+              if (AppState.user.email === "welder.rios@defensoria.ba.def.br") {
+                  adminSection.classList.remove('hidden');
+                  renderAdministradores();
+                  
+                  // Preencher o select com membros da equipe
+                  const select = document.getElementById('admin-select-member');
+                  select.innerHTML = '<option value="">-- Selecione um membro da equipe --</option>';
+                  AppState.unidade.equipe
+                      .filter(m => !AppState.unidade.administradores.some(a => a.uid === m.uid))
+                      .forEach(m => {
+                          const option = document.createElement('option');
+                          option.value = m.uid;
+                          option.textContent = m.nome;
+                          select.appendChild(option);
+                      });
+              } else {
+                  adminSection.classList.add('hidden');
+              }
+              
               modal.classList.remove('hidden');
           } else {
               modal.classList.add('hidden');
-              document.getElementById('edit-member-form').classList.add('hidden'); // Hide edit form on close
+              document.getElementById('edit-member-form').classList.add('hidden');
           }
       };
 
@@ -1519,6 +1568,86 @@
               cancelEditMember();
           }).catch(err => alert('Erro ao salvar: ' + err.message));
       };
+
+      // Funções de Gerenciamento de Administradores (apenas para Welder)
+      window.adicionarAdministrador = () => {
+          const select = document.getElementById('admin-select-member');
+          const uid = select.value;
+          if (!uid) return alert('Selecione um membro da equipe.');
+
+          const member = AppState.unidade.equipe.find(m => m.uid === uid);
+          if (!member) return alert('Membro não encontrado.');
+
+          if (AppState.unidade.administradores.some(a => a.uid === uid)) {
+              return alert(member.nome + ' já é administrador.');
+          }
+
+          const novoAdmin = { uid: uid, nome: member.nome, email: member.email, adicionadoEm: new Date().toISOString() };
+          AppState.unidade.administradores.push(novoAdmin);
+
+          update(getRegionalRef('administradores'), 
+              AppState.unidade.administradores.reduce((acc, a) => { acc[a.uid] = a; return acc; }, {})
+          ).then(() => {
+              registrarLog('Admin: Novo Administrador', `${AppState.user.email} adicionou ${member.nome} como administrador.`);
+              showToast(`${member.nome} agora é administrador!`, 'success');
+              select.value = '';
+              renderAdministradores();
+          }).catch(err => alert('Erro ao adicionar admin: ' + err.message));
+      };
+
+      window.removerAdministrador = (uid) => {
+          const admin = AppState.unidade.administradores.find(a => a.uid === uid);
+          if (!admin) return alert('Administrador não encontrado.');
+
+          if (!confirm(`Remover ${admin.nome} do grupo de administradores?`)) return;
+
+          AppState.unidade.administradores = AppState.unidade.administradores.filter(a => a.uid !== uid);
+
+          if (AppState.unidade.administradores.length === 0) {
+              remove(getRegionalRef('administradores')).then(() => {
+                  registrarLog('Admin: Remoção de Administrador', `${AppState.user.email} removeu ${admin.nome} como administrador.`);
+                  showToast(`${admin.nome} não é mais administrador.`, 'success');
+                  renderAdministradores();
+              }).catch(err => alert('Erro ao remover admin: ' + err.message));
+          } else {
+              update(getRegionalRef('administradores'), 
+                  AppState.unidade.administradores.reduce((acc, a) => { acc[a.uid] = a; return acc; }, {})
+              ).then(() => {
+                  registrarLog('Admin: Remoção de Administrador', `${AppState.user.email} removeu ${admin.nome} como administrador.`);
+                  showToast(`${admin.nome} não é mais administrador.`, 'success');
+                  renderAdministradores();
+              }).catch(err => alert('Erro ao remover admin: ' + err.message));
+          }
+      };
+
+      function renderAdministradores() {
+          const tbody = document.getElementById('admin-list-tbody');
+          if (!AppState.unidade.administradores || AppState.unidade.administradores.length === 0) {
+              tbody.innerHTML = '<tr><td colspan="2" style="text-align: center; padding: 10px; color: #999;">Nenhum administrador adicional.</td></tr>';
+              return;
+          }
+
+          tbody.innerHTML = '';
+          const fragment = document.createDocumentFragment();
+          AppState.unidade.administradores.forEach(admin => {
+              const tr = document.createElement('tr');
+              tr.style.borderTop = '1px solid var(--border-color)';
+
+              const tdNome = document.createElement('td');
+              tdNome.style.padding = '10px 8px';
+              tdNome.innerHTML = `<strong>${admin.nome}</strong><br><small style="color: #666;">${admin.email}</small>`;
+
+              const tdAcoes = document.createElement('td');
+              tdAcoes.style.padding = '10px 8px';
+              tdAcoes.style.textAlign = 'right';
+              tdAcoes.innerHTML = `<button class="btn-delete" onclick="removerAdministrador('${admin.uid}')" title="Remover">🗑️</button>`;
+
+              tr.appendChild(tdNome);
+              tr.appendChild(tdAcoes);
+              fragment.appendChild(tr);
+          });
+          tbody.appendChild(fragment);
+      }
 
       // Helper function to get a database reference for the current regional
       function getRegionalRef(...pathSegments) {
@@ -1618,6 +1747,12 @@
             onValue(getRegionalRef('motoristaTitular'), (snap) => {
               AppState.unidade.motoristaTitular = snap.val();
             });
+
+            // 4. Carregar Administradores Personalizados
+            onValue(getRegionalRef('administradores'), (snap) => {
+              const adminsFirebase = snap.val() ? Object.keys(snap.val()).map(uid => ({ uid, ...snap.val()[uid] })) : [];
+              AppState.unidade.administradores = adminsFirebase;
+            });
         });
       }
 
@@ -1648,6 +1783,8 @@
           const isWelder = AppState.user.email === "welder.rios@defensoria.ba.def.br";
           const isEsther = AppState.user.email === "esther.bobbio@defensoria.ba.def.br";
           const isSilvana = AppState.user.email === "silvana.cardoso@defensoria.ba.def.br";
+          
+          // Inicializa como falso - será atualizado após carregar dados da unidade
           AppState.user.podeTudo = isWelder || (isEsther && AppState.regionalID === 'EUNAPOLIS') || (isSilvana && AppState.regionalID === 'PORTO SEGURO');          
 
           document.querySelectorAll('[id$="-screen"]').forEach(c => c.classList.add('hidden'));
@@ -1674,6 +1811,13 @@
               // 2. Tiver a flag `isMotorista: true` em seu perfil na equipe.
               // 3. O seu telefone for o mesmo do motorista ATIVO da unidade.
               AppState.user.isMotorista = isMotoristaPorEmail || (currentUserProfile && currentUserProfile.isMotorista === true) || isCurrentActiveDriver;
+
+              // Atualiza podeTudo incluindo os administradores personalizados
+              const isCustomAdmin = AppState.unidade.administradores && AppState.unidade.administradores.some(a => a.uid === user.uid);
+              const isWelder = AppState.user.email === "welder.rios@defensoria.ba.def.br";
+              const isEsther = AppState.user.email === "esther.bobbio@defensoria.ba.def.br";
+              const isSilvana = AppState.user.email === "silvana.cardoso@defensoria.ba.def.br";
+              AppState.user.podeTudo = isWelder || (isEsther && AppState.regionalID === 'EUNAPOLIS') || (isSilvana && AppState.regionalID === 'PORTO SEGURO') || isCustomAdmin;
 
               // O formulário de agendamento fica oculto para qualquer usuário com perfil de motorista.
               if (AppState.user.isMotorista) {
