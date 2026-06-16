@@ -1154,6 +1154,16 @@
         }, 3500);
       };
 
+    window.toggleFullScreen = () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+          showToast(`Erro ao tentar entrar em tela cheia: ${err.message}`, "error");
+        });
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+      }
+    };
+
     // Variáveis globais para o Sistema de Leitura
     window.ultimoTextoLido = "";
     window.leituraAoPassarMouseAtiva = false;
