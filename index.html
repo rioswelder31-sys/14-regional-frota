@@ -107,13 +107,14 @@
         opacity: 0.9;
       }
       .container { width: 100%; max-width: none; margin: 0; padding: 0; background: white; border-radius: 0; box-shadow: none; display: flex; flex-direction: column; box-sizing: border-box; }
-      .container > .folga-box,
-      .container > .main-form,
-      .container > h3,
-      .container > .dash-grid,
-      .container > div[style*="font-size: 0.9em"] {
-        margin-left: 20px;
-        margin-right: 20px;
+      #app-screen > .folga-box,
+      #app-screen > .main-form,
+      #app-screen > h3,
+      #app-screen > .dash-grid,
+      #app-screen > div[style*="font-size: 0.9em"],
+      #app-screen > div[style*="overflow-x:auto"] {
+        margin-left: clamp(10px, 3vw, 40px);
+        margin-right: clamp(10px, 3vw, 40px);
       }
       .container > .folga-box:first-of-type,
       .container > .main-form:first-of-type {
@@ -138,7 +139,6 @@
       .btn-tertiary { background: white; color: #666; border: 1px solid #ddd; }
 
       div[style*="overflow-x:auto"] {
-        padding: 0 20px;
         margin: 20px 0;
         width: 100%;
         box-sizing: border-box;
@@ -675,7 +675,7 @@
       <button class="btn-tertiary" onclick="voltarLogin()">⬅ Voltar para Login</button>
     </div>
 
-    <div id="app-screen" class="container hidden">
+    <div id="app-screen" class="w-full min-h-screen hidden">
       <div class="header">
         <div class="header-content">
           <div style="display: flex; align-items: center; gap: 15px;">
