@@ -107,14 +107,18 @@
         opacity: 0.9;
       }
       .container { width: 100%; max-width: none; margin: 0; padding: 0; background: white; border-radius: 0; box-shadow: none; display: flex; flex-direction: column; box-sizing: border-box; }
-      #app-screen > .folga-box,
-      #app-screen > .main-form,
-      #app-screen > h3,
-      #app-screen > .dash-grid,
-      #app-screen > div[style*="font-size: 0.9em"],
-      #app-screen > div[style*="overflow-x:auto"] {
+      #app-screen > * {
         margin-left: clamp(10px, 3vw, 40px);
         margin-right: clamp(10px, 3vw, 40px);
+      }
+      #app-screen > .header {
+        margin-left: 0;
+        margin-right: 0;
+      }
+      #app-screen > div[style*="overflow-x:auto"] {
+        margin-left: 0;
+        margin-right: 0;
+        padding: 0 clamp(10px, 3vw, 40px);
       }
       .container > .folga-box:first-of-type,
       .container > .main-form:first-of-type {
@@ -472,6 +476,7 @@
 
       /* Dashboard de Resumo */
       .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 120px), 1fr)); gap: 15px; margin-bottom: 20px; animation: fadeInUp 0.5s ease-out; }
+      .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 120px), 1fr)); gap: 15px; margin-top: 30px; margin-bottom: 40px; animation: fadeInUp 0.5s ease-out; }
       .dash-card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-left: 5px solid #ccc; transition: transform 0.2s; display: flex; flex-direction: column; justify-content: space-between; }
       .dash-card:hover { transform: translateY(-3px); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
       .dash-title { font-size: 0.8em; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
@@ -535,12 +540,6 @@
       }
       /* Responsividade - Telas Pequenas (até 480px) */
       @media (max-width: 480px) {
-        .container > .folga-box,
-        .container > .main-form,
-        .container > h3,
-        .container > .dash-grid,
-        .container > div[style*="font-size: 0.9em"] { margin-left: 10px; margin-right: 10px; }
-        div[style*="overflow-x:auto"] { padding: 0 10px; }
         .form-row { gap: 10px; }
         .header { padding: 10px 12px; }
         .header-content { flex-direction: column; align-items: center; text-align: center; }
