@@ -676,27 +676,31 @@
 
     <div id="app-screen" class="w-full min-h-screen hidden">
       <div class="header">
-        <div class="header-content">
-          <div style="display: flex; align-items: center; justify-content: center; gap: 15px; width: 100%;">
+        <div class="header-content" style="display: flex; align-items: center; justify-content: flex-start; width: 100%;">
+          <div style="display: flex; align-items: center; gap: 15px;">
             <a href="https://www.defensoria.ba.def.br/" target="_blank" rel="noopener noreferrer" style="display: flex; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-              <img loading="lazy" src="logo-dpe.png" alt="Logo DPE" style="height: 45px; background-color: white; padding: 5px; border-radius: 6px; object-fit: contain;" />
+              <img loading="lazy" src="logo-dpe.png" alt="Logo DPE" style="height: 55px; background-color: white; padding: 5px; border-radius: 6px; object-fit: contain;" />
             </a>
             
             <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px;">
-              <h2 id="app-unit-name" style="margin: 0; line-height: 1;">Frota DPE</h2>
+              <h2 id="app-unit-name" style="margin: 0; line-height: 1; font-size: 1.5rem;">Frota DPE</h2>
               <span id="status-conexao" style="margin-left: 0;">Conectando...</span>
             </div>
           </div>
-          
-          <div style="display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 10px; width: 100%; background: rgba(0, 0, 0, 0.15); padding: 12px; border-radius: 8px; margin-top: 5px;">
-            <span id="nome-usuario" style="font-weight: bold; margin-right: 7px;"></span>
-            <button aria-label="Ouvir resumo da tela principal" style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px; font-size: 1.2rem; line-height: 1;" onclick="lerTextoEmVozAlta('Painel Principal. Aqui você visualiza o motorista disponível, pode registrar um novo agendamento e acompanhar a agenda de viagens da sua unidade.')" title="Ouvir Resumo da Tela">🔊</button>
-            <button id="fullscreen-btn" aria-label="Alternar tela cheia" style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px; font-size: 1.2rem; line-height: 1;" onclick="toggleFullScreen()" title="Tela Cheia">⛶</button>
-            <button id="theme-toggle-btn" aria-label="Alternar tema claro e escuro" style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px; font-size: 1.2rem; line-height: 1;" onclick="toggleTheme()">🌙</button>
-            <button id="unit-settings-btn" class="hidden" style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px;" onclick="toggleUnitSettingsModal(true)">⚙️ Gestão da Unidade</button>
-            <button style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px;" onclick="toggleProfileModal(true)">Meu Perfil</button>
-            <button style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px;" onclick="fazerLogout()">Sair</button>
-          </div>
+        </div>
+      </div>
+
+      <!-- Novo Painel de Controles Centralizado e Alinhado com a Tela -->
+      <div class="main-form" style="margin-top: 20px; margin-bottom: 20px; padding: 12px 20px; display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 15px; border-left: 5px solid var(--primary);">
+        <span id="nome-usuario" style="font-weight: bold; color: var(--primary); font-size: 1.1em; text-align: center;"></span>
+        
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
+          <button class="btn-tertiary" aria-label="Ouvir resumo da tela principal" style="width: auto; padding: 8px 12px; margin-bottom: 0; font-size: 1.1rem; line-height: 1;" onclick="lerTextoEmVozAlta('Painel Principal. Aqui você visualiza o motorista disponível, pode registrar um novo agendamento e acompanhar a agenda de viagens da sua unidade.')" title="Ouvir Resumo da Tela">🔊</button>
+          <button id="fullscreen-btn" class="btn-tertiary" aria-label="Alternar tela cheia" style="width: auto; padding: 8px 12px; margin-bottom: 0; font-size: 1.1rem; line-height: 1;" onclick="toggleFullScreen()" title="Tela Cheia">⛶</button>
+          <button id="theme-toggle-btn" class="btn-tertiary" aria-label="Alternar tema claro e escuro" style="width: auto; padding: 8px 12px; margin-bottom: 0; font-size: 1.1rem; line-height: 1;" onclick="toggleTheme()">🌙</button>
+          <button id="unit-settings-btn" class="btn-outline hidden" style="width: auto; padding: 8px 12px; margin-bottom: 0; font-weight: bold;" onclick="toggleUnitSettingsModal(true)">⚙️ Gestão da Unidade</button>
+          <button class="btn-outline" style="width: auto; padding: 8px 12px; margin-bottom: 0; font-weight: bold;" onclick="toggleProfileModal(true)">Meu Perfil</button>
+          <button class="btn-primary" style="width: auto; padding: 8px 15px; margin-bottom: 0; background: var(--danger); border: none;" onclick="fazerLogout()">Sair</button>
         </div>
       </div>
 
