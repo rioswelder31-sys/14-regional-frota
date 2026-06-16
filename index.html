@@ -541,7 +541,7 @@
       /* Responsividade - Telas Pequenas (até 480px) */
       @media (max-width: 480px) {
         .form-row { gap: 10px; }
-        .header { padding: 10px 12px; }
+        .header { padding: 10px clamp(10px, 3vw, 40px); }
         .header-content { flex-direction: column; align-items: center; text-align: center; }
         #help-fab, #hover-read-fab { width: clamp(45px, 10vw, 55px); height: clamp(45px, 10vw, 55px); font-size: 1.2rem; }
         .roteiro-controls { flex-direction: column; }
