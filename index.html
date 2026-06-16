@@ -104,8 +104,26 @@
         font-size: 0.875rem;
         opacity: 0.9;
       }
-      .container { width: 100%; max-width: 100%; margin: 0; padding: 20px; background: white; border-radius: 0; box-shadow: none; display: flex; flex-direction: column; }
-      .header { background: var(--primary); color: white; padding: 15px; border-radius: 0; margin: -20px -20px 20px -20px; width: calc(100% + 40px); }
+      .container { width: 100%; margin: 0; padding: 0; background: white; border-radius: 0; box-shadow: none; display: flex; flex-direction: column; }
+      .container > .folga-box,
+      .container > .main-form,
+      .container > div > .driver-badge,
+      .container > h3,
+      .container > .dash-grid,
+      .container > div[style*="overflow-x:auto"] {
+        margin-left: 20px;
+        margin-right: 20px;
+      }
+      .container > .folga-box:first-of-type,
+      .container > .main-form:first-of-type,
+      .container > div:first-of-type {
+        margin-top: 20px;
+      }
+      .container > hr { margin: 30px 20px 20px 20px; }
+      .container > div:last-child {
+        margin-bottom: 20px;
+      }
+      .header { background: var(--primary); color: white; padding: 15px 20px; border-radius: 0; margin: -0 -0 0 -0; width: 100%; }
       .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
       #status-conexao { font-weight: bold; background: rgba(0, 0, 0, 0.2); padding: 5px 10px; border-radius: 4px; font-size: 0.85em; margin-left: 10px; }
       
@@ -119,7 +137,10 @@
       .btn-outline { background: white; color: var(--primary); border: 2px solid var(--primary); }
       .btn-tertiary { background: white; color: #666; border: 1px solid #ddd; }
 
-      .table-custom { width: 100%; border-collapse: collapse; min-width: 1100px; }
+      .table-custom { width: 100%; border-collapse: collapse; overflow-x: auto; }
+      div[style*="overflow-x:auto"] {
+        padding: 0 20px 20px 20px;
+      }
       .table-custom tr { border-bottom: 1px solid var(--border-color); transition: background-color 0.2s; }
       .table-custom tbody tr:hover { background-color: var(--table-hover); }
       .table-header-custom { background: var(--table-header); color: white; }
