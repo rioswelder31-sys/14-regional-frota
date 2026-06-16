@@ -677,7 +677,7 @@
     <div id="app-screen" class="w-full min-h-screen hidden">
       <div class="header">
         <div class="header-content">
-          <div style="display: flex; align-items: center; gap: 15px;">
+          <div style="display: flex; align-items: center; justify-content: center; gap: 15px; width: 100%;">
             <a href="https://www.defensoria.ba.def.br/" target="_blank" rel="noopener noreferrer" style="display: flex; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
               <img loading="lazy" src="logo-dpe.png" alt="Logo DPE" style="height: 45px; background-color: white; padding: 5px; border-radius: 6px; object-fit: contain;" />
             </a>
@@ -688,7 +688,7 @@
             </div>
           </div>
           
-          <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">
+          <div style="display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 10px; width: 100%; background: rgba(0, 0, 0, 0.15); padding: 12px; border-radius: 8px; margin-top: 5px;">
             <span id="nome-usuario" style="font-weight: bold; margin-right: 7px;"></span>
             <button aria-label="Ouvir resumo da tela principal" style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px; font-size: 1.2rem; line-height: 1;" onclick="lerTextoEmVozAlta('Painel Principal. Aqui você visualiza o motorista disponível, pode registrar um novo agendamento e acompanhar a agenda de viagens da sua unidade.')" title="Ouvir Resumo da Tela">🔊</button>
             <button id="fullscreen-btn" aria-label="Alternar tela cheia" style="background:rgba(255,255,255,0.2); border:1px solid white; color:white; width: auto; padding: 6px 12px; font-size: 1.2rem; line-height: 1;" onclick="toggleFullScreen()" title="Tela Cheia">⛶</button>
