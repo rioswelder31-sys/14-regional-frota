@@ -12,6 +12,7 @@
     <style type="text/css">
       :root { --primary: #009c3b; --secondary: #f8f9fa; --success: #28a745; --whatsapp: #25d366; --danger: #dc3545; --warning: #ffc107; --dark-text: #333; --blocked: #721c24; --blocked-bg: #f8d7da; --border-color: #dee2e6; --table-hover: #f1f5f9; --table-header: #004080; }
       * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { height: 100%; width: 100%; overflow-x: hidden; }
       body { font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f3f4f6; color: #333; }
       
       @keyframes fadeInUp {
@@ -103,8 +104,8 @@
         font-size: 0.875rem;
         opacity: 0.9;
       }
-      .container { max-width: 1100px; margin: 15px auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); }
-      .header { background: var(--primary); color: white; padding: 15px; border-radius: 8px 8px 0 0; margin: -20px -20px 20px -20px; }
+      .container { width: 100%; margin: 0; padding: 20px; background: white; border-radius: 0; box-shadow: none; min-height: 100vh; display: flex; flex-direction: column; }
+      .header { background: var(--primary); color: white; padding: 15px; border-radius: 0; margin: 0; width: 100%; margin-left: -20px; margin-right: -20px; margin-top: -20px; width: calc(100% + 40px); }
       .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
       #status-conexao { font-weight: bold; background: rgba(0, 0, 0, 0.2); padding: 5px 10px; border-radius: 4px; font-size: 0.85em; margin-left: 10px; }
       
@@ -136,15 +137,19 @@
 
       /* Estilo Telas de Login/Registro conforme foto */
       #login-screen, #comarca-screen, #register-screen { 
-        max-width: 450px; 
-        margin: 60px auto; 
-        padding: 40px; 
+        width: 100%;
+        height: 100vh;
+        margin: 0; 
+        padding: 40px 20px;
         text-align: center; 
-        border-radius: 10px; 
-        border-top: 6px solid var(--primary); 
+        border-radius: 0; 
         background: white; 
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        box-shadow: none;
         animation: fadeInUp 0.6s ease-out;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
       }
       .password-container { position: relative; width: 100%; margin-bottom: 10px; }
       .toggle-password { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #666; font-size: 1.3em; }
@@ -443,6 +448,24 @@
       html[data-theme="dark"] #help-modal-content strong { color: var(--dark-text); }
       html[data-theme="dark"] #profile-modal-close, html[data-theme="dark"] #help-modal-close, html[data-theme="dark"] #unit-settings-modal-close { color: #A0AEC0; }
       html[data-theme="dark"] #profile-modal-close:hover, html[data-theme="dark"] #help-modal-close:hover, html[data-theme="dark"] #unit-settings-modal-close:hover { color: var(--dark-text); }
+
+      /* App Screen Full Height */
+      #app-screen {
+        width: 100%;
+        height: 100vh;
+        margin: 0;
+        padding: 0;
+        border-radius: 0;
+        box-shadow: none;
+        background: white;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+      }
+      #app-screen .container {
+        height: auto;
+        min-height: auto;
+      }
 
       /* Dashboard de Resumo */
       .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px; animation: fadeInUp 0.5s ease-out; }
