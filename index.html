@@ -10,7 +10,7 @@
     <link rel="apple-touch-icon" href="logo-dpe-192.png" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style type="text/css">
-      :root { --primary: #009c3b; --secondary: #f8f9fa; --success: #28a745; --whatsapp: #25d366; --danger: #dc3545; --warning: #ffc107; --dark-text: #333; --blocked: #721c24; --blocked-bg: #f8d7da; --border-color: #dee2e6; --table-hover: #f1f5f9; --table-header: #004080; }
+      :root { --primary: #009c3b; --secondary: #f8f9fa; --success: #28a745; --whatsapp: #25d366; --danger: #dc3545; --warning: #ffc107; --dark-text: #333; --blocked: #721c24; --blocked-bg: #f8d7da; --border-color: #dee2e6; --table-hover: #f1f5f9; --table-header: #007b2e; }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html { height: 100%; width: 100%; margin: 0; padding: 0; }
       body { font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f3f4f6; color: #333; width: 100%; margin: 0; padding: 0; }
@@ -66,7 +66,7 @@
       }
 
       .btn-aceder:hover {
-        background-color: #001f4d;
+        background-color: #007b2e;
         transform: translateX(4px);
       }
 
@@ -75,7 +75,7 @@
         color: white;
         padding: 2rem 1rem;
         text-align: center;
-        border-top: 4px solid #0052a3;
+        border-top: 4px solid #007b2e;
       }
 
       .developer-section {
@@ -99,7 +99,7 @@
 
       .developer-icon {
         font-size: 1.5rem;
-        color: #4da6ff;
+        color: #9ae6b4;
       }
 
       .copyright-info {
@@ -360,17 +360,17 @@
 
       /* Dark Theme Styles */
       html[data-theme="dark"] {
-        --primary: #4da6ff;
+        --primary: #00b846;
         --secondary: #1A202C;
         --success: #48bb78;
         --danger: #f56565;
         --warning: #ecc94b;
         --dark-text: #E2E8F0;
-        --blocked: #f8d7da;
+        --blocked: #fc8181;
         --blocked-bg: #4a1d21;
         --border-color: #4A5568;
         --table-hover: #2D3748;
-        --table-header: #1A202C;
+        --table-header: #2D3748;
       }
 
       html[data-theme="dark"] body {
@@ -395,7 +395,7 @@
       
       html[data-theme="dark"] .text-gray-900 { color: #f7fafc !important; }
       html[data-theme="dark"] .text-gray-600 { color: #a0aec0 !important; }
-      html[data-theme="dark"] .text-blue-700 { color: var(--primary) !important; }
+      html[data-theme="dark"] .text-green-700 { color: var(--primary) !important; }
 
       html[data-theme="dark"] .header {
         background: #2D3748;
@@ -436,8 +436,8 @@
       }
 
       html[data-theme="dark"] .linha-confirmada {
-        background-color: #2c5282 !important;
-        color: #bee3f8;
+        background-color: #1c4532 !important;
+        color: #9ae6b4;
       }
       html[data-theme="dark"] .linha-ciente {
         background-color: #3b3524 !important;
@@ -457,7 +457,8 @@
       /* Ajustes de Tema Escuro para a Tela Inicial */
       html[data-theme="dark"] #unit-screen > div { background: #1A202C !important; }
       html[data-theme="dark"] .footer-developer { background-color: #2D3748; border-top-color: #4A5568; }
-      html[data-theme="dark"] .border-blue-700 { border-color: var(--primary) !important; }
+      html[data-theme="dark"] .border-green-700 { border-color: var(--primary) !important; }
+      html[data-theme="dark"] .bg-green-600 { background-color: var(--primary) !important; }
       html[data-theme="dark"] .border-green-600 { border-color: var(--success) !important; }
       html[data-theme="dark"] .text-green-600 { color: var(--success) !important; }
       .theme-btn-home { background: white; color: #333; transition: all 0.3s; }
@@ -481,7 +482,7 @@
       .dash-card:hover { transform: translateY(-3px); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
       .dash-title { font-size: 0.8em; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
       .dash-value { font-size: 2rem; font-weight: 800; color: #333; line-height: 1; }
-      .border-blue { border-left-color: #3b82f6; }
+      .border-primary { border-left-color: var(--primary); }
       .border-warning { border-left-color: var(--warning); }
       .border-success { border-left-color: var(--success); }
       .border-danger { border-left-color: var(--danger); }
@@ -571,14 +572,14 @@
   <h1 class="text-5xl font-bold text-gray-900 mb-4">Sistema de Gestão de Frota</h1>
   <p class="text-xl text-gray-600">Defensoria Pública do Estado da Bahia</p>
   <button onclick="lerTextoEmVozAlta('Sistema de Gestão de Frota. Defensoria Pública do Estado da Bahia.')" class="btn-tertiary" style="width: auto; margin-top: 15px; border-radius: 20px; padding: 8px 16px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">🔊 Ouvir Texto</button>
-  <div class="w-24 h-1 bg-blue-600 mx-auto mt-6"></div>
+  <div class="w-24 h-1 bg-green-600 mx-auto mt-6"></div>
 </div>
 
             <!-- Cards Grid -->
             <div class="grid lg:grid-cols-3 md:grid-cols-2 gap-8 mt-16">
               <!-- Card 14ª Regional -->
-              <div class="card-hover bg-white rounded-lg shadow-lg overflow-hidden border-l-4 border-blue-700 p-8 transform transition-all duration-300" style="animation: fadeInUp 0.8s ease-out 0.1s both;">
-                <div class="text-6xl mb-4 text-blue-700">🏛️</div>
+              <div class="card-hover bg-white rounded-lg shadow-lg overflow-hidden border-l-4 border-green-700 p-8 transform transition-all duration-300" style="animation: fadeInUp 0.8s ease-out 0.1s both;">
+                <div class="text-6xl mb-4 text-green-700">🏛️</div>
                 <h2 class="text-3xl font-bold text-gray-900 mb-2">14ª Regional</h2>
                 <p class="text-gray-600 text-lg mb-8">Teixeira de Freitas - Extremo Sul</p>
                 <button class="btn-aceder text-center" onclick="selecionarUnidade('14-regional', '14ª Regional - Teixeira de Freitas')">
@@ -587,8 +588,8 @@
               </div>
 
               <!-- Card 9ª Regional -->
-              <div class="card-hover bg-white rounded-lg shadow-lg overflow-hidden border-l-4 border-blue-700 p-8 transform transition-all duration-300" style="animation: fadeInUp 0.8s ease-out 0.2s both;">
-                <div class="text-6xl mb-4 text-blue-700">⚖️</div>
+              <div class="card-hover bg-white rounded-lg shadow-lg overflow-hidden border-l-4 border-green-700 p-8 transform transition-all duration-300" style="animation: fadeInUp 0.8s ease-out 0.2s both;">
+                <div class="text-6xl mb-4 text-green-700">⚖️</div>
                 <h2 class="text-3xl font-bold text-gray-900 mb-2">9ª Regional</h2>
                 <p class="text-gray-600 text-lg mb-8">Costa do Descobrimento</p>
                 <button class="btn-aceder text-center" onclick="mostrarSub9()">
@@ -789,7 +790,7 @@
 
       <!-- Dashboard de Resumo (Novidade) -->
       <div class="dash-grid">
-        <div class="dash-card border-blue"><div class="dash-title">Total de Viagens</div><div class="dash-value" id="dash-total">0</div></div>
+        <div class="dash-card border-primary"><div class="dash-title">Total de Viagens</div><div class="dash-value" id="dash-total">0</div></div>
         <div class="dash-card border-warning"><div class="dash-title">Pendentes</div><div class="dash-value" id="dash-pendentes">0</div></div>
         <div class="dash-card border-success"><div class="dash-title">Confirmadas / Fim</div><div class="dash-value" id="dash-concluidas">0</div></div>
         <div class="dash-card border-danger"><div class="dash-title">Canceladas / Rej.</div><div class="dash-value" id="dash-canceladas">0</div></div>
