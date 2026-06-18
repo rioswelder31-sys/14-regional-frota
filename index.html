@@ -2221,6 +2221,7 @@
         const chegada = document.getElementById("chegada").value;
         const id = document.getElementById("edit-id").value;
         if(!solicitanteNome || !saida || !chegada) return alert("Preencha solicitante e horários!");
+        if(new Date(chegada) < new Date(saida)) return alert("A data de retorno não pode ser anterior à data de saída!");
         if(AppState.roteiroAtual.length === 0) return alert("Preencha o roteiro da viagem!");
 
         const solicitante = AppState.unidade.equipe.find(m => m.nome === solicitanteNome);
