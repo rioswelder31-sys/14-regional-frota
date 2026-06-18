@@ -656,6 +656,7 @@
           <button id="theme-toggle-btn" class="btn-tertiary" aria-label="Alternar tema claro e escuro" style="width: auto; padding: 8px 12px; margin-bottom: 0; font-size: 1.1rem; line-height: 1;" onclick="toggleTheme()">🌙</button>
           <button id="unit-settings-btn" class="btn-outline hidden" style="width: auto; padding: 8px 12px; margin-bottom: 0; font-weight: bold;" onclick="toggleUnitSettingsModal(true)">⚙️ Gestão da Unidade</button>
           <button class="btn-outline" style="width: auto; padding: 8px 12px; margin-bottom: 0; font-weight: bold;" onclick="toggleProfileModal(true)">Meu Perfil</button>
+          <button class="btn-primary" style="width: auto; padding: 8px 15px; margin-bottom: 0; background: var(--success); border: none;" onclick="abrirNovaSolicitacao()">➕ Nova Solicitação</button>
           <button class="btn-primary" style="width: auto; padding: 8px 15px; margin-bottom: 0; background: var(--danger); border: none;" onclick="fazerLogout()">Sair</button>
         </div>
       </div>
@@ -686,7 +687,7 @@
           <span id="tel-motorista" class="protected-info" title="Passe o mouse para ver o número" style="font-weight: bold;"></span>
         </div>
         <div id="form-content">
-          <h3 id="form-title" style="color: var(--primary)">📝 Novo Agendamento</h3>
+          <h3 id="form-title" style="color: var(--primary); cursor: pointer;" onclick="abrirNovaSolicitacao()" title="Clique para resetar e focar no formulário">📝 Nova Solicitação de Agendamento</h3>
           <input type="hidden" id="edit-id" />
           <div class="form-row">
             <div class="col" style="flex: 2"><label for="solicitante">Solicitante:</label><input type="text" id="solicitante" list="lista-solicitantes" required /><datalist id="lista-solicitantes"></datalist></div>
@@ -1968,9 +1969,15 @@
         if(!co || !cd) return alert("Por favor, selecione as cidades de origem e destino!");
         AppState.roteiroAtual.push({ origem: `${ufo} - ${co}`, destino: `${ufd} - ${cd}` });
         renderRoteiro();
+        
+        // Inverte automaticamente a rota (Origem vira o Destino antigo, Destino vira a Origem antiga)
         document.getElementById('uf-origem').value = ufd; carregarCidades('origem');
         document.getElementById('cidade-origem').value = cd;
-        document.getElementById('cidade-destino').value = "";
+        
+        document.getElementById('uf-destino').value = ufo; carregarCidades('destino');
+        document.getElementById('cidade-destino').value = co;
+        
+        document.getElementById('cidade-destino').focus(); // Foca no destino para facilitar a digitação imediata
       };
 
       function renderRoteiro() {
@@ -2193,7 +2200,19 @@
         btnSave.classList.remove("hidden");
         btnSave.disabled = false;
         btnSave.innerText = '✅ Salvar Solicitação';
-        document.getElementById('form-title').innerText = '📝 Novo Agendamento';
+        document.getElementById('form-title').innerText = '📝 Nova Solicitação de Agendamento';
+      }
+
+      window.abrirNovaSolicitacao = () => {
+        resetForm();
+        const formContent = document.getElementById('form-content');
+        formContent.classList.remove('hidden'); // Exibe o formulário caso esteja oculto (ex: perfil de motorista)
+        formContent.scrollIntoView({ behavior: 'smooth', block: 'center' }); // Rola até o formulário de forma fluída
+        
+        // Foca automaticamente no campo destino após a rolagem da página
+        setTimeout(() => {
+          document.getElementById('cidade-destino').focus();
+        }, 300);
       }
 
       window.salvarNoFirebase = async () => {
