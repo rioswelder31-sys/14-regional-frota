@@ -722,8 +722,8 @@
           </div>
 
           <div class="form-row">
-            <div class="col"><label for="saida">Saída:</label><input type="datetime-local" id="saida" /></div>
-            <div class="col"><label for="chegada">Retorno:</label><input type="datetime-local" id="chegada" /></div>
+            <div class="col"><label for="saida">Saída Prevista:</label><input type="datetime-local" id="saida" /></div>
+            <div class="col"><label for="chegada">Chegada Prevista:</label><input type="datetime-local" id="chegada" /></div>
           </div>
           <label for="motivo">Motivo:</label><textarea id="motivo" rows="2"></textarea>
           <button id="btn-save" class="btn-primary" style="margin-top: 15px;" onclick="salvarNoFirebase()">✅ Salvar Solicitação</button>
@@ -753,7 +753,7 @@
         <div id="card-falta-ciencia" class="dash-card border-info hidden"><div class="dash-title">Falta Ciência</div><div class="dash-value" id="dash-ciencia">0</div></div>
       </div>
 
-      <div style="overflow-x:auto;"><table class="table-custom"><thead class="table-header-custom"><tr><th style="padding:12px;">Status</th><th style="padding:12px;">Saída</th><th style="padding:12px;">Retorno</th><th style="padding:12px;">Solicitante</th><th style="padding:12px;">Motivo</th><th style="padding:12px;">Roteiro</th><th style="padding:12px; text-align:center;">Ações</th></tr></thead><tbody id="tb-corpo"></tbody></table></div>
+      <div style="overflow-x:auto;"><table class="table-custom"><thead class="table-header-custom"><tr><th style="padding:12px;">Status</th><th style="padding:12px;">Saída Prevista</th><th style="padding:12px;">Chegada Prevista</th><th style="padding:12px;">Solicitante</th><th style="padding:12px;">Motivo</th><th style="padding:12px;">Roteiro</th><th style="padding:12px; text-align:center;">Ações</th></tr></thead><tbody id="tb-corpo"></tbody></table></div>
       
       <!-- Paginação -->
       <div id="paginacao-controles" class="hidden" style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 15px; margin-bottom: 25px; flex-wrap: wrap;">
@@ -2085,7 +2085,7 @@
                     
                     if (AppState.user.isMotorista) {
                         if (!viagemAntiga && v.status === STATUS.PENDENTE) {
-                            mostrarNotificacaoPush('Novo Agendamento 🚘', `Solicitante: ${v.solicitanteNome}\nSaída: ${new Date(v.saida).toLocaleString('pt-BR')}`);
+                            mostrarNotificacaoPush('Novo Agendamento 🚘', `Solicitante: ${v.solicitanteNome}\nSaída Prevista: ${new Date(v.saida).toLocaleString('pt-BR')}`);
                         } else if (viagemAntiga && (viagemAntiga.saida !== v.saida || viagemAntiga.chegada !== v.chegada || viagemAntiga.trajetoExibicao !== v.trajetoExibicao)) {
                             mostrarNotificacaoPush('Viagem Editada 🔄', `A viagem de ${v.solicitanteNome} foi alterada.\nVerifique as novas informações na agenda.`);
                         }
@@ -2221,8 +2221,27 @@
         const chegada = document.getElementById("chegada").value;
         const id = document.getElementById("edit-id").value;
         if(!solicitanteNome || !saida || !chegada) return alert("Preencha solicitante e horários!");
-        if(new Date(chegada) < new Date(saida)) return alert("A data de retorno não pode ser anterior à data de saída!");
+          if(new Date(chegada) < new Date(saida)) return alert("A data de chegada prevista não pode ser anterior à data de saída prevista!");
         if(AppState.roteiroAtual.length === 0) return alert("Preencha o roteiro da viagem!");
+
+          const dataSaidaObj = new Date(saida);
+          const agoraObj = new Date();
+          agoraObj.setSeconds(0, 0); // Ignorar os segundos para comparação justa do minuto atual
+
+          if (dataSaidaObj < agoraObj) {
+              if (!id) {
+                  return alert("A Data de Saída Prevista já passou. Não é possível agendar retroativamente.");
+              } else {
+                  const viagemAtual = AppState.viagens.find(v => v.id === id);
+                  if (viagemAtual) {
+                      const dataOriginal = new Date(viagemAtual.saida);
+                      dataOriginal.setSeconds(0, 0);
+                      if (dataSaidaObj.getTime() !== dataOriginal.getTime()) {
+                          return alert("A nova Data de Saída Prevista já passou. Não é possível reagendar para uma data retroativa.");
+                      }
+                  }
+              }
+          }
 
         const solicitante = AppState.unidade.equipe.find(m => m.nome === solicitanteNome);
         if (!solicitante) return alert("Solicitante inválido. Por favor, selecione um nome da lista ou cadastre-se se for um novo usuário.");
@@ -2289,14 +2308,14 @@
         const dataSaidaFormatada = new Date(dados.saida).toLocaleString('pt-BR');
         const dataRetornoFormatada = new Date(dados.chegada).toLocaleString('pt-BR');
 
-        const msgMotorista = `🔔 *NOVO AGENDAMENTO RECEBIDO*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${dados.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${dados.trajetoExibicao}\n📝 *Motivo:* ${dados.motivo}\n\n*Acesse o aplicativo para confirmar ou recusar a viagem.*`;
+        const msgMotorista = `🔔 *NOVO AGENDAMENTO RECEBIDO*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${dados.solicitanteNome}\n📅 *Saída Prevista:* ${dataSaidaFormatada}\n🔙 *Chegada Prevista:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${dados.trajetoExibicao}\n📝 *Motivo:* ${dados.motivo}\n\n*Acesse o aplicativo para confirmar ou recusar a viagem.*`;
 
         if(id) {
             await update(getRegionalRef(DB_PATHS.VIAGENS, id), dados);
             registrarLog('Edição de Viagem', `Viagem ID ${id} para ${dados.solicitanteNome} foi editada.`);
             showToast("Viagem editada! Notifique o motorista.", "success");
             const telMotorista = AppState.unidade.motorista.tel;
-            const msgEdicao = `🔄 *VIAGEM EDITADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${dados.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${dados.trajetoExibicao}\n📝 *Motivo:* ${dados.motivo}\n\n*A viagem foi editada. Acesse o aplicativo para confirmar ou recusar.*`;
+            const msgEdicao = `🔄 *VIAGEM EDITADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${dados.solicitanteNome}\n📅 *Saída Prevista:* ${dataSaidaFormatada}\n🔙 *Chegada Prevista:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${dados.trajetoExibicao}\n📝 *Motivo:* ${dados.motivo}\n\n*A viagem foi editada. Acesse o aplicativo para confirmar ou recusar.*`;
             if (telMotorista) {
               let phone = formatarTelefoneWpp(telMotorista);
               window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msgEdicao)}`, '_blank');
@@ -2347,11 +2366,11 @@
 
         let msgReenvio;
         if (v.status === STATUS.CONFIRMADO) {
-          msgReenvio = `🔄 *LEMBRETE DE VIAGEM CONFIRMADA*\n\n(Este é um lembrete para uma viagem que já foi confirmada)\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${v.trajetoExibicao}\n📝 *Motivo:* ${v.motivo || ''}\n\n*Esta viagem já está confirmada na agenda do motorista.*`;
+          msgReenvio = `🔄 *LEMBRETE DE VIAGEM CONFIRMADA*\n\n(Este é um lembrete para uma viagem que já foi confirmada)\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída Prevista:* ${dataSaidaFormatada}\n🔙 *Chegada Prevista:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${v.trajetoExibicao}\n📝 *Motivo:* ${v.motivo || ''}\n\n*Esta viagem já está confirmada na agenda do motorista.*`;
         } else if (v.status === STATUS.CIENTE) {
-          msgReenvio = `👁️ *VIAGEM AGUARDANDO CONFIRMAÇÃO*\n\n(Administração já conferiu esta viagem)\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${v.trajetoExibicao}\n📝 *Motivo:* ${v.motivo || ''}\n\n✅ *Administração já conferiu a viagem!*\n\n*Por favor, acesse o aplicativo para confirmar ou recusar esta viagem.*`;
+          msgReenvio = `👁️ *VIAGEM AGUARDANDO CONFIRMAÇÃO*\n\n(Administração já conferiu esta viagem)\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída Prevista:* ${dataSaidaFormatada}\n🔙 *Chegada Prevista:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${v.trajetoExibicao}\n📝 *Motivo:* ${v.motivo || ''}\n\n✅ *Administração já conferiu a viagem!*\n\n*Por favor, acesse o aplicativo para confirmar ou recusar esta viagem.*`;
         } else {
-          msgReenvio = `🔄 *REENVIO DE SOLICITAÇÃO DE VIAGEM*\n\n(Esta é uma notificação reenviada para uma viagem já solicitada)\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${v.trajetoExibicao}\n📝 *Motivo:* ${v.motivo || ''}\n\n*Acesse o aplicativo para confirmar ou recusar a viagem.*`;
+          msgReenvio = `🔄 *REENVIO DE SOLICITAÇÃO DE VIAGEM*\n\n(Esta é uma notificação reenviada para uma viagem já solicitada)\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída Prevista:* ${dataSaidaFormatada}\n🔙 *Chegada Prevista:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${v.trajetoExibicao}\n📝 *Motivo:* ${v.motivo || ''}\n\n*Acesse o aplicativo para confirmar ou recusar a viagem.*`;
         }
 
         const telMotorista = AppState.unidade.motorista.tel;
@@ -2370,7 +2389,7 @@
         const dataSaidaFormatada = new Date(v.saida).toLocaleString('pt-BR');
         const dataRetornoFormatada = new Date(v.chegada).toLocaleString('pt-BR');
         const trajeto = v.trajetoExibicao ? v.trajetoExibicao.replace(/\n/g, ' ') : 'Rota não informada';
-        const msgConfReenvio = `🔄 *REENVIO DE CONFIRMAÇÃO DE VIAGEM*\n\n(Esta é uma notificação reenviada para uma viagem já confirmada)\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:* ${trajeto}\n\nSua viagem foi confirmada pelo motorista!`;
+        const msgConfReenvio = `🔄 *REENVIO DE CONFIRMAÇÃO DE VIAGEM*\n\n(Esta é uma notificação reenviada para uma viagem já confirmada)\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída Prevista:* ${dataSaidaFormatada}\n🔙 *Chegada Prevista:* ${dataRetornoFormatada}\n📍 *Roteiro:* ${trajeto}\n\nSua viagem foi confirmada pelo motorista!`;
         
         let phone = formatarTelefoneWpp(solicitante.telefone);
         window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msgConfReenvio)}`, '_blank');
@@ -2602,7 +2621,7 @@
           const dataRetornoFormatada = new Date(v.chegada).toLocaleString('pt-BR');
           const quemCancelou = AppState.user.podeTudo ? "A administração" : "O solicitante";
             const trajeto = v.trajetoExibicao ? v.trajetoExibicao.replace(/\n/g, ' ') : 'Rota não informada';
-            const msgCancelamento = `🚫 *VIAGEM CANCELADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída Original:* ${dataSaidaFormatada}\n🔙 *Retorno Original:* ${dataRetornoFormatada}\n📍 *Roteiro:* ${trajeto}\n\n${quemCancelou} cancelou esta viagem no sistema. Por favor, desconsidere-a da sua agenda.`;
+            const msgCancelamento = `🚫 *VIAGEM CANCELADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída Prevista Original:* ${dataSaidaFormatada}\n🔙 *Chegada Prevista Original:* ${dataRetornoFormatada}\n📍 *Roteiro:* ${trajeto}\n\n${quemCancelou} cancelou esta viagem no sistema. Por favor, desconsidere-a da sua agenda.`;
           if(telMotorista) {
             let phone = formatarTelefoneWpp(telMotorista);
             window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msgCancelamento)}`, '_blank');
@@ -2632,7 +2651,7 @@
               const dataSaidaFormatada = new Date(v.saida).toLocaleString('pt-BR');
               const dataRetornoFormatada = new Date(v.chegada).toLocaleString('pt-BR');
                 const trajeto = v.trajetoExibicao ? v.trajetoExibicao.replace(/\n/g, ' ') : 'Rota não informada';
-                const msgConf = `✅ *VIAGEM CONFIRMADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:* ${trajeto}\n\nSua viagem foi confirmada pelo motorista!`;
+                const msgConf = `✅ *VIAGEM CONFIRMADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída Prevista:* ${dataSaidaFormatada}\n🔙 *Chegada Prevista:* ${dataRetornoFormatada}\n📍 *Roteiro:* ${trajeto}\n\nSua viagem foi confirmada pelo motorista!`;
               if(telSol) {
                 let phone = formatarTelefoneWpp(telSol);
                 window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msgConf)}`, '_blank');
@@ -2651,7 +2670,7 @@
               const dataSaidaFormatada = new Date(v.saida).toLocaleString('pt-BR');
               const dataRetornoFormatada = new Date(v.chegada).toLocaleString('pt-BR');
               const trajeto = v.trajetoExibicao ? v.trajetoExibicao.replace(/\n/g, ' ') : 'Rota não informada';
-              const msgRejeicao = `❌ *VIAGEM REJEITADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída:* ${dataSaidaFormatada}\n🔙 *Retorno:* ${dataRetornoFormatada}\n📍 *Roteiro:* ${trajeto}\n\nInfelizmente, sua viagem foi rejeitada pelo motorista. Tente agendar em outro horário.`;
+              const msgRejeicao = `❌ *VIAGEM REJEITADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída Prevista:* ${dataSaidaFormatada}\n🔙 *Chegada Prevista:* ${dataRetornoFormatada}\n📍 *Roteiro:* ${trajeto}\n\nInfelizmente, sua viagem foi rejeitada pelo motorista. Tente agendar em outro horário.`;
               if(telSol) {
                 let phone = formatarTelefoneWpp(telSol);
                 window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msgRejeicao)}`, '_blank');
@@ -2691,7 +2710,7 @@
             const dataRetornoFormatada = new Date(v.chegada).toLocaleString('pt-BR');
             const quemExcluiu = AppState.user.podeTudo ? "A administração" : "O solicitante";
             const trajeto = v.trajetoExibicao ? v.trajetoExibicao.replace(/\n/g, ' ') : 'Rota não informada';
-            const msgExclusao = `🗑️ *VIAGEM EXCLUÍDA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída Original:* ${dataSaidaFormatada}\n🔙 *Retorno Original:* ${dataRetornoFormatada}\n📍 *Roteiro:* ${trajeto}\n\n${quemExcluiu} excluiu esta viagem do sistema. Por favor, desconsidere-a da sua agenda.`;
+            const msgExclusao = `🗑️ *VIAGEM EXCLUÍDA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída Prevista Original:* ${dataSaidaFormatada}\n🔙 *Chegada Prevista Original:* ${dataRetornoFormatada}\n📍 *Roteiro:* ${trajeto}\n\n${quemExcluiu} excluiu esta viagem do sistema. Por favor, desconsidere-a da sua agenda.`;
             if(telMotorista) {
               let phone = formatarTelefoneWpp(telMotorista);
               window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msgExclusao)}`, '_blank');
@@ -2701,7 +2720,7 @@
           }
 
           remove(getRegionalRef(DB_PATHS.VIAGENS, id)).then(() => {
-            registrarLog('Exclusão de Viagem', `Viagem de ${v.solicitanteNome} (Saída: ${new Date(v.saida).toLocaleString('pt-BR')}) foi excluída.`);
+            registrarLog('Exclusão de Viagem', `Viagem de ${v.solicitanteNome} (Saída Prevista: ${new Date(v.saida).toLocaleString('pt-BR')}) foi excluída.`);
             showToast("Viagem excluída com sucesso!", "success");
           }).catch(err => alert("Erro ao excluir: " + err.message));
         } 
@@ -2966,8 +2985,8 @@
                 <thead>
                   <tr>
                     <th style="width: 10%;">Status</th>
-                    <th style="width: 18%;">Saída</th>
-                    <th style="width: 18%;">Retorno</th>
+                    <th style="width: 18%;">Saída Prevista</th>
+                    <th style="width: 18%;">Chegada Prevista</th>
                     <th style="width: 20%;">Solicitante</th>
                     <th style="width: 17%;">Motivo</th>
                     <th style="width: 17%;">Roteiro</th>
@@ -3081,7 +3100,7 @@
           alert('Nenhuma viagem registrada para exportar!');
           return;
         }
-        let csv = 'Status,Saída,Retorno,Solicitante,Motivo,Roteiro\n';
+        let csv = 'Status,Saída Prevista,Chegada Prevista,Solicitante,Motivo,Roteiro\n';
         AppState.viagens.forEach(v => {
           const status = v.status || 'Pendente';
           
