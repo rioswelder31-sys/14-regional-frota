@@ -204,56 +204,6 @@
       @keyframes pulse-wpp { 0% { transform: scale(1); } 70% { transform: scale(1.02); } 100% { transform: scale(1); } }
       .btn-wpp-notif { background: var(--whatsapp); color: white; animation: pulse-wpp 2s infinite; font-size: 1.1em; padding: 15px; }
 
-      /* Floating Help Button */
-      #help-fab {
-        position: fixed;
-        bottom: max(20px, 5vh);
-        right: max(20px, 2vw);
-        width: clamp(50px, 8vw, 60px);
-        height: clamp(50px, 8vw, 60px);
-        background-color: white;
-        color: var(--primary);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 2rem;
-        font-weight: bold;
-        cursor: pointer;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        z-index: 1000;
-        transition: transform 0.2s ease-in-out;
-        border: 2px solid var(--primary);
-      }
-      #help-fab:hover {
-        transform: scale(1.1);
-        background-color: #f0f0f0;
-      }
-
-      /* Hover Reader Floating Button */
-      #hover-read-fab {
-        position: fixed;
-        bottom: max(20px, 5vh);
-        left: max(20px, 2vw);
-        width: clamp(50px, 8vw, 60px);
-        height: clamp(50px, 8vw, 60px);
-        background-color: white;
-        color: var(--primary);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        cursor: pointer;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        z-index: 1000;
-        transition: transform 0.2s ease-in-out, background-color 0.3s, color 0.3s;
-        border: 2px solid var(--primary);
-      }
-      #hover-read-fab:hover {
-        transform: scale(1.1);
-      }
-
       /* Help Modal */
       #help-modal, #profile-modal, #unit-settings-modal {
         position: fixed;
@@ -548,7 +498,6 @@
         .form-row { gap: 10px; }
         .header { padding: 10px clamp(10px, 3vw, 40px); }
         .header-content { flex-direction: column; align-items: center; text-align: center; }
-        #help-fab, #hover-read-fab { width: clamp(45px, 10vw, 55px); height: clamp(45px, 10vw, 55px); font-size: 1.2rem; }
         .roteiro-controls { flex-direction: column; }
         .dash-grid { grid-template-columns: 1fr; }
         .main-form { padding: 15px; }
@@ -701,6 +650,8 @@
         
         <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
           <button class="btn-tertiary" aria-label="Ouvir resumo da tela principal" style="width: auto; padding: 8px 12px; margin-bottom: 0; font-size: 1.1rem; line-height: 1;" onclick="lerTextoEmVozAlta('Painel Principal. Aqui você visualiza o motorista disponível, pode registrar um novo agendamento e acompanhar a agenda de viagens da sua unidade.')" title="Ouvir Resumo da Tela">🔊</button>
+          <button id="hover-read-btn" class="btn-tertiary" aria-label="Ativar leitura ao passar o mouse" style="width: auto; padding: 8px 12px; margin-bottom: 0; font-size: 1.1rem; line-height: 1;" onclick="toggleLeituraMouse()" title="Leitura Automática ao Mouse">🖱️🔊</button>
+          <button id="help-btn" class="btn-tertiary" aria-label="Abrir manual de ajuda" style="width: auto; padding: 8px 12px; margin-bottom: 0; font-size: 1.1rem; line-height: 1; font-weight: bold;" onclick="toggleHelpModal(true)" title="Manual de Ajuda">❓</button>
           <button id="fullscreen-btn" class="btn-tertiary" aria-label="Alternar tela cheia" style="width: auto; padding: 8px 12px; margin-bottom: 0; font-size: 1.1rem; line-height: 1;" onclick="toggleFullScreen()" title="Tela Cheia">⛶</button>
           <button id="theme-toggle-btn" class="btn-tertiary" aria-label="Alternar tema claro e escuro" style="width: auto; padding: 8px 12px; margin-bottom: 0; font-size: 1.1rem; line-height: 1;" onclick="toggleTheme()">🌙</button>
           <button id="unit-settings-btn" class="btn-outline hidden" style="width: auto; padding: 8px 12px; margin-bottom: 0; font-weight: bold;" onclick="toggleUnitSettingsModal(true)">⚙️ Gestão da Unidade</button>
@@ -802,10 +753,14 @@
       </div>
 
       <div style="overflow-x:auto;"><table class="table-custom"><thead class="table-header-custom"><tr><th style="padding:12px;">Status</th><th style="padding:12px;">Saída</th><th style="padding:12px;">Retorno</th><th style="padding:12px;">Solicitante</th><th style="padding:12px;">Motivo</th><th style="padding:12px;">Roteiro</th><th style="padding:12px; text-align:center;">Ações</th></tr></thead><tbody id="tb-corpo"></tbody></table></div>
+      
+      <!-- Paginação -->
+      <div id="paginacao-controles" class="hidden" style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 15px; margin-bottom: 25px; flex-wrap: wrap;">
+        <button id="btn-pagina-anterior" class="btn-secondary" style="width: auto; padding: 8px 15px; margin-bottom: 0;" onclick="mudarPagina(-1)">⬅ Anterior</button>
+        <span id="info-pagina" style="font-weight: bold; color: var(--primary);">Página 1 de 1</span>
+        <button id="btn-pagina-proxima" class="btn-secondary" style="width: auto; padding: 8px 15px; margin-bottom: 0;" onclick="mudarPagina(1)">Próximo ➡</button>
+      </div>
     </div>
-
-    <button id="help-fab" aria-label="Abrir manual de ajuda" onclick="toggleHelpModal(true)">?</button>
-    <button id="hover-read-fab" aria-label="Ativar leitura ao passar o mouse" onclick="toggleLeituraMouse()" title="Ativar/Desativar Leitura ao Passar o Mouse">🖱️🔊</button>
 
     <div id="help-modal" class="hidden" onclick="if (event.target === this) toggleHelpModal(false)">
       <div id="help-modal-content">
@@ -1201,14 +1156,14 @@
 
     window.toggleLeituraMouse = () => {
       window.leituraAoPassarMouseAtiva = !window.leituraAoPassarMouseAtiva;
-      const fab = document.getElementById('hover-read-fab');
+      const btn = document.getElementById('hover-read-btn');
       if (window.leituraAoPassarMouseAtiva) {
-        fab.style.backgroundColor = "var(--primary)";
-        fab.style.color = "white";
+        btn.style.backgroundColor = "var(--primary)";
+        btn.style.color = "white";
         showToast("Leitura ao passar o mouse ativada!", "info");
       } else {
-        fab.style.backgroundColor = "white";
-        fab.style.color = "var(--primary)";
+        btn.style.backgroundColor = "";
+        btn.style.color = "";
         window.speechSynthesis.cancel();
         window.ultimoTextoLidoHover = "";
         showToast("Leitura ao passar o mouse desativada.", "info");
@@ -1321,6 +1276,8 @@
         unidade: { motorista: {}, equipe: [], administradores: [] },
         viagensIniciaisCarregadas: false,
         mostrarHistoricoCompleto: false,
+        paginaAtual: 1,
+        registrosPorPagina: 20
       };
       window.AppState = AppState; // Expor para depuração no console
 
@@ -2087,6 +2044,7 @@
             AppState.unsubscribeViagens();
         }
         AppState.viagensIniciaisCarregadas = false;
+        AppState.paginaAtual = 1;
         // Mostra o indicador de carregamento
         const tb = document.getElementById("tb-corpo");
         tb.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 20px; font-style: italic; color: #555;">🔄 Carregando viagens...</td></tr>`;
@@ -2392,6 +2350,7 @@
 
       window.toggleHistorico = () => {
         AppState.mostrarHistoricoCompleto = !AppState.mostrarHistoricoCompleto;
+        AppState.paginaAtual = 1;
         const btn = document.getElementById('btn-toggle-historico');
         if (AppState.mostrarHistoricoCompleto) {
             btn.innerHTML = '📂 Ocultar Histórico';
@@ -2410,6 +2369,7 @@
         tb.innerHTML = ""; // Limpa a tabela de uma vez
         
         let total = 0, pendentes = 0, concluidas = 0, canceladas = 0, faltaCiencia = 0;
+        let viagensFiltradasParaTabela = [];
 
         if (viagensParaExibir.length === 0) {
             const selectMes = document.getElementById('filtro-mes');
@@ -2421,12 +2381,11 @@
             document.getElementById('dash-concluidas').innerText = '0';
             document.getElementById('dash-canceladas').innerText = '0';
             document.getElementById('dash-ciencia').innerText = '0';
+            document.getElementById('paginacao-controles').classList.add('hidden');
             return;
         }
 
-        const fragment = document.createDocumentFragment();
-
-        viagensParaExibir
+        [...viagensParaExibir]
             .sort((a, b) => new Date(b.saida) - new Date(a.saida))
             .forEach(v => {
                 let status = v.status || STATUS.PENDENTE;
@@ -2439,6 +2398,8 @@
                     update(getRegionalRef(DB_PATHS.VIAGENS, v.id), { status: STATUS.FINALIZADO });
                 }
                 }
+
+                v.statusCalculado = status;
 
                 // Contabiliza para o Dashboard
                 total++;
@@ -2453,6 +2414,46 @@
                     return;
                 }
 
+                viagensFiltradasParaTabela.push(v);
+            });
+            
+        document.getElementById('dash-total').innerText = total;
+        document.getElementById('dash-pendentes').innerText = pendentes;
+        document.getElementById('dash-concluidas').innerText = concluidas;
+        document.getElementById('dash-canceladas').innerText = canceladas;
+        document.getElementById('dash-ciencia').innerText = faltaCiencia;
+
+        const totalPaginas = Math.ceil(viagensFiltradasParaTabela.length / AppState.registrosPorPagina) || 1;
+        if (AppState.paginaAtual > totalPaginas) AppState.paginaAtual = totalPaginas;
+        if (AppState.paginaAtual < 1) AppState.paginaAtual = 1;
+
+        const paginacaoControles = document.getElementById('paginacao-controles');
+        if (totalPaginas <= 1) {
+            paginacaoControles.classList.add('hidden');
+        } else {
+            paginacaoControles.classList.remove('hidden');
+            document.getElementById('info-pagina').innerText = `Página ${AppState.paginaAtual} de ${totalPaginas}`;
+            document.getElementById('btn-pagina-anterior').disabled = AppState.paginaAtual === 1;
+            document.getElementById('btn-pagina-anterior').style.opacity = AppState.paginaAtual === 1 ? '0.5' : '1';
+            document.getElementById('btn-pagina-anterior').style.cursor = AppState.paginaAtual === 1 ? 'not-allowed' : 'pointer';
+            document.getElementById('btn-pagina-proxima').disabled = AppState.paginaAtual === totalPaginas;
+            document.getElementById('btn-pagina-proxima').style.opacity = AppState.paginaAtual === totalPaginas ? '0.5' : '1';
+            document.getElementById('btn-pagina-proxima').style.cursor = AppState.paginaAtual === totalPaginas ? 'not-allowed' : 'pointer';
+        }
+
+        const startIndex = (AppState.paginaAtual - 1) * AppState.registrosPorPagina;
+        const viagensPaginadas = viagensFiltradasParaTabela.slice(startIndex, startIndex + AppState.registrosPorPagina);
+
+        const fragment = document.createDocumentFragment();
+
+        if (viagensPaginadas.length === 0) {
+            tb.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 20px; font-style: italic;">Nenhuma viagem para exibir nesta visualização.</td></tr>`;
+            return;
+        }
+
+        viagensPaginadas.forEach(v => {
+                const status = v.statusCalculado;
+                
                 const nomeParaExibir = getNomeSolicitante(v);
                 let classeLinha = (status === STATUS.FINALIZADO || status === STATUS.CANCELADO) ? 'linha-confirmada' : '';
                 if (!classeLinha && v.cienciaAdmin) classeLinha = 'linha-ciente';
@@ -2521,15 +2522,14 @@
 
                 fragment.appendChild(tr);
             });
-            
-        document.getElementById('dash-total').innerText = total;
-        document.getElementById('dash-pendentes').innerText = pendentes;
-        document.getElementById('dash-concluidas').innerText = concluidas;
-        document.getElementById('dash-canceladas').innerText = canceladas;
-        document.getElementById('dash-ciencia').innerText = faltaCiencia;
 
         tb.innerHTML = ''; // Limpa a tabela antes de adicionar o novo conteúdo
         tb.appendChild(fragment);
+      };
+
+      window.mudarPagina = (delta) => {
+          AppState.paginaAtual += delta;
+          atualizarTabelaGlobal();
       };
 
       function createActionButtons(v, status) {
