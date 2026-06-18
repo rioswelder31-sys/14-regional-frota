@@ -2443,8 +2443,8 @@
                 
                 if (!v.cienciaAdmin && status !== STATUS.CIENTE && status !== STATUS.CANCELADO && status !== STATUS.REJEITADO) faltaCiencia++;
 
-                // Ocultar registros finalizados caso o botão de mostrar histórico não esteja ativo
-                if (status === STATUS.FINALIZADO && !AppState.mostrarHistoricoCompleto) {
+                // Ocultar registros finalizados, cancelados e rejeitados caso o botão de mostrar histórico não esteja ativo
+                if ((status === STATUS.FINALIZADO || status === STATUS.CANCELADO || status === STATUS.REJEITADO) && !AppState.mostrarHistoricoCompleto) {
                     return;
                 }
 
@@ -2881,8 +2881,8 @@
             const chegada = new Date(v.chegada);
             if (status === 'Confirmado' && chegada < agora) status = 'Finalizado';
             
-            // Ocultar da impressão se o histórico completo estiver desativado
-            if (status === 'Finalizado' && !AppState.mostrarHistoricoCompleto) return;
+            // Ocultar da impressão se o histórico completo estiver desativado (inclui Cancelados e Rejeitados)
+            if ((status === 'Finalizado' || status === 'Cancelado' || status === 'Rejeitado') && !AppState.mostrarHistoricoCompleto) return;
             
             const motivo = escapeHtml(v.motivo || '');
             const traj = escapeHtml(v.trajetoExibicao ? v.trajetoExibicao.replace(/\n/g, ' | ') : '');
