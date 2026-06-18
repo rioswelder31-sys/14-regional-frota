@@ -784,6 +784,7 @@
       <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
         <button style="background: #17a2b8; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="imprimirAgenda()">🖨️ Imprimir</button>
         <button style="background: #6f42c1; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="exportarCSV()">📥 Exportar CSV</button>
+        <button id="btn-toggle-historico" style="background: #6c757d; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="toggleHistorico()">📂 Mostrar Histórico Completo</button>
       </div>
 
       <!-- Dashboard de Resumo (Novidade) -->
@@ -1314,6 +1315,7 @@
         dadosWppTemp: "",
         unidade: { motorista: {}, equipe: [], administradores: [] },
         viagensIniciaisCarregadas: false,
+        mostrarHistoricoCompleto: false,
       };
       window.AppState = AppState; // Expor para depuração no console
 
@@ -2383,6 +2385,19 @@
         alert("Notificação de confirmação reenviada para o solicitante.");
       };
 
+      window.toggleHistorico = () => {
+        AppState.mostrarHistoricoCompleto = !AppState.mostrarHistoricoCompleto;
+        const btn = document.getElementById('btn-toggle-historico');
+        if (AppState.mostrarHistoricoCompleto) {
+            btn.innerHTML = '📂 Ocultar Histórico';
+            btn.style.background = '#495057';
+        } else {
+            btn.innerHTML = '📂 Mostrar Histórico Completo';
+            btn.style.background = '#6c757d';
+        }
+        atualizarTabelaGlobal();
+      };
+
       window.atualizarTabelaGlobal = () => {
         const tb = document.getElementById("tb-corpo");
         const viagensParaExibir = AppState.viagens;
@@ -2427,6 +2442,11 @@
                 else if (status === STATUS.CANCELADO || status === STATUS.REJEITADO) canceladas++;
                 
                 if (!v.cienciaAdmin && status !== STATUS.CIENTE && status !== STATUS.CANCELADO && status !== STATUS.REJEITADO) faltaCiencia++;
+
+                // Ocultar registros finalizados caso o botão de mostrar histórico não esteja ativo
+                if (status === STATUS.FINALIZADO && !AppState.mostrarHistoricoCompleto) {
+                    return;
+                }
 
                 const nomeParaExibir = getNomeSolicitante(v);
                 let classeLinha = (status === STATUS.FINALIZADO || status === STATUS.CANCELADO) ? 'linha-confirmada' : '';
@@ -2860,6 +2880,9 @@
             const agora = new Date();
             const chegada = new Date(v.chegada);
             if (status === 'Confirmado' && chegada < agora) status = 'Finalizado';
+            
+            // Ocultar da impressão se o histórico completo estiver desativado
+            if (status === 'Finalizado' && !AppState.mostrarHistoricoCompleto) return;
             
             const motivo = escapeHtml(v.motivo || '');
             const traj = escapeHtml(v.trajetoExibicao ? v.trajetoExibicao.replace(/\n/g, ' | ') : '');
