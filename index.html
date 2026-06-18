@@ -1348,6 +1348,14 @@
         return (phone.length > 9 && !phone.startsWith('55')) ? '55' + phone : phone;
       }
 
+      // Função auxiliar para formatar data e hora com o dia da semana
+      function formataDataComDiaDaSemana(dataIso) {
+          const data = new Date(dataIso);
+          const dataStr = data.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+          const diaSemana = data.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '');
+          return `${dataStr} (${diaSemana.charAt(0).toUpperCase() + diaSemana.slice(1)})`;
+      }
+
       window.togglePassword = (id) => { const i = document.getElementById(id); i.type = i.type === "password" ? "text" : "password"; };
       window.toggleHelpModal = (show) => {
         const modal = document.getElementById('help-modal');
@@ -2443,12 +2451,12 @@
                 // Célula Saída
                 const tdSaida = tr.insertCell();
                 tdSaida.style.padding = '12px';
-                tdSaida.textContent = new Date(v.saida).toLocaleString('pt-BR');
+                tdSaida.textContent = formataDataComDiaDaSemana(v.saida);
 
                 // Célula Retorno (usando textContent para segurança)
                 const tdRetorno = tr.insertCell();
                 tdRetorno.style.padding = '12px';
-                tdRetorno.textContent = new Date(v.chegada).toLocaleString('pt-BR');
+                tdRetorno.textContent = formataDataComDiaDaSemana(v.chegada);
 
                 // Célula Solicitante (usando textContent para segurança)
                 const tdSolicitante = tr.insertCell();
@@ -2845,8 +2853,8 @@
             const traj = escapeHtml(v.trajetoExibicao ? v.trajetoExibicao.replace(/\n/g, ' | ') : '');
             const solicitante = escapeHtml(getNomeSolicitante(v) || 'N/D');
             const statusEscaped = escapeHtml(status);
-            const saidaEscaped = escapeHtml(new Date(v.saida).toLocaleString('pt-BR'));
-            const chegadaEscaped = escapeHtml(new Date(v.chegada).toLocaleString('pt-BR'));
+            const saidaEscaped = escapeHtml(formataDataComDiaDaSemana(v.saida));
+            const chegadaEscaped = escapeHtml(formataDataComDiaDaSemana(v.chegada));
             
             tableRows += `<tr><td>${statusEscaped}</td><td>${saidaEscaped}</td><td>${chegadaEscaped}</td><td>${solicitante}</td><td>${motivo}</td><td>${traj}</td></tr>`;
         });
@@ -2954,7 +2962,7 @@
                       let tipoStatus = (v.status === STATUS.PENDENTE || v.status === STATUS.CIENTE) ? 'status-pendente' : (v.status === STATUS.CONFIRMADO ? 'status-confirmado' : 'status-finalizado');
                       const destinoText = v.roteiroArray && v.roteiroArray.length > 0 ? (v.roteiroArray[v.roteiroArray.length-1].destino.split(' - ')[1] || 'Vários') : 'S/ Rota';
                       const nomeCurto = v.solicitanteNome ? v.solicitanteNome.split(' ')[0] : 'N/D';
-                      const titleText = `De: ${new Date(v.saida).toLocaleString('pt-BR')}\nAté: ${new Date(v.chegada).toLocaleString('pt-BR')}\nSolicitante: ${v.solicitanteNome}\nRoteiro: ${v.trajetoExibicao}`;
+                      const titleText = `De: ${formataDataComDiaDaSemana(v.saida)}\nAté: ${formataDataComDiaDaSemana(v.chegada)}\nSolicitante: ${v.solicitanteNome}\nRoteiro: ${v.trajetoExibicao}`;
                       
                       eventosPorDia[d].push({ tipo: 'viagem', dataOrder: (d === saida.getDate() ? saida : new Date(ano, mes, d, 0, 0)), html: `<div class="calendar-event ${tipoStatus}" title="${titleText}">${horaExibicao}🚗 ${destinoText} (${nomeCurto})</div>` });
                   }
@@ -3000,8 +3008,8 @@
         let csv = 'Status,Saída,Retorno,Solicitante,Motivo,Roteiro\n';
         AppState.viagens.forEach(v => {
           const status = v.status || 'Pendente';
-          const saida = new Date(v.saida).toLocaleString('pt-BR');
-          const chegada = new Date(v.chegada).toLocaleString('pt-BR');
+          const saida = formataDataComDiaDaSemana(v.saida);
+          const chegada = formataDataComDiaDaSemana(v.chegada);
           const motivo = v.motivo ? v.motivo.replace(/"/g, '""').replace(/\n/g, ' ') : '';
           const roteiro = v.trajetoExibicao ? v.trajetoExibicao.replace(/"/g, '""').replace(/\n/g, ' | ') : '';
           const nomeSolicitante = getNomeSolicitante(v);
