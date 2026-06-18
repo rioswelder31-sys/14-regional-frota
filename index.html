@@ -781,6 +781,7 @@
         <p><strong>PRIVACIDADE 🔒:</strong> O número do motorista exibido na tela principal fica oculto sob uma capa protetora. Passe o mouse (ou toque na tela, pelo celular) para visualizá-lo.</p>
         <p><strong>MODO ESCURO (DARK MODE) 🌙:</strong> Clique no ícone da Lua/Sol no cabeçalho para alternar entre o tema claro e o escuro, garantindo maior conforto visual.</p>
         <p><strong>SITE OFICIAL:</strong> O logo da Defensoria no cabeçalho é clicável e direciona rapidamente para o portal da DPE-BA.</p>
+        <p><strong>ACESSIBILIDADE 🔊:</strong> Os controles de ajuda (❓) e leitura automática (🖱️🔊) estão localizados no painel superior, junto ao seu nome.</p>
 
         <h4>⚙️ GESTÃO DA UNIDADE E EQUIPE (ADMINISTRADORES)</h4>
         <p><strong>MEMBROS E PERMISSÕES:</strong> Administradores e motoristas têm acesso ao botão [⚙️ Gestão da Unidade]. Nele é possível editar os dados da equipe, definir o tipo de vínculo (Servidor, Defensor) e conceder a permissão de "Atuar como Motorista" a qualquer membro (liberando os botões de confirmar/rejeitar).</p>
@@ -793,6 +794,7 @@
         <p><strong>BOTÃO [LIMPAR]:</strong> Use para resetar o roteiro caso precise recomeçar a lista de cidades.</p>
         <p><strong>FLUXO DE APROVAÇÃO:</strong> Ao salvar a viagem, o MOTORISTA recebe uma mensagem no WhatsApp para revisar. O ADMINISTRADOR pode dar ciência na agenda apenas para controle interno. O motorista confirma ou rejeita diretamente, e o SOLICITANTE recebe a resposta automaticamente.</p>
         <p><strong>LOGS DE AUDITORIA 📜:</strong> Cada ação (criar, editar, excluir) gera um log de segurança com data, hora e seu usuário.</p>
+        <p><strong>TRANSPARÊNCIA NAS DATAS:</strong> Se o horário ou data de uma viagem for editado após a criação, a data original continuará visível (riscada) logo abaixo da nova data.</p>
     
         <h4>🔄 SISTEMA DE REENVIO (ANTIPERDA)</h4>
         <p><strong>STATUS PENDENTE:</strong> Se a viagem estiver 🟡 Pendente, o admin pode usar [🔄 Reenviar] para enviar novo aviso de revisão.</p>
@@ -808,13 +810,20 @@
         <p><strong>MAPA INTELIGENTE 🗺️:</strong> Ao clicar no ícone de Mapa, o Google Maps abre com todo o roteiro (todas as paradas) já traçado em ordem.</p>
     
         <h4>📊 GESTÃO E EXPORTAÇÃO</h4>
-        <p><strong>FILTROS:</strong> Seleção dinâmica por Mês e Ano.</p>
-        <p><strong>IMPRESSÃO:</strong> Gera uma cópia limpa da agenda para murais físicos.</p>
-        <p><strong>CSV / EXCEL:</strong> Exportação do histórico para controle de quilometragem e relatórios administrativos.</p>
+        <p><strong>VISUALIZAÇÃO LIMPA:</strong> Viagens finalizadas, canceladas ou rejeitadas ficam ocultas por padrão. Clique em [📂 Mostrar Histórico Completo] para exibi-las.</p>
+        <p><strong>PAGINAÇÃO:</strong> A tabela exibe até 20 agendamentos por página, melhorando a velocidade do sistema. Use os botões [Anterior/Próximo] no rodapé para navegar.</p>
+        <p><strong>FILTROS:</strong> Seleção dinâmica por Mês e Ano. O sistema também exibe o dia da semana abreviado nas datas (ex: Seg, Qui).</p>
+        <p><strong>IMPRESSÃO & EXPORTAÇÃO:</strong> Gere cópias limpas em PDF para murais ou exporte o histórico para Excel (CSV). A impressão respeita a opção de ocultar/mostrar o histórico completo.</p>
 
         <h3 style="margin-top: 30px; border-top: 2px solid #eee; padding-top: 20px;">Perguntas Frequentes</h3>
         
         <div class="accordion">
+          <div class="accordion-item">
+            <button class="accordion-question" onclick="toggleAccordion(this)">Minhas viagens sumiram depois que aconteceram. Onde estão?</button>
+            <div class="accordion-answer">
+              <p><strong>R:</strong> Elas ficam ocultas automaticamente para manter sua tabela limpa e focada nas viagens futuras. Para visualizá-las, basta clicar no botão cinza <strong>[📂 Mostrar Histórico Completo]</strong> localizado logo acima da tabela. Lembre-se também de usar os botões de <strong>Página Anterior/Próximo</strong> no rodapé da tabela caso haja muitas viagens!</p>
+            </div>
+          </div>
           <div class="accordion-item">
             <button class="accordion-question" onclick="toggleAccordion(this)">Como faço uma viagem com várias paradas?</button>
             <div class="accordion-answer">
