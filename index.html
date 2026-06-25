@@ -441,6 +441,21 @@
       html[data-theme="dark"] .dash-title { color: #A0AEC0; }
       html[data-theme="dark"] .dash-value { color: #F7FAFC; }
 
+      /* Painel de Diárias */
+      .panel-diarias { border: 1px solid #ccc; border-radius: 6px; overflow: hidden; margin-top: 25px; background-color: #f9f9f9; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+      html[data-theme="dark"] .panel-diarias { background-color: #2d3748; border-color: #4a5568; }
+      .panel-diarias-header { display: grid; grid-template-columns: 1fr 1fr; background-color: #e0e0e0; font-weight: bold; text-align: center; }
+      html[data-theme="dark"] .panel-diarias-header { background-color: #232d3d; }
+      .panel-diarias-header-col { padding: 8px; }
+      .panel-diarias-subfields { display: grid; grid-template-columns: repeat(6, 1fr); font-size: 10px; text-transform: uppercase; text-align: center; background-color: #f0f0f0; color: #555; padding: 4px 0; border-bottom: 1px solid #ddd; }
+      html[data-theme="dark"] .panel-diarias-subfields { background-color: #3a475a; color: #a0aec0; border-bottom-color: #4a5568; }
+      .panel-diarias-inputs { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; padding: 8px; background: white; }
+      html[data-theme="dark"] .panel-diarias-inputs { background: #1a202c; }
+      .panel-diarias-inputs input { text-align: center; font-size: 12px; padding: 6px; background: #eee; font-weight: bold; }
+      html[data-theme="dark"] .panel-diarias-inputs input { background: #1A202C; }
+      .btn-calcular-diaria { background-color: #17a2b8; color: white; padding: 6px 12px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; font-size: 12px; transition: background-color 0.2s; }
+      .btn-calcular-diaria:hover { background-color: #138496; }
+
       /* Toast Notifications */
       #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 12px; pointer-events: none; }
       .toast { background: white; color: #333; padding: 16px 20px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid rgba(0,0,0,0.05); font-weight: 600; display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); min-width: max(200px, 80%); max-width: 400px; pointer-events: auto; border-left: 6px solid transparent; }
@@ -729,6 +744,43 @@
           <button id="btn-save" class="btn-primary" style="margin-top: 15px;" onclick="salvarNoFirebase()">✅ Salvar Solicitação</button>
           <button id="btn-whatsapp-manual" class="btn-wpp-notif hidden" onclick="abrirWhatsAppManual()">📱 Clique Aqui para Notificar o Motorista</button>
         </div>
+
+        <div id="diarias-panel" class="panel-diarias hidden">
+          <div class="panel-diarias-header">
+            <div class="panel-diarias-header-col">Partida Prevista</div>
+            <div class="panel-diarias-header-col">Chegada Prevista</div>
+          </div>
+          <div class="panel-diarias-subfields">
+            <div>Data</div><div>Hora</div><div>Dia da Semana</div>
+            <div>Data</div><div>Hora</div><div>Dia da Semana</div>
+          </div>
+          <div class="panel-diarias-inputs">
+            <div><input type="text" id="diaria-partida-data" disabled /></div>
+            <div><input type="text" id="diaria-partida-hora" disabled /></div>
+            <div><input type="text" id="diaria-partida-semana" disabled /></div>
+            <div><input type="text" id="diaria-chegada-data" disabled /></div>
+            <div><input type="text" id="diaria-chegada-hora" disabled /></div>
+            <div><input type="text" id="diaria-chegada-semana" disabled /></div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 bg-[#e9e9e9] dark:bg-[#232d3d] border-t border-[#b5b5b5] font-semibold text-center text-[11px]">
+            <div class="p-2 border-r border-[#b5b5b5] text-left">Valor Referência (Descrição)</div>
+            <div class="p-2">Distância Total do Roteiro (Múltiplos Trechos)</div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 bg-white dark:bg-[#1a202c] items-center text-center">
+            <div class="p-2 border-r border-[#b5b5b5] text-left text-[11px]">R$ <span id="diaria-ref-val">404,00</span></div>
+            <div class="p-2 font-bold text-green-700 dark:text-green-400 text-sm" id="diaria-txt-dist">0 km</div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 bg-[#cdcdcd] dark:bg-[#1a202c] border-t border-[#b5b5b5] font-bold text-center">
+            <div class="p-2 border-r border-[#b5b5b5]">Qtde Diárias</div>
+            <div class="p-2 border-r border-[#b5b5b5]">Valor Total</div>
+            <div class="p-2 flex justify-center items-center">Ação</div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 bg-white dark:bg-[#2d3748] items-center text-center py-2">
+            <div class="p-1"><input type="text" id="diaria-qtd" style="text-align:center; font-weight:bold; width:80px; margin:0 auto;" readonly /></div>
+            <div class="p-1 font-bold text-blue-700 dark:text-blue-400 text-base" id="diaria-total-val">R$ 0,00</div>
+            <div class="p-1"><button type="button" class="btn-calcular-diaria" onclick="calcularDiariasManual()">Calcular Diária</button></div>
+          </div>
+        </div>
       </div>
 
       <h3 style="margin-top: 40px; color: var(--primary);">📅 Agenda de Viagens</h3>
@@ -987,6 +1039,21 @@
       <div id="unit-settings-modal-content">
         <button id="unit-settings-modal-close" aria-label="Fechar janela de gestão de unidade" onclick="toggleUnitSettingsModal(false)" style="background:none; border:none;">×</button>
         <h3 style="color: var(--primary); margin-bottom: 20px;">⚙️ Gestão da Unidade</h3>
+        
+        <div id="unit-general-settings" style="margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px dashed #ccc;">
+          <h4 style="margin-bottom: 15px; font-size: 1.1rem;">Configurações Gerais</h4>
+          <div style="margin-bottom: 15px;">
+            <label for="unit-setting-diaria-valor">Valor de Referência da Diária (R$):</label>
+            <input type="number" id="unit-setting-diaria-valor" placeholder="Ex: 404.00" step="0.01" />
+          </div>
+          <button class="btn-primary" onclick="salvarConfiguracoesUnidade()">Salvar Configurações</button>
+
+          <div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+            <h5 style="font-size: 1rem; margin-bottom: 10px;">Manutenção do Sistema</h5>
+            <p style="font-size: 0.9em; color: #666; margin-bottom: 10px;">Use esta opção se as distâncias parecerem incorretas. Isso forçará o sistema a buscar novos dados da API de mapas na próxima vez que um roteiro for calculado.</p>
+            <button class="btn-warning" style="color: #333;" onclick="limparCacheDistancias()">🗑️ Limpar Cache de Distâncias</button>
+          </div>
+        </div>
         
         <h4 style="margin-bottom: 10px; font-size: 1.1rem;">Equipe da Regional</h4>
         <div style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 5px; margin-bottom: 20px;">
@@ -1439,6 +1506,126 @@
 
       window.fazerLogout = () => { signOut(auth).then(() => { localStorage.clear(); AppState.regionalID = ""; location.reload(); }); };
 
+      // Mapeamento de cidades para coordenadas [longitude, latitude] para a API de roteamento
+      const cidadesCoordenadas = {
+        "TEIXEIRA DE FREITAS": [-39.72, -17.53], "ITAMARAJU": [-39.53, -17.03],
+        "PRADO": [-39.22, -17.34], "ALCOBAÇA": [-39.19, -17.52],
+        "CARAVELAS": [-39.26, -17.73], "MUCURI": [-39.55, -18.08],
+        "MEDEIROS NETO": [-40.22, -17.37], "EUNÁPOLIS": [-39.58, -16.37],
+        "PORTO SEGURO": [-39.06, -16.44], "ITABUNA": [-39.28, -14.78],
+        "ILHÉUS": [-39.04, -14.79], "SALVADOR": [-38.51, -12.97],
+        "VITÓRIA": [-40.33, -20.32], "ITABELA": [-39.55, -16.57],
+        "GUARATINGA": [-39.78, -16.56], "SANTA CRUZ CABRÁLIA": [-39.02, -16.27],
+        "FEIRA DE SANTANA": [-38.96, -12.25],
+        "ITAPETINGA": [-40.25, -15.25], "ITORORÓ": [-39.98, -15.12]
+      };
+
+      // Função para calcular a distância dinamicamente usando a API do OSRM (OpenStreetMap) com cache local
+      window.obtenerDistanciaTrecho = async (origem, destino) => {
+        const origemCidade = (origem.split(' - ')[1] || origem).toUpperCase();
+        const destinoCidade = (destino.split(' - ')[1] || destino).toUpperCase();
+        
+        // Cria uma chave de cache padronizada e ordenada para tratar A->B e B->A da mesma forma
+        const cacheKey = `distancia_${[origemCidade, destinoCidade].sort().join('_')}`;
+        const cachedDistance = localStorage.getItem(cacheKey);
+
+        if (cachedDistance) {
+            console.log(`Distância para ${origemCidade} ➔ ${destinoCidade} encontrada no cache: ${cachedDistance} km`);
+            return parseInt(cachedDistance, 10);
+        }
+
+        const trechoNaoEncontrado = `${origemCidade} ➔ ${destinoCidade}`;
+        const coordOrigem = cidadesCoordenadas[origemCidade];
+        const coordDestino = cidadesCoordenadas[destinoCidade];
+
+        if (!coordOrigem || !coordDestino) {
+            console.warn(`Coordenadas não encontradas para o trecho: ${trechoNaoEncontrado}. Retornando 0km.`);
+            showToast(`Atenção: Coordenadas para '${trechoNaoEncontrado}' não encontradas. O cálculo pode estar incorreto.`, 'info');
+            return 0;
+        }
+
+        const url = `https://router.project-osrm.org/route/v1/driving/${coordOrigem[0]},${coordOrigem[1]};${coordDestino[0]},${coordDestino[1]}?overview=false`;
+
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`API OSRM respondeu com status: ${response.status}`);
+            
+            const data = await response.json();
+            if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
+                const distanciaMetros = data.routes[0].distance;
+                const distanciaKm = Math.round(distanciaMetros / 1000);
+                console.log(`Distância para ${trechoNaoEncontrado} (API): ${distanciaKm} km. Salvando no cache.`);
+                
+                // Salva o resultado no cache local para uso futuro
+                localStorage.setItem(cacheKey, distanciaKm);
+                
+                return distanciaKm;
+            } else {
+                console.error(`Nenhuma rota encontrada pela API para ${trechoNaoEncontrado}.`, data);
+                showToast(`API não encontrou rota para '${trechoNaoEncontrado}'.`, 'error');
+                return 0;
+            }
+        } catch (error) {
+            console.error(`Falha ao buscar distância para ${trechoNaoEncontrado}:`, error);
+            showToast(`Erro de rede ao calcular distância para '${trechoNaoEncontrado}'. Verifique sua conexão.`, 'error');
+            return 0;
+        }
+      };
+
+      window.calcularDiariasManual = async () => {
+        const saidaStr = document.getElementById('saida').value;
+        const chegadaStr = document.getElementById('chegada').value;
+        if (!saidaStr || !chegadaStr) {
+          showToast("Preencha as datas de Saída e Chegada para calcular.", "info");
+          return;
+        }
+
+        const dSaida = new Date(saidaStr);
+        const dChegada = new Date(chegadaStr);
+        
+        // 1. Diferença total da viagem em horas.
+        const diffHorasTotal = (dChegada.getTime() - dSaida.getTime()) / (1000 * 60 * 60);
+        
+        // 2. Cálculo de pernoites (número de noites fora, baseado na diferença de dias do calendário).
+        const dataSaidaPura = new Date(dSaida.getFullYear(), dSaida.getMonth(), dSaida.getDate());
+        const dataChegadaPura = new Date(dChegada.getFullYear(), dChegada.getMonth(), dChegada.getDate());
+        const pernoites = (dataChegadaPura.getTime() - dataSaidaPura.getTime()) / (1000 * 60 * 60 * 24);
+        
+        const kmTotal = await updateDistanciaTotal();
+
+        let qtdDiarias = 0;
+        const valorRef = AppState.unidade.config?.valorDiaria || 404.00; 
+
+        // --- REGRAS DE CÁLCULO DE DIÁRIAS ---
+        // Condição mínima: viagem com mais de 80km e duração superior a 6 horas.
+        if (kmTotal > 80 && diffHorasTotal > 6) {
+          if (pernoites === 0) {
+            // Viagem no mesmo dia (bate-volta) com mais de 6h de duração.
+            qtdDiarias = 0.5;
+          } else if (pernoites === 1) {
+            // Viagem com 1 pernoite. A base é 1 diária.
+            // Ganha 0.5 adicional se a duração total da viagem exceder 30 horas (24h de 1 dia + 6h de fração).
+            // Isso corrige o caso de uma viagem de exatamente 24h que estava contando como 1.5.
+            if (diffHorasTotal > 30) {
+              qtdDiarias = 1.5;
+            } else {
+              qtdDiarias = 1.0;
+            }
+          } else { // Para 2 ou mais pernoites
+            // A base é 1 diária por pernoite.
+            qtdDiarias = pernoites;
+            // Adiciona 0.5 se no último dia o horário de chegada for após as 6h da manhã.
+            if (dChegada.getHours() + (dChegada.getMinutes() / 60) > 6) {
+              qtdDiarias += 0.5;
+            }
+          }
+        }
+
+        const valorTotal = qtdDiarias * valorRef;
+        document.getElementById('diaria-qtd').value = qtdDiarias.toFixed(1);
+        document.getElementById('diaria-total-val').innerText = valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      };
+
       window.salvarPerfil = () => {
         const novoNome = document.getElementById('profile-nome').value;
         let novoTel = document.getElementById('profile-tel').value.replace(/\D/g, '');
@@ -1534,9 +1721,65 @@
               .catch(error => alert("Erro ao atualizar: " + error.message));
       };
 
+      window.salvarConfiguracoesUnidade = () => {
+          const valorDiariaInput = document.getElementById('unit-setting-diaria-valor');
+          const valorDiaria = parseFloat(valorDiariaInput.value);
+
+          if (isNaN(valorDiaria) || valorDiaria <= 0) {
+              return alert("Por favor, insira um valor de diária válido.");
+          }
+
+          // Criar um objeto de atualização para modificar o valor a partir da raiz da regional.
+          // Isso pode contornar regras de segurança que são aplicadas diretamente no nó 'config',
+          // utilizando uma permissão de escrita mais ampla que pode existir na raiz da unidade.
+          const updates = {};
+          updates['config/valorDiaria'] = valorDiaria;
+
+          update(getRegionalRef(), updates)
+              .then(() => {
+                  registrarLog('Admin: Configuração da Unidade', `Valor da diária alterado para R$ ${valorDiaria.toFixed(2)}`);
+                  showToast("Configurações da unidade salvas com sucesso!", "success");
+                  if (!AppState.unidade.config) AppState.unidade.config = {};
+                  AppState.unidade.config.valorDiaria = valorDiaria;
+                  document.getElementById('diaria-ref-val').innerText = valorDiaria.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+              })
+              .catch(error => {
+                  console.error("Erro ao salvar configurações:", { path: getRegionalRef().toString(), updates, error });
+                  alert("Erro ao salvar configurações: " + error.message);
+              });
+      };
+
+      window.limparCacheDistancias = () => {
+          if (!confirm("Tem certeza que deseja limpar o cache de distâncias?\n\nIsso pode deixar o cálculo de roteiros um pouco mais lento na primeira vez que forem adicionados novamente.")) {
+              return;
+          }
+
+          const keysToRemove = [];
+          for (let i = 0; i < localStorage.length; i++) {
+              const key = localStorage.key(i);
+              if (key && key.startsWith('distancia_')) {
+                  keysToRemove.push(key);
+              }
+          }
+
+          keysToRemove.forEach(key => localStorage.removeItem(key));
+          const clearedCount = keysToRemove.length;
+
+          if (clearedCount > 0) {
+              showToast(`${clearedCount} rotas em cache foram limpas com sucesso!`, 'success');
+          } else {
+              showToast("Nenhuma rota em cache para limpar.", 'info');
+          }
+          registrarLog('Admin: Limpeza de Cache', `Cache de ${clearedCount} distâncias foi limpo.`);
+      };
+
       window.toggleUnitSettingsModal = (show) => {
           const modal = document.getElementById('unit-settings-modal');
           if (show) {
+              // Preenche o valor da diária
+              const valorDiariaAtual = AppState.unidade.config?.valorDiaria || 404.00;
+              document.getElementById('unit-setting-diaria-valor').value = valorDiariaAtual.toFixed(2);
+
               renderTeamList();
               
               // Mostrar seção de administradores apenas para Welder
@@ -1770,16 +2013,17 @@
       // Função para carregar dados da unidade (motorista e equipe) do Firebase
       function carregarDadosDaUnidade() {
         return new Promise((resolve) => {
-            let carregados = { motorista: false, equipe: false };
+            let carregados = { motorista: false, equipe: false, config: false };
             
             // Timeout de segurança: se em 4 segundos não carregar, libera a tela para não travar o usuário
             const safetyTimeout = setTimeout(() => {
               console.warn("Aviso: Carregamento demorou muito. Liberando interface...");
-              resolve();
+              if (!carregados.config) AppState.unidade.config = {}; // Garante que o objeto exista
+              resolve(); // Ensure resolve is always called
             }, 4000);
 
             const checarConclusao = () => {
-              if (carregados.motorista && carregados.equipe) {
+              if (carregados.motorista && carregados.equipe && carregados.config) {
                 clearTimeout(safetyTimeout);
                 resolve();
               }
@@ -1823,6 +2067,14 @@
                     renderTeamList();
                 }
                 checarConclusao();
+            });
+
+            // 3. Carregar Configurações da Unidade
+            onValue(getRegionalRef('config'), (snap) => {
+              AppState.unidade.config = snap.val() || {};
+              carregados.config = true;
+              configurarUI();
+              checarConclusao();
             });
 
             // 3. Motorista Titular (Opcional - Não trava mais o carregamento)
@@ -1906,6 +2158,12 @@
                 document.getElementById('form-content').classList.add('hidden');
               }
               
+              // Exibe o painel de diárias para motoristas e administradores
+              if (AppState.user.isMotorista || AppState.user.podeTudo) {
+                const diariasPanel = document.getElementById('diarias-panel');
+                if (diariasPanel) diariasPanel.classList.remove('hidden');
+              }
+              
               // O card "Falta Ciência" fica visível apenas para admin e motorista
               const cardFaltaCiencia = document.getElementById('card-falta-ciencia');
               if (AppState.user.podeTudo || AppState.user.isMotorista) {
@@ -1927,6 +2185,35 @@
         }
       });
 
+      function updateDiariasPanel() {
+        const saidaStr = document.getElementById('saida').value;
+        const chegadaStr = document.getElementById('chegada').value;
+        const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+        const pad = (n) => String(n).padStart(2, '0');
+
+        if (saidaStr) {
+          const dSaida = new Date(saidaStr);
+          document.getElementById('diaria-partida-data').value = `${pad(dSaida.getDate())}/${pad(dSaida.getMonth() + 1)}/${dSaida.getFullYear()}`;
+          document.getElementById('diaria-partida-hora').value = `${pad(dSaida.getHours())}:${pad(dSaida.getMinutes())}`;
+          document.getElementById('diaria-partida-semana').value = diasSemana[dSaida.getDay()];
+        } else {
+          document.getElementById('diaria-partida-data').value = '';
+          document.getElementById('diaria-partida-hora').value = '';
+          document.getElementById('diaria-partida-semana').value = '';
+        }
+
+        if (chegadaStr) {
+          const dChegada = new Date(chegadaStr);
+          document.getElementById('diaria-chegada-data').value = `${pad(dChegada.getDate())}/${pad(dChegada.getMonth() + 1)}/${dChegada.getFullYear()}`;
+          document.getElementById('diaria-chegada-hora').value = `${pad(dChegada.getHours())}:${pad(dChegada.getMinutes())}`;
+          document.getElementById('diaria-chegada-semana').value = diasSemana[dChegada.getDay()];
+        } else {
+          document.getElementById('diaria-chegada-data').value = '';
+          document.getElementById('diaria-chegada-hora').value = '';
+          document.getElementById('diaria-chegada-semana').value = '';
+        }
+      }
+
       function configurarUI() {
         const dlS = document.getElementById('lista-solicitantes'); 
         dlS.innerHTML = "";
@@ -1944,6 +2231,15 @@
         const pad = (n) => n.toString().padStart(2, '0');
         document.getElementById('saida').value = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
 
+        // Adiciona listeners para o painel de diárias
+        document.getElementById('saida').addEventListener('change', updateDiariasPanel);
+        document.getElementById('chegada').addEventListener('change', updateDiariasPanel);
+        updateDiariasPanel(); // Chamada inicial
+
+        // Atualiza o valor de referência da diária no painel
+        const valorDiariaRef = AppState.unidade.config?.valorDiaria || 404.00;
+        document.getElementById('diaria-ref-val').innerText = valorDiariaRef.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
         document.getElementById('nome-motorista').innerText = AppState.unidade.motorista.nome || 'N/D';
         document.getElementById('tel-motorista').innerText = AppState.unidade.motorista.tel ? `📱 ${AppState.unidade.motorista.tel}` : '';
 
@@ -1954,7 +2250,7 @@
         carregarCidades('origem'); carregarCidades('destino');
       }
 
-      window.carregarCidades = (t) => {
+      window.carregarCidades = (t) => { // This function remains synchronous
         const uf = document.getElementById(`uf-${t}`).value;
         const dl = document.getElementById(`list-${t}`); dl.innerHTML = "";
         const caps = {"AC":"RIO BRANCO","AL":"MACEIÓ","AM":"MANAUS","AP":"MACAPÁ","CE":"FORTALEZA","DF":"BRASÍLIA","ES":"VITÓRIA","GO":"GOIÂNIA","MA":"SÃO LUÍS","MG":"BELO HORIZONTE","MS":"CAMPO GRANDE","MT":"CUIABÁ","PA":"BELÉM","PB":"JOÃO PESSOA","PE":"RECIFE","PI":"TERESINA","PR":"CURITIBA","RJ":"RIO DE JANEIRO","RN":"NATAL","RO":"PORTO VELHO","RR":"BOA VISTA","RS":"PORTO ALEGRE","SC":"FLORIANÓPOLIS","SE":"ARACAJU","SP":"SÃO PAULO","TO":"PALMAS"};
@@ -1963,12 +2259,13 @@
         if(t === 'origem' && uf === 'BA' && AppState.regionalID === '14-regional' && !document.getElementById(`cidade-origem`).value) { document.getElementById(`cidade-origem`).value = "TEIXEIRA DE FREITAS"; }
       };
 
-      window.adicionarTrecho = () => {
+      window.adicionarTrecho = async () => {
         const co = document.getElementById('cidade-origem').value; const cd = document.getElementById('cidade-destino').value;
         const ufo = document.getElementById('uf-origem').value; const ufd = document.getElementById('uf-destino').value;
         if(!co || !cd) return alert("Por favor, selecione as cidades de origem e destino!");
         AppState.roteiroAtual.push({ origem: `${ufo} - ${co}`, destino: `${ufd} - ${cd}` });
         renderRoteiro();
+        await updateDistanciaTotal();
         
         // Inverte automaticamente a rota (Origem vira o Destino antigo, Destino vira a Origem antiga)
         document.getElementById('uf-origem').value = ufd; carregarCidades('origem');
@@ -1993,7 +2290,21 @@
         b.appendChild(fragment);
       }
 
-      window.limparRoteiro = () => { AppState.roteiroAtual = []; renderRoteiro(); };
+      async function updateDistanciaTotal() {
+        let kmTotal = 0;
+        if (AppState.roteiroAtual && AppState.roteiroAtual.length > 0) {
+          const promises = AppState.roteiroAtual.map(t =>
+            obtenerDistanciaTrecho(t.origem, t.destino)
+          );
+          const distancias = await Promise.all(promises);
+          kmTotal = distancias.reduce((acc, curr) => acc + curr, 0);
+        }
+        const distEl = document.getElementById('diaria-txt-dist');
+        if (distEl) distEl.innerText = `${kmTotal} km`;
+        return kmTotal;
+      }
+
+      window.limparRoteiro = async () => { AppState.roteiroAtual = []; renderRoteiro(); await updateDistanciaTotal(); };
 
       window.abrirNoGoogleMaps = () => {
         if (AppState.roteiroAtual.length === 0) {
