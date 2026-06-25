@@ -771,7 +771,7 @@
             <div class="p-2">Distância Total do Roteiro (Múltiplos Trechos)</div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 bg-white dark:bg-[#1a202c] items-center text-center">
-            <div class="p-2 border-r border-[#b5b5b5] text-left text-[11px]">R$ <span id="diaria-ref-val">404,00</span></div>
+            <div class="p-2 border-r border-[#b5b5b5] text-left text-[11px]">R$ <span id="diaria-ref-val">404,00</span> referente a: Classe Final</div>
             <div class="p-2 font-bold text-green-700 dark:text-green-400 text-sm" id="diaria-txt-dist">0 km</div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-3 bg-[#cdcdcd] dark:bg-[#1a202c] border-t border-[#b5b5b5] font-bold text-center">
@@ -1964,8 +1964,17 @@
 
       // Helper function to get a database reference for the current regional
       function getRegionalRef(...pathSegments) {
-        // Padronização: Se for 14-regional, usamos a raiz como base, senão usamos unidades/ID
-        let pathArray = AppState.regionalID === '14-regional' ? [] : [DB_PATHS.UNIDADES, AppState.regionalID];
+        // Padronização: Se for 14-regional, usamos a raiz como base, senão usamos unidades/ID.
+        // Esta função agora é mais robusta para evitar erros de caminho.
+        let pathArray;
+        if (AppState.regionalID === '14-regional') {
+          pathArray = [];
+        } else if (AppState.regionalID) { // Garante que a regionalID não está vazia
+          pathArray = [DB_PATHS.UNIDADES, AppState.regionalID];
+        } else {
+          console.error("getRegionalRef foi chamada sem uma regionalID definida!");
+          pathArray = []; // Medida de segurança, usa a raiz.
+        }
         
         // Filtramos segmentos nulos ou vazios
         const cleanSegments = pathSegments.filter(s => s && s !== "");
