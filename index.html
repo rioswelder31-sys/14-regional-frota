@@ -1667,21 +1667,21 @@
           if (diffHorasTotal >= 6 && pernoites === 0) {
             qtdDiarias = 0.5;
           }
-          // §1º, I: Diária integral se duração >= 6 horas e exigir pernoite.
-          // "concedidas por dia de afastamento" é interpretado como 1 diária por pernoite.
-          else if (diffHorasTotal >= 6 && pernoites > 0) {
-            // A regra concede 1 diária integral por pernoite.
-            qtdDiarias = pernoites;
-
-            // Adicional: Se no último dia a jornada for superior a 6 horas, concede-se mais meia diária.
-            // Isso interpreta que a fração do dia de retorno é tratada como um novo deslocamento sem pernoite.
-            const horasNoUltimoDia = dChegada.getUTCHours() + (dChegada.getUTCMinutes() / 60);
-            if (horasNoUltimoDia > 6) {
+          // Para viagens com pernoite, a nova regra é baseada em blocos de 24 horas.
+          else if (pernoites > 0) {
+            // 1. Calcula as diárias integrais por períodos completos de 24 horas.
+            const diariasInteiras = Math.floor(diffHorasTotal / 24);
+            
+            // 2. Calcula as horas restantes após os períodos de 24h.
+            const horasRestantes = diffHorasTotal % 24;
+            
+            qtdDiarias = diariasInteiras;
+            
+            // 3. Se o período restante for superior a 6 horas, adiciona meia diária.
+            if (horasRestantes > 6) {
               qtdDiarias += 0.5;
             }
           }
-          // A condição "se o deslocamento tiver 24 horas" é coberta pela regra de pernoite.
-          // Qualquer deslocamento com 24h ou mais terá pernoite.
         }
         
         const valorTotal = qtdDiarias * valorRef;
