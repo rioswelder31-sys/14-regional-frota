@@ -771,7 +771,7 @@
             <div class="p-2">Distância Total do Roteiro (Múltiplos Trechos)</div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 bg-white dark:bg-[#1a202c] items-center text-center">
-            <div class="p-2 border-r border-[#b5b5b5] text-left text-[11px]">R$ <span id="diaria-ref-val">404,00</span> referente a: Classe Final</div>
+            <div class="p-2 border-r border-[#b5b5b5] text-left text-[11px]">R$ <span id="diaria-ref-val">404,00</span></div>
             <div class="p-2 font-bold text-green-700 dark:text-green-400 text-sm" id="diaria-txt-dist">0 km</div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-3 bg-[#cdcdcd] dark:bg-[#1a202c] border-t border-[#b5b5b5] font-bold text-center">
@@ -1438,6 +1438,13 @@
         "ITAPETINGA": { lat: -15.248, lon: -40.248 },
         "ITORORÓ": { lat: -15.111, lon: -40.071 },
         "XIQUE-XIQUE": { lat: -10.822, lon: -42.731 }
+        // Cidades do Espírito Santo (ES)
+        "VITÓRIA": { lat: -20.3194, lon: -40.3378 },
+        "VILA VELHA": { lat: -20.3297, lon: -40.2925 },
+        "SERRA": { lat: -20.1287, lon: -40.3082 },
+        "CARIACICA": { lat: -20.265, lon: -40.42 },
+        "LINHARES": { lat: -19.3911, lon: -40.0725 },
+        "SÃO MATEUS": { lat: -18.7161, lon: -39.8583 }
       };
 
       // Função auxiliar para "escapar" HTML e prevenir ataques de XSS
@@ -2333,12 +2340,12 @@
         renderRoteiro();
         await updateDistanciaTotal();
         
-        // Inverte automaticamente a rota (Origem vira o Destino antigo, Destino vira a Origem antiga)
-        document.getElementById('uf-origem').value = ufd; carregarCidades('origem');
-        document.getElementById('cidade-origem').value = cd;
+        // Prepara para o próximo trecho: o destino atual vira a nova origem e o campo de destino é limpo.
+        document.getElementById('uf-origem').value = ufd; // Mantém o UF do destino anterior
+        carregarCidades('origem'); // Recarrega cidades se o UF mudou
+        document.getElementById('cidade-origem').value = cd; // O destino vira a nova origem
         
-        document.getElementById('uf-destino').value = ufo; carregarCidades('destino');
-        document.getElementById('cidade-destino').value = co;
+        document.getElementById('cidade-destino').value = ''; // Limpa o destino para a próxima parada
         
         document.getElementById('cidade-destino').focus(); // Foca no destino para facilitar a digitação imediata
       };
