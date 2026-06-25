@@ -1654,7 +1654,8 @@
         const kmTotal = await updateDistanciaTotal();
         
         let qtdDiarias = 0;
-        const valorRef = 404.00; 
+        // Busca o valor da diária das configurações da unidade, com fallback para 404.00
+        const valorRef = AppState.unidade.config?.valorDiaria || 404.00; 
         
         // --- NOVAS REGRAS DE DIÁRIAS (BASEADO NO ART. 5º) ---
         
@@ -1669,8 +1670,15 @@
           // §1º, I: Diária integral se duração >= 6 horas e exigir pernoite.
           // "concedidas por dia de afastamento" é interpretado como 1 diária por pernoite.
           else if (diffHorasTotal >= 6 && pernoites > 0) {
-            // A regra não especifica frações para o dia de retorno, então calculamos apenas as diárias integrais.
+            // A regra concede 1 diária integral por pernoite.
             qtdDiarias = pernoites;
+
+            // Adicional: Se no último dia a jornada for igual ou superior a 6 horas, concede-se mais meia diária.
+            // Isso interpreta que a fração do dia de retorno é tratada como um novo deslocamento sem pernoite.
+            const horasNoUltimoDia = dChegada.getUTCHours() + (dChegada.getUTCMinutes() / 60);
+            if (horasNoUltimoDia >= 6) {
+              qtdDiarias += 0.5;
+            }
           }
           // A condição "se o deslocamento tiver 24 horas" é coberta pela regra de pernoite.
           // Qualquer deslocamento com 24h ou mais terá pernoite.
