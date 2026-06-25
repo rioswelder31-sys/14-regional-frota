@@ -779,7 +779,7 @@
             <div class="p-2 border-r border-[#b5b5b5]">Valor Total</div>
             <div class="p-2 flex justify-center items-center">Ação</div>
           </div>
-          <div class="grid grid-cols-1 md:grid-cols-3 bg-white dark:bg-[#2d3748] items-center text-center py-2" style="border-bottom-left-radius: 6px; border-bottom-right-radius: 6px;">
+          <div class="grid grid-cols-1 md:grid-cols-3 bg-white dark:bg-[#2d3748] items-center text-center py-2">
             <div class="p-1"><input type="text" id="diaria-qtd" style="text-align:center; font-weight:bold; width:80px; margin:0 auto;" readonly /></div>
             <div class="p-1 font-bold text-blue-700 dark:text-blue-400 text-base" id="diaria-total-val">R$ 0,00</div>
             <div class="p-1"><button type="button" class="btn-calcular-diaria" onclick="calcularDiariasManual()">Calcular Diária</button></div>
@@ -1058,35 +1058,6 @@
             <button class="btn-warning" style="color: #333;" onclick="limparCacheDistancias()">🗑️ Limpar Cache de Distâncias</button>
           </div>
         </div>
-
-        <div id="admin-cities-section" class="hidden" style="margin-top: 30px; padding-top: 20px; border-top: 2px dashed #ccc;">
-          <h4 style="margin-bottom: 15px; font-size: 1.1rem;">Gestão de Cidades e Coordenadas</h4>
-          <div id="edit-city-form" style="background: #f9f9f9; padding: 15px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #ddd;">
-              <h5 id="edit-city-title" style="color: var(--primary); margin-bottom: 15px;">Adicionar Nova Cidade</h5>
-              <input type="hidden" id="edit-city-original-name" />
-              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; align-items: end;">
-                  <div>
-                      <label for="edit-city-name">Nome da Cidade:</label>
-                      <input type="text" id="edit-city-name" placeholder="Ex: Salvador" />
-                  </div>
-                  <div>
-                      <label for="edit-city-lat">Latitude:</label>
-                      <input type="number" id="edit-city-lat" step="any" placeholder="-12.97" />
-                  </div>
-                  <div>
-                      <label for="edit-city-lon">Longitude:</label>
-                      <input type="number" id="edit-city-lon" step="any" placeholder="-38.51" />
-                  </div>
-                  <div style="display: flex; gap: 10px;">
-                      <button class="btn-primary" style="flex: 1;" onclick="salvarCidade()">Salvar</button>
-                      <button class="btn-secondary" style="flex: 1;" onclick="cancelarEdicaoCidade()">Cancelar</button>
-                  </div>
-              </div>
-          </div>
-          <div style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 5px;">
-              <table style="width: 100%; border-collapse: collapse; font-size: 0.9em;"><thead class="sticky-thead"><tr><th style="text-align: left; padding: 8px;">Cidade</th><th style="text-align: center; padding: 8px;">Latitude</th><th style="text-align: center; padding: 8px;">Longitude</th><th style="text-align: right; padding: 8px;">Ações</th></tr></thead><tbody id="cities-list-tbody"></tbody></table>
-          </div>
-        </div>
         
         <h4 style="margin-bottom: 10px; font-size: 1.1rem;">Equipe da Regional</h4>
         <div style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 5px; margin-bottom: 20px;">
@@ -1215,31 +1186,7 @@
       // --- Fim da lógica do tema ---
 
       const firebaseConfig = { apiKey: "AIzaSyDvGkxC9WkYICERhbIHcE9yComvh5AF2gw", authDomain: "frota14regional-8fecc.firebaseapp.com", databaseURL: "https://frota14regional-8fecc-default-rtdb.firebaseio.com", projectId: "frota14regional-8fecc" };
-      const app = initializeApp(firebaseConfig); 
-      const db = getDatabase(app); 
-      const auth = getAuth(app);
-
-      // --- Lógica de Coordenadas ---
-      // Fallback com dados iniciais. O sistema tentará carregar do Firebase primeiro.
-      const cidadesCoordenadasFallback = {
-          "TEIXEIRA DE FREITAS": { lon: -39.72, lat: -17.53 }, "ITAMARAJU": { lon: -39.53, lat: -17.03 },
-          "PRADO": { lon: -39.22, lat: -17.34 }, "ALCOBAÇA": { lon: -39.19, lat: -17.52 },
-          "CARAVELAS": { lon: -39.26, lat: -17.73 }, "MUCURI": { lon: -39.55, lat: -18.08 },
-          "MEDEIROS NETO": { lon: -40.22, lat: -17.37 }, "EUNÁPOLIS": { lon: -39.58, lat: -16.37 },
-          "PORTO SEGURO": { lon: -39.06, lat: -16.44 }, "ITABUNA": { lon: -39.28, lat: -14.78 },
-          "ILHÉUS": { lon: -39.04, lat: -14.79 }, "SALVADOR": { lon: -38.51, lat: -12.97 },
-          "VITÓRIA": { lon: -40.33, lat: -20.32 }, "ITABELA": { lon: -39.55, lat: -16.57 },
-          "GUARATINGA": { lon: -39.78, lat: -16.56 }, "SANTA CRUZ CABRÁLIA": { lon: -39.02, lat: -16.27 },
-          "FEIRA DE SANTANA": { lon: -38.96, lat: -12.25 },
-          "ITAPETINGA": { lon: -40.25, lat: -15.25 }, "ITORORÓ": { lon: -39.98, lat: -15.12 },
-          "AMARGOSA": { lon: -39.60, lat: -13.03 }
-      };
-      onValue(ref(db, 'coordenadas'), (snapshot) => {
-          const data = snapshot.val();
-          AppState.cidadesCoordenadas = data || cidadesCoordenadasFallback;
-          if (!data) set(ref(db, 'coordenadas'), cidadesCoordenadasFallback); // Migração única
-      }, { onlyOnce: false });
-      // --- Fim da Lógica de Coordenadas ---
+      const app = initializeApp(firebaseConfig); const db = getDatabase(app); const auth = getAuth(app);
 
       // Funções de Notificação Push (PWA)
       window.mostrarNotificacaoPush = (titulo, corpo) => {
@@ -1405,7 +1352,6 @@
         user: { email: "", uid: "", podeTudo: false, isMotorista: false },
         roteiroAtual: [],
         viagens: [],
-        cidadesCoordenadas: {}, // Será preenchido pelo Firebase
         folgas: [],
         dadosWppTemp: "",
         unidade: { motorista: {}, equipe: [], administradores: [] },
@@ -1579,8 +1525,8 @@
         }
 
         const trechoNaoEncontrado = `${origemCidade} ➔ ${destinoCidade}`;
-        const coordOrigem = AppState.cidadesCoordenadas[origemCidade];
-        const coordDestino = AppState.cidadesCoordenadas[destinoCidade];
+        const coordOrigem = cidadesCoordenadas[origemCidade];
+        const coordDestino = cidadesCoordenadas[destinoCidade];
 
         if (!coordOrigem || !coordDestino) {
             console.warn(`Coordenadas não encontradas para o trecho: ${trechoNaoEncontrado}. Retornando 0km.`);
@@ -1826,18 +1772,15 @@
               
               // Mostrar seção de administradores apenas para Welder
               const adminSection = document.getElementById('admin-management-section');
-              const citiesSection = document.getElementById('admin-cities-section');
               if (AppState.user.podeTudo) {
                   adminSection.classList.remove('hidden');
-                  citiesSection.classList.remove('hidden');
                   renderAdministradores();
-                  renderCidadesList();
                   
                   // Preencher o select com membros da equipe que NÃO são admins
                   const select = document.getElementById('admin-select-member');
                   select.innerHTML = '<option value="">-- Selecione um membro da equipe --</option>';
                   AppState.unidade.equipe
-                      .filter(m => !m.isAdmin && m.uid) // Filtra apenas os que NÃO são admin e têm UID
+                      .filter(m => !m.isAdmin) // Filtra apenas os que NÃO são admin
                       .sort((a, b) => a.nome.localeCompare(b.nome))
                       .forEach(m => {
                           const option = document.createElement('option');
@@ -1847,7 +1790,6 @@
                       });
               } else {
                   adminSection.classList.add('hidden');
-                  citiesSection.classList.add('hidden');
               }
               
               modal.classList.remove('hidden');
@@ -1937,76 +1879,6 @@
               alert('Membro atualizado com sucesso!');
               cancelEditMember();
           }).catch(err => alert('Erro ao salvar: ' + err.message));
-      };
-
-      function renderCidadesList() {
-          const tbody = document.getElementById('cities-list-tbody');
-          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 15px;">Carregando cidades...</td></tr>';
-          const fragment = document.createDocumentFragment();
-          const cidades = Object.keys(AppState.cidadesCoordenadas).sort();
-
-          if (cidades.length === 0) {
-              tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 15px;">Nenhuma cidade cadastrada.</td></tr>';
-              return;
-          }
-
-          cidades.forEach(nomeCidade => {
-              const coords = AppState.cidadesCoordenadas[nomeCidade];
-              const tr = document.createElement('tr');
-              tr.style.borderTop = '1px solid var(--border-color)';
-              tr.innerHTML = `
-                  <td style="padding: 10px 8px;"><strong>${nomeCidade}</strong></td>
-                  <td style="padding: 10px 8px; text-align: center;">${coords.lat}</td>
-                  <td style="padding: 10px 8px; text-align: center;">${coords.lon}</td>
-                  <td style="padding: 10px 8px; text-align: right; white-space: nowrap;">
-                      <button class="btn-edit" aria-label="Editar cidade" onclick="prepararEdicaoCidade('${nomeCidade}')" title="Editar">✏️</button>
-                      <button class="btn-delete" aria-label="Remover cidade" onclick="excluirCidade('${nomeCidade}')" title="Remover">🗑️</button>
-                  </td>`;
-              fragment.appendChild(tr);
-          });
-          tbody.innerHTML = '';
-          tbody.appendChild(fragment);
-      }
-
-      window.prepararEdicaoCidade = (nomeCidade) => {
-          const coords = AppState.cidadesCoordenadas[nomeCidade];
-          if (!coords) return alert('Cidade não encontrada.');
-          document.getElementById('edit-city-title').innerText = 'Editar Cidade';
-          document.getElementById('edit-city-original-name').value = nomeCidade;
-          document.getElementById('edit-city-name').value = nomeCidade;
-          document.getElementById('edit-city-lat').value = coords.lat;
-          document.getElementById('edit-city-lon').value = coords.lon;
-          document.getElementById('edit-city-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
-      };
-
-      window.cancelarEdicaoCidade = () => {
-          document.getElementById('edit-city-title').innerText = 'Adicionar Nova Cidade';
-          document.getElementById('edit-city-original-name').value = '';
-          document.getElementById('edit-city-name').value = '';
-          document.getElementById('edit-city-lat').value = '';
-          document.getElementById('edit-city-lon').value = '';
-      };
-
-      window.salvarCidade = () => {
-          const originalName = document.getElementById('edit-city-original-name').value;
-          const nome = document.getElementById('edit-city-name').value.trim().toUpperCase();
-          const lat = parseFloat(document.getElementById('edit-city-lat').value);
-          const lon = parseFloat(document.getElementById('edit-city-lon').value);
-          if (!nome || isNaN(lat) || isNaN(lon)) return alert('Por favor, preencha todos os campos com valores válidos.');
-          if (originalName && originalName !== nome) remove(ref(db, `coordenadas/${originalName}`));
-          set(ref(db, `coordenadas/${nome}`), { lat, lon }).then(() => {
-              registrarLog(originalName ? 'Edição de Cidade' : 'Adição de Cidade', `Cidade: ${nome}, Lat: ${lat}, Lon: ${lon}`);
-              showToast(`Cidade "${nome}" salva com sucesso!`, 'success');
-              cancelarEdicaoCidade();
-          }).catch(err => alert('Erro ao salvar cidade: ' + err.message));
-      };
-
-      window.excluirCidade = (nomeCidade) => {
-          if (!confirm(`Tem certeza que deseja excluir a cidade "${nomeCidade}"?`)) return;
-          remove(ref(db, `coordenadas/${nomeCidade}`)).then(() => {
-              registrarLog('Exclusão de Cidade', `Cidade: ${nomeCidade}`);
-              showToast(`Cidade "${nomeCidade}" excluída com sucesso!`, 'success');
-          }).catch(err => alert('Erro ao excluir cidade: ' + err.message));
       };
 
       // Funções de Gerenciamento de Administradores (apenas para Welder)
