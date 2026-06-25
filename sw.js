@@ -2,7 +2,7 @@ const CACHE_NAME = 'frota-dpe-cache-v11'; // Atualizado para preencher Data de S
 const urlsToCache = [
   './',
   './index.html',
-  './logo-dpe-192.png',
+  './logo-dpe.png',
   './manifest.json',
   // Adicione aqui outros assets estáticos (imagens, fontes, etc.)
 ];
