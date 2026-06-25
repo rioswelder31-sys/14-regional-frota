@@ -1656,30 +1656,24 @@
         let qtdDiarias = 0;
         const valorRef = 404.00; 
         
-        // --- REGRAS ATUALIZADAS DE CONTABILIDADE ---
-        // Condição mínima: viagem com mais de 80km e duração superior a 6 horas.
-        if (kmTotal > 80 && diffHorasTotal > 6) {
-          if (pernoites === 0) {
-            // Bate-volta no mesmo dia acima de 6h e 80km = Meia diária
+        // --- NOVAS REGRAS DE DIÁRIAS (BASEADO NO ART. 5º) ---
+        
+        // § 2º: Vedada a concessão para deslocamentos inferiores a 80 km.
+        // A regra diz "inferiores a 80km", então a partir de 80km é permitido.
+        if (kmTotal >= 80) {
+          
+          // §1º, II: Meia diária se duração >= 6 horas e não exigir pernoite.
+          if (diffHorasTotal >= 6 && pernoites === 0) {
             qtdDiarias = 0.5;
-          } else if (pernoites === 1) {
-            // Avaliação para 1.5 diária (1 pernoite + jornada estendida no dia do retorno)
-            // Usamos getUTCHours para pegar a hora referente ao fuso de Salvador (UTC-3)
-            const horasNoSegundoDia = dChegada.getUTCHours() + (dChegada.getUTCMinutes() / 60);
-            if (horasNoSegundoDia > 6) {
-              qtdDiarias = 1.5; // 1 pernoite + ultrapassou as exigências no dia do retorno
-            } else {
-              qtdDiarias = 1.0; // 1 pernoite padrão
-            }
-          } else { // Para 2 ou mais pernoites
-            // A base é 1 diária por pernoite.
-            qtdDiarias = pernoites;
-            // Adiciona 0.5 se no último dia o horário de chegada for após as 6h da manhã.
-            // Usamos getUTCHours para pegar a hora referente ao fuso de Salvador (UTC-3)
-            if (dChegada.getUTCHours() + (dChegada.getUTCMinutes() / 60) > 6) {
-              qtdDiarias += 0.5;
-            }
           }
+          // §1º, I: Diária integral se duração >= 6 horas e exigir pernoite.
+          // "concedidas por dia de afastamento" é interpretado como 1 diária por pernoite.
+          else if (diffHorasTotal >= 6 && pernoites > 0) {
+            // A regra não especifica frações para o dia de retorno, então calculamos apenas as diárias integrais.
+            qtdDiarias = pernoites;
+          }
+          // A condição "se o deslocamento tiver 24 horas" é coberta pela regra de pernoite.
+          // Qualquer deslocamento com 24h ou mais terá pernoite.
         }
         
         const valorTotal = qtdDiarias * valorRef;
