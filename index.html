@@ -1637,15 +1637,18 @@
           return;
         }
         
-        const dSaida = new Date(saidaStr);
-        const dChegada = new Date(chegadaStr);
+        // Adiciona o fuso horário de Salvador (UTC-3) para padronizar os cálculos,
+        // independentemente do fuso horário do navegador do usuário.
+        const dSaida = new Date(`${saidaStr}-03:00`);
+        const dChegada = new Date(`${chegadaStr}-03:00`);
         
         // 1. Diferença total da viagem em horas.
         const diffHorasTotal = (dChegada.getTime() - dSaida.getTime()) / (1000 * 60 * 60);
         
         // 2. Cálculo de pernoites (número de noites fora, baseado na diferença de dias do calendário).
-        const dataSaidaPura = new Date(dSaida.getFullYear(), dSaida.getMonth(), dSaida.getDate());
-        const dataChegadaPura = new Date(dChegada.getFullYear(), dChegada.getMonth(), dChegada.getDate());
+        // Usamos Date.UTC para criar datas na "meia-noite UTC", ignorando o fuso local.
+        const dataSaidaPura = new Date(Date.UTC(dSaida.getUTCFullYear(), dSaida.getUTCMonth(), dSaida.getUTCDate()));
+        const dataChegadaPura = new Date(Date.UTC(dChegada.getUTCFullYear(), dChegada.getUTCMonth(), dChegada.getUTCDate()));
         const pernoites = (dataChegadaPura.getTime() - dataSaidaPura.getTime()) / (1000 * 60 * 60 * 24);
         
         const kmTotal = await updateDistanciaTotal();
@@ -1661,7 +1664,8 @@
             qtdDiarias = 0.5;
           } else if (pernoites === 1) {
             // Avaliação para 1.5 diária (1 pernoite + jornada estendida no dia do retorno)
-            const horasNoSegundoDia = dChegada.getHours() + (dChegada.getMinutes() / 60);
+            // Usamos getUTCHours para pegar a hora referente ao fuso de Salvador (UTC-3)
+            const horasNoSegundoDia = dChegada.getUTCHours() + (dChegada.getUTCMinutes() / 60);
             if (horasNoSegundoDia > 6) {
               qtdDiarias = 1.5; // 1 pernoite + ultrapassou as exigências no dia do retorno
             } else {
@@ -1671,7 +1675,8 @@
             // A base é 1 diária por pernoite.
             qtdDiarias = pernoites;
             // Adiciona 0.5 se no último dia o horário de chegada for após as 6h da manhã.
-            if (dChegada.getHours() + (dChegada.getMinutes() / 60) > 6) {
+            // Usamos getUTCHours para pegar a hora referente ao fuso de Salvador (UTC-3)
+            if (dChegada.getUTCHours() + (dChegada.getUTCMinutes() / 60) > 6) {
               qtdDiarias += 0.5;
             }
           }
