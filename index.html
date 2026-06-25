@@ -1667,17 +1667,17 @@
           if (diffHorasTotal >= 6 && pernoites === 0) {
             qtdDiarias = 0.5;
           }
-          // Para viagens com pernoite, a nova regra é baseada em blocos de 24 horas.
+          // Para viagens com pernoite, o cálculo é baseado no período total de afastamento.
           else if (pernoites > 0) {
-            // 1. Calcula as diárias integrais por períodos completos de 24 horas.
+            // 1. Cômputo de diárias integrais para cada período completo de 24 horas.
             const diariasInteiras = Math.floor(diffHorasTotal / 24);
             
-            // 2. Calcula as horas restantes após os períodos de 24h.
+            // 2. Apuração do período remanescente após as 24h completas.
             const horasRestantes = diffHorasTotal % 24;
             
             qtdDiarias = diariasInteiras;
             
-            // 3. Se o período restante for superior a 6 horas, adiciona meia diária.
+            // 3. Acréscimo de 0,5 (meia diária) se o período remanescente for superior a 6 horas.
             if (horasRestantes > 6) {
               qtdDiarias += 0.5;
             }
