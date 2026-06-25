@@ -1657,31 +1657,28 @@
         // Busca o valor da diária das configurações da unidade, com fallback para 404.00
         const valorRef = AppState.unidade.config?.valorDiaria || 404.00; 
         
-        // --- NOVAS REGRAS DE DIÁRIAS (BASEADO NO ART. 5º) ---
+        // --- REGRAS DE DIÁRIAS ATUALIZADAS ---
         
-        // § 2º: Vedada a concessão para deslocamentos inferiores a 80 km.
-        // A regra diz "inferiores a 80km", então a partir de 80km é permitido.
-        if (kmTotal >= 80) {
+        // REGRA 1: Viagens com pernoite.
+        // O cálculo é feito com base no período total de afastamento, independentemente da distância.
+        if (pernoites > 0) {
+          // 1. Cômputo de diárias integrais para cada período completo de 24 horas.
+          const diariasInteiras = Math.floor(diffHorasTotal / 24);
           
-          // §1º, II: Meia diária se duração >= 6 horas e não exigir pernoite.
-          if (diffHorasTotal >= 6 && pernoites === 0) {
-            qtdDiarias = 0.5;
+          // 2. Apuração do período remanescente.
+          const horasRestantes = diffHorasTotal % 24;
+          
+          qtdDiarias = diariasInteiras;
+          
+          // 3. Acréscimo de 0,5 (meia diária) se o período remanescente for superior a 6 horas.
+          if (horasRestantes > 6) {
+            qtdDiarias += 0.5;
           }
-          // Para viagens com pernoite, o cálculo é baseado no período total de afastamento.
-          else if (pernoites > 0) {
-            // 1. Cômputo de diárias integrais para cada período completo de 24 horas.
-            const diariasInteiras = Math.floor(diffHorasTotal / 24);
-            
-            // 2. Apuração do período remanescente após as 24h completas.
-            const horasRestantes = diffHorasTotal % 24;
-            
-            qtdDiarias = diariasInteiras;
-            
-            // 3. Acréscimo de 0,5 (meia diária) se o período remanescente for superior a 6 horas.
-            if (horasRestantes > 6) {
-              qtdDiarias += 0.5;
-            }
-          }
+        }
+        // REGRA 2: Viagens sem pernoite (bate-volta).
+        // Exige distância >= 80km e duração >= 6 horas para conceder meia diária.
+        else if (pernoites === 0 && kmTotal >= 80 && diffHorasTotal >= 6) {
+          qtdDiarias = 0.5;
         }
         
         const valorTotal = qtdDiarias * valorRef;
