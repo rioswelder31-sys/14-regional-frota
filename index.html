@@ -1673,10 +1673,10 @@
             // A regra concede 1 diária integral por pernoite.
             qtdDiarias = pernoites;
 
-            // Adicional: Se no último dia a jornada for igual ou superior a 6 horas, concede-se mais meia diária.
+            // Adicional: Se no último dia a jornada for superior a 6 horas, concede-se mais meia diária.
             // Isso interpreta que a fração do dia de retorno é tratada como um novo deslocamento sem pernoite.
             const horasNoUltimoDia = dChegada.getUTCHours() + (dChegada.getUTCMinutes() / 60);
-            if (horasNoUltimoDia >= 6) {
+            if (horasNoUltimoDia > 6) {
               qtdDiarias += 0.5;
             }
           }
