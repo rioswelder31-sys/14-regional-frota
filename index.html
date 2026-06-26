@@ -1666,7 +1666,7 @@
           
           // Adiciona 0.5 diária se a duração total da viagem exceder o número de pernoites em mais de 6 horas.
           // Ex: Uma viagem com 1 pernoite (24h) que dura 31h no total, recebe 1.5 diárias.
-          if (diffHorasTotal > (pernoites * 24) + 6) {
+          if (diffHorasTotal >= (pernoites * 24) + 6) {
             qtdDiarias += 0.5;
           }
         }
