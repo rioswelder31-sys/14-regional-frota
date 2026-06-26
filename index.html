@@ -1646,10 +1646,10 @@
         const diffHorasTotal = (dChegada.getTime() - dSaida.getTime()) / (1000 * 60 * 60);
         
         // 2. Cálculo de pernoites (número de noites fora, baseado na diferença de dias do calendário).
-        // Usamos Date.UTC para criar datas na "meia-noite UTC", ignorando o fuso local.
-        const dataSaidaPura = new Date(Date.UTC(dSaida.getUTCFullYear(), dSaida.getUTCMonth(), dSaida.getUTCDate()));
-        const dataChegadaPura = new Date(Date.UTC(dChegada.getUTCFullYear(), dChegada.getUTCMonth(), dChegada.getUTCDate()));
-        const pernoites = (dataChegadaPura.getTime() - dataSaidaPura.getTime()) / (1000 * 60 * 60 * 24);
+        // Extrai a data (YYYY-MM-DD) da string de entrada para evitar problemas de fuso horário.
+        const dataSaidaPura = new Date(saidaStr.split('T')[0] + 'T12:00:00Z'); // Usar meio-dia para evitar problemas de DST
+        const dataChegadaPura = new Date(chegadaStr.split('T')[0] + 'T12:00:00Z');
+        const pernoites = Math.round((dataChegadaPura.getTime() - dataSaidaPura.getTime()) / (1000 * 60 * 60 * 24));
         
         const kmTotal = await updateDistanciaTotal();
         
@@ -1660,24 +1660,19 @@
         // --- REGRAS DE DIÁRIAS ATUALIZADAS ---
         
         // REGRA 1: Viagens com pernoite.
-        // O cálculo é feito com base no período total de afastamento, independentemente da distância.
-        if (pernoites > 0) {
-          // 1. Cômputo de diárias integrais para cada período completo de 24 horas.
-          const diariasInteiras = Math.floor(diffHorasTotal / 24);
+        if (pernoites >= 1) {
+          // A base de cálculo é 1 diária por noite de deslocamento.
+          qtdDiarias = pernoites;
           
-          // 2. Apuração do período remanescente.
-          const horasRestantes = diffHorasTotal % 24;
-          
-          qtdDiarias = diariasInteiras;
-          
-          // 3. Acréscimo de 0,5 (meia diária) se o período remanescente for superior a 6 horas.
-          if (horasRestantes > 6) {
+          // Adiciona 0.5 diária se a duração total da viagem exceder o número de pernoites em mais de 6 horas.
+          // Ex: Uma viagem com 1 pernoite (24h) que dura 31h no total, recebe 1.5 diárias.
+          if (diffHorasTotal > (pernoites * 24) + 6) {
             qtdDiarias += 0.5;
           }
         }
         // REGRA 2: Viagens sem pernoite (bate-volta).
         // Exige distância >= 80km e duração >= 6 horas para conceder meia diária.
-        else if (pernoites === 0 && kmTotal >= 80 && diffHorasTotal >= 6) {
+        else if (pernoites < 1 && kmTotal >= 80 && diffHorasTotal >= 6) {
           qtdDiarias = 0.5;
         }
         
