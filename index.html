@@ -1789,12 +1789,11 @@
               return alert("Por favor, insira um valor de diária válido.");
           }
 
-          const configRef = getRegionalRef('config');
-          const updates = {
-              valorDiaria: valorDiaria
-          };
+          const regionalRootRef = getRegionalRef();
+          const updates = {};
+          updates['config/valorDiaria'] = valorDiaria;
 
-          update(configRef, updates)
+          update(regionalRootRef, updates)
               .then(() => {
                   registrarLog('Admin: Configuração da Unidade', `Valor da diária alterado para R$ ${valorDiaria.toFixed(2)}`);
                   showToast("Configurações da unidade salvas com sucesso!", "success");
@@ -1802,7 +1801,7 @@
                   AppState.unidade.config.valorDiaria = valorDiaria;
               })
               .catch(error => {
-                  console.error("Erro ao salvar configurações:", { path: configRef.toString(), error });
+                  console.error("Erro ao salvar configurações:", { path: regionalRootRef.toString(), error });
                   alert("Erro ao salvar configurações: " + error.message);
               });
       };
