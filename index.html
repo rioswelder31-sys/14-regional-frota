@@ -773,7 +773,7 @@
             <div class="p-2">Distância Total do Roteiro (Múltiplos Trechos)</div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 bg-white dark:bg-[#1a202c] items-center text-center">
-            <div class="p-2 border-r border-[#b5b5b5] text-left text-[11px]">R$ <span id="diaria-ref-val">404,00</span></div>
+            <div class="p-2 border-r border-[#b5b5b5] text-left text-[11px]">R$ <span id="diaria-ref-val">270,00</span></div>
             <div class="p-2 font-bold text-green-700 dark:text-green-400 text-sm" id="diaria-txt-dist">0 km</div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-3 bg-[#cdcdcd] dark:bg-[#1a202c] border-t border-[#b5b5b5] font-bold text-center">
@@ -1054,7 +1054,7 @@
           <div style="margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 15px;">
             <div style="flex: 1; min-width: 120px;">
               <label for="unit-setting-diaria-valor">Valor Diária (R$):</label>
-              <input type="number" id="unit-setting-diaria-valor" placeholder="Ex: 404.00" step="0.01" />
+              <input type="number" id="unit-setting-diaria-valor" placeholder="Ex: 270.00" step="0.01" />
             </div>
           </div>
           <button class="btn-primary" onclick="salvarConfiguracoesUnidade()">Salvar Configurações</button>
@@ -1659,8 +1659,8 @@
         const kmTotal = await updateDistanciaTotal();
         
         let qtdDiarias = 0;
-        // Busca o valor da diária das configurações da unidade, com fallback para 404.00
-        const valorRef = AppState.unidade.config?.valorDiaria || 404.00; 
+        // Busca o valor da diária das configurações da unidade, com fallback para 270.00
+        const valorRef = AppState.unidade.config?.valorDiaria || 270.00; 
         
         // --- REGRAS DE DIÁRIAS ATUALIZADAS ---
         
@@ -1842,7 +1842,7 @@
           const modal = document.getElementById('unit-settings-modal');
           if (show) {
               // Preenche o valor da diária
-              const valorDiariaAtual = AppState.unidade.config?.valorDiaria || 404.00;
+              const valorDiariaAtual = AppState.unidade.config?.valorDiaria || 270.00;
               document.getElementById('unit-setting-diaria-valor').value = valorDiariaAtual.toFixed(2);
 
               renderTeamList();
@@ -2311,7 +2311,7 @@
         updateDiariasPanel(); // Chamada inicial
 
         // Atualiza o valor de referência da diária no painel
-        const valorDiariaRef = AppState.unidade.config?.valorDiaria || 404.00;
+        const valorDiariaRef = AppState.unidade.config?.valorDiaria || 270.00;
         document.getElementById('diaria-ref-val').innerText = valorDiariaRef.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
         document.getElementById('nome-motorista').innerText = AppState.unidade.motorista.nome || 'N/D';
