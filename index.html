@@ -459,6 +459,8 @@
       html[data-theme="dark"] .panel-diarias-inputs input { background: #1A202C; }
       .btn-calcular-diaria { background-color: #17a2b8; color: white; padding: 6px 12px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; font-size: 12px; transition: background-color 0.2s; }
       .btn-calcular-diaria:hover { background-color: #138496; }
+      .btn-imprimir-diaria { background-color: var(--primary); color: white; padding: 8px 14px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; font-size: 13px; transition: background-color 0.2s; }
+      .btn-imprimir-diaria:hover { background-color: #0f6b1f; }
 
       /* Toast Notifications */
       #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 12px; pointer-events: none; }
@@ -783,6 +785,9 @@
             <div class="p-1"><input type="text" id="diaria-qtd" style="text-align:center; font-weight:bold; width:80px; margin:0 auto;" readonly /></div>
             <div class="p-1 font-bold text-blue-700 dark:text-blue-400 text-base" id="diaria-total-val">R$ 0,00</div>
             <div class="p-1"><button type="button" class="btn-calcular-diaria" onclick="calcularDiariasManual()">Calcular Diária</button></div>
+          </div>
+          <div style="grid-column: 1 / -1; padding: 12px 10px 10px; border-top: 1px solid #d0d0d0; background: #f5f5f5; text-align: center;">
+            <button type="button" class="btn-imprimir-diaria" onclick="imprimirSolicitacaoDiaria()">🖨️ Imprimir Solicitação de Diária</button>
           </div>
         </div>
       </div>
@@ -3236,6 +3241,217 @@
             el.style.overflow = 'visible';
             el.style.textOverflow = 'clip';
         }
+      };
+
+      window.imprimirSolicitacaoDiaria = async () => {
+        const motivo = document.getElementById('motivo').value?.trim() || 'Não informado';
+        const saidaStr = document.getElementById('saida').value;
+        const chegadaStr = document.getElementById('chegada').value;
+        const qtdDiarias = document.getElementById('diaria-qtd').value || '0,0';
+        const valorTotal = document.getElementById('diaria-total-val').textContent || 'R$ 0,00';
+        const partidaData = document.getElementById('diaria-partida-data').value || '';
+        const partidaHora = document.getElementById('diaria-partida-hora').value || '';
+        const partidaSemana = document.getElementById('diaria-partida-semana').value || '';
+        const chegadaData = document.getElementById('diaria-chegada-data').value || '';
+        const chegadaHora = document.getElementById('diaria-chegada-hora').value || '';
+        const chegadaSemana = document.getElementById('diaria-chegada-semana').value || '';
+        const distanciaTotal = document.getElementById('diaria-txt-dist').textContent || '0 km';
+
+        const motoristaNome = AppState.unidade?.motorista?.nome || AppState.unidade?.motoristaTitular?.nome || 'N/D';
+        const funcaoBeneficiario = 'MOTORISTA';
+        const nomeRegional = AppState.regionalNome ? AppState.regionalNome.split(' - ')[0] : (AppState.regionalID === 'PORTO SEGURO' || AppState.regionalID === 'EUNAPOLIS' ? '9ª Regional' : 'N/D');
+
+        const unidadeSolicitante = (() => {
+          if (AppState.regionalNome) {
+            const partes = AppState.regionalNome.split(' - ');
+            return partes[partes.length - 1] || 'N/D';
+          }
+          if (AppState.regionalID === '14-regional') return 'Teixeira de Freitas';
+          if (AppState.regionalID === 'PORTO SEGURO') return 'Porto Seguro';
+          if (AppState.regionalID === 'EUNAPOLIS') return 'Eunápolis';
+          return 'N/D';
+        })();
+
+        const comarcaSede = (() => {
+          if (AppState.regionalID === '14-regional') return 'Teixeira de Freitas';
+          if (AppState.regionalID === 'PORTO SEGURO') return 'Porto Seguro';
+          if (AppState.regionalID === 'EUNAPOLIS') return 'Eunápolis';
+          return unidadeSolicitante;
+        })();
+
+        const dataSolicitacao = new Date().toLocaleDateString('pt-BR');
+        const roteiro = (AppState.roteiroAtual || []).length > 0
+          ? (AppState.roteiroAtual || []).map((trecho, index) => `
+              <tr>
+                <td style="width: 8%; text-align: center; font-weight: bold;">${index + 1}</td>
+                <td style="width: 46%;">${escapeHtml(trecho.origem || '')}</td>
+                <td style="width: 46%;">${escapeHtml(trecho.destino || '')}</td>
+              </tr>`).join('')
+          : `<tr><td colspan="3" style="text-align:center; color:#777;">Nenhum trecho adicionado ao roteiro.</td></tr>`;
+
+        const printWindow = window.open('', '', 'height=900,width=900');
+        if (!printWindow) {
+          alert('Popup foi bloqueado. Por favor, permita popups para imprimir a solicitação.');
+          return;
+        }
+
+        const styles = `
+          @page { size: A4; margin: 0.5cm; }
+          body {
+            font-family: Arial, Helvetica, sans-serif;
+            margin: 0;
+            padding: 0.2cm;
+            color: #111;
+            background: #fff;
+            font-size: 12px;
+          }
+          .print-shell {
+            width: 100%;
+            max-width: 100%;
+            margin: 0 auto;
+            box-sizing: border-box;
+          }
+          .header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            margin-bottom: 14px;
+            border-bottom: 2px solid #0b5d2b;
+            padding-bottom: 10px;
+          }
+          .header img {
+            height: 60px;
+            object-fit: contain;
+            margin-bottom: 6px;
+          }
+          .header h1 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: bold;
+            color: #0b5d2b;
+            text-transform: uppercase;
+          }
+          .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 12px;
+          }
+          .info-box {
+            border: 1px solid #ccc;
+            padding: 7px 8px;
+            border-radius: 4px;
+            background: #fafafa;
+          }
+          .info-box strong { display: block; margin-bottom: 3px; color: #0b5d2b; font-size: 11px; text-transform: uppercase; }
+          .section-title {
+            background: #0b5d2b;
+            color: white;
+            padding: 6px 8px;
+            font-weight: bold;
+            margin: 10px 0 6px;
+            text-transform: uppercase;
+            font-size: 11px;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 8px;
+          }
+          th, td {
+            border: 1px solid #bdbdbd;
+            padding: 6px 7px;
+            vertical-align: top;
+            text-align: left;
+          }
+          th {
+            background: #e9f5eb;
+            font-size: 11px;
+            text-transform: uppercase;
+          }
+          .summary { font-size: 11px; margin: 6px 0 10px; }
+          .summary strong { color: #0b5d2b; }
+          .footer-note { font-size: 10px; color: #555; margin-top: 14px; text-align: center; }
+          @media print {
+            body { padding: 0; font-size: 11px; }
+            .no-print { display: none !important; }
+            .print-shell { max-width: none; }
+            table, tr, td, th { page-break-inside: avoid; }
+          }
+        `;
+
+        const html = `
+          <html>
+            <head>
+              <title>Solicitação de Diária - ${escapeHtml(AppState.regionalNome || 'Frota DPE')}</title>
+              <style>${styles}</style>
+            </head>
+            <body>
+              <div class="no-print" style="margin-bottom: 12px; padding: 10px 12px; background: #f7f7f7; border: 1px solid #ddd; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-weight: bold; color: #555;">📄 Pré-visualização da Solicitação de Diária</span>
+                <div>
+                  <button onclick="window.print()" style="background: #0b5d2b; color: white; padding: 10px 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-right: 8px;">🖨️ Imprimir</button>
+                  <button onclick="window.close()" style="background: #6c757d; color: white; padding: 10px 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">❌ Fechar</button>
+                </div>
+              </div>
+              <div class="print-shell">
+                <div class="header">
+                  <img src="./logo-dpe.png" alt="Logo DPE-BA" />
+                  <h1>FORMULÁRIO DE SOLICITAÇÃO DE DIÁRIAS PARA VIAGEM</h1>
+                </div>
+
+                <div class="info-grid">
+                  <div class="info-box"><strong>Unidade Solicitante</strong>${escapeHtml(unidadeSolicitante)}</div>
+                  <div class="info-box"><strong>Regional</strong>${escapeHtml(nomeRegional)}</div>
+                  <div class="info-box"><strong>Data da Solicitação</strong>${escapeHtml(dataSolicitacao)}</div>
+                </div>
+
+                <div class="section-title">Dados do Beneficiário</div>
+                <table>
+                  <tbody>
+                    <tr><th style="width: 35%;">Nome</th><td>${escapeHtml(motoristaNome)}</td></tr>
+                    <tr><th>Função</th><td>${escapeHtml(funcaoBeneficiario)}</td></tr>
+                    <tr><th>Comarca Sede</th><td>${escapeHtml(comarcaSede)}</td></tr>
+                  </tbody>
+                </table>
+
+                <div class="section-title">Motivo da Viagem</div>
+                <div class="info-box" style="min-height: 60px;">${escapeHtml(motivo)}</div>
+
+                <div class="section-title">Dados da Viagem e Roteiro</div>
+                <div class="summary">
+                  <strong>Distância Total do Roteiro:</strong> ${escapeHtml(distanciaTotal)}<br/>
+                </div>
+                <table>
+                  <thead>
+                    <tr><th style="width: 8%;">Nº</th><th style="width: 46%;">Origem</th><th style="width: 46%;">Destino</th></tr>
+                  </thead>
+                  <tbody>${roteiro}</tbody>
+                </table>
+
+                <div class="section-title">Cálculo da Diária</div>
+                <table>
+                  <thead>
+                    <tr><th style="width: 25%;">Partida Prevista</th><th style="width: 25%;">Chegada Prevista</th><th style="width: 20%;">Qtde. Diárias</th><th style="width: 30%;">Valor Total</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>${escapeHtml(`${partidaData} ${partidaHora}`.trim())}<br/><small>${escapeHtml(`${partidaSemana}`)}</small></td>
+                      <td>${escapeHtml(`${chegadaData} ${chegadaHora}`.trim())}<br/><small>${escapeHtml(`${chegadaSemana}`)}</small></td>
+                      <td>${escapeHtml(qtdDiarias)}</td>
+                      <td>${escapeHtml(valorTotal)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <div class="footer-note">Documento gerado automaticamente pelo SAD - Sistema de Agendamento Defensorial da Defensoria Pública da Bahia.</div>
+              </div>
+            </body>
+          </html>`;
+
+        printWindow.document.write(html);
+        printWindow.document.close();
       };
 
       window.imprimirAgenda = () => {
