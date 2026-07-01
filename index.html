@@ -161,23 +161,23 @@
       button { padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: background 0.2s; color: white; font-size: 1em; margin-bottom: 8px; width: 100%; }
       .btn-primary { background: var(--primary); }
       .btn-secondary { background: #6c757d; }
-      .btn-edit { background: var(--warning); color: #333; width: auto; padding: 8px 12px; font-size: 0.9em; margin-right: 4px; }
-      .btn-confirm { background: var(--success); width: auto; padding: 8px 12px; font-size: 0.9em; margin-right: 4px; }
-      .btn-delete { background: var(--danger); width: auto; padding: 8px 12px; font-size: 0.9em; }
+      .btn-edit { background: var(--warning); color: #333; width: auto; padding: 6px 9px; font-size: 0.85em; margin-right: 3px; }
+      .btn-confirm { background: var(--success); width: auto; padding: 6px 9px; font-size: 0.85em; margin-right: 3px; }
+      .btn-delete { background: var(--danger); width: auto; padding: 6px 9px; font-size: 0.85em; }
       
       .btn-outline { background: white; color: var(--primary); border: 2px solid var(--primary); }
       .btn-tertiary { background: white; color: #666; border: 1px solid #ddd; }
 
       .table-responsive-container {
-        margin: 20px 0;
+        margin: 15px 0 0 0;
         width: 100%;
         box-sizing: border-box;
         overflow-x: auto;
       }
-      .table-custom { width: 100%; border-collapse: collapse; table-layout: fixed; }
+      .table-custom { width: 100%; border-collapse: collapse; table-layout: auto; }
       .table-custom th,
       .table-custom td {
-        padding: 12px;
+        padding: 8px 10px;
         border: 1px solid var(--border-color);
         vertical-align: middle;
       }
@@ -227,7 +227,7 @@
       .roteiro-lista { width: 100%; border-collapse: collapse; font-size: 0.95em; margin-top: 10px; }
       .roteiro-lista td { padding: 6px 10px; border: 1px solid var(--border-color); }
       
-      .status-badge { padding: 5px 10px; border-radius: 15px; font-size: 0.85em; font-weight: bold; display: inline-block; color: white; }
+      .status-badge { padding: 3px 8px; border-radius: 12px; font-size: 0.8em; font-weight: bold; display: inline-block; color: white; white-space: nowrap; }
       .status-pendente { background-color: var(--warning); color: #333; }
       .status-ciente { background-color: #17a2b8; color: white; }
       .status-confirmado { background-color: var(--success); color: white; }
@@ -237,7 +237,7 @@
       .linha-confirmada { background-color: #d4edda !important; color: #155724; }
       .linha-ciente { background-color: #fffbe6 !important; }
       .btn-confirm { background: var(--success); color: white; width: auto; padding: 8px 12px; font-size: 0.9em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer; }
-      .btn-reject { background: var(--danger); color: white; width: auto; padding: 8px 12px; font-size: 0.9em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer; }
+      .btn-reject { background: var(--danger); color: white; width: auto; padding: 6px 9px; font-size: 0.85em; margin-right: 3px; border: none; border-radius: 5px; cursor: pointer; }
 
       .unit-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 20px; margin-top: 30px; }
       .unit-card { border: 2px solid #ddd; padding: 30px; border-radius: 10px; cursor: pointer; text-align: center; background: #fff; transition: 0.3s; }
@@ -3007,7 +3007,7 @@
 
                 // Célula Status
                 const tdStatus = tr.insertCell();
-                tdStatus.style.cssText = 'padding:12px; text-align:center; white-space:nowrap;';
+                tdStatus.style.cssText = 'text-align:center; white-space:nowrap;';
                 const statusBadge = document.createElement('span');
                 statusBadge.className = `status-badge ${badgeCor}`;
                 statusBadge.textContent = status;
@@ -3017,13 +3017,12 @@
                     const cienciaIcon = document.createElement('span');
                     cienciaIcon.innerHTML = '👁️✓';
                     cienciaIcon.title = 'Ciência registrada pela administração';
-                    cienciaIcon.style.cssText = 'font-size: 0.95em; margin-left: 6px; cursor: help; color: #f39c12;';
+                    cienciaIcon.style.cssText = 'font-size: 0.9em; margin-left: 5px; cursor: help; color: #f39c12;';
                     tdStatus.appendChild(cienciaIcon);
                 }
 
                 // Célula Saída
                 const tdSaida = tr.insertCell();
-                tdSaida.style.padding = '12px';
                 tdSaida.textContent = formataDataComDiaDaSemana(v.saida);
                 if (v.saidaOriginal && new Date(v.saida).getTime() !== new Date(v.saidaOriginal).getTime()) {
                     tdSaida.appendChild(document.createElement('br'));
@@ -3036,7 +3035,6 @@
 
                 // Célula Retorno
                 const tdRetorno = tr.insertCell();
-                tdRetorno.style.padding = '12px';
                 tdRetorno.textContent = formataDataComDiaDaSemana(v.chegada);
                 if (v.chegadaOriginal && new Date(v.chegada).getTime() !== new Date(v.chegadaOriginal).getTime()) {
                     tdRetorno.appendChild(document.createElement('br'));
@@ -3049,26 +3047,37 @@
 
                 // Célula Solicitante (usando textContent para segurança)
                 const tdSolicitante = tr.insertCell();
-                tdSolicitante.style.padding = '12px';
                 const strongSolicitante = document.createElement('strong');
                 strongSolicitante.textContent = nomeParaExibir || 'N/D';
                 tdSolicitante.appendChild(strongSolicitante);
 
                 // Célula Motivo
                 const tdMotivo = tr.insertCell();
-                tdMotivo.style.cssText = 'padding:12px; font-size:0.9em; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;';
-                tdMotivo.title = 'Toque para ver o motivo completo';
+                tdMotivo.style.cssText = 'font-size:0.9em; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;';
                 tdMotivo.textContent = v.motivo || '';
-                tdMotivo.addEventListener('click', () => toggleMotivoVisibilidade(tdMotivo));
+                tdMotivo.title = v.motivo || ''; // Exibe o motivo completo no hover
 
                 // Célula Roteiro
                 const tdRoteiro = tr.insertCell();
-                tdRoteiro.style.cssText = 'padding:12px; font-size:0.9em; white-space: pre-line;';
-                tdRoteiro.textContent = v.trajetoExibicao || '';
+                tdRoteiro.style.cssText = 'font-size:0.9em;';
+                if (v.roteiroArray && v.roteiroArray.length > 0) {
+                    const cidades = [];
+                    v.roteiroArray.forEach((t, i) => {
+                        const origem = t.origem.split(' - ')[1] || t.origem;
+                        if (i === 0) cidades.push(origem);
+                        const destino = t.destino.split(' - ')[1] || t.destino;
+                        cidades.push(destino);
+                    });
+                    const path = cidades.filter((c, i) => i === 0 || c !== cidades[i-1]).join(' → ');
+                    tdRoteiro.textContent = path;
+                    tdRoteiro.title = v.trajetoExibicao; // Detalhes completos no hover
+                } else {
+                    tdRoteiro.textContent = v.trajetoExibicao || '';
+                }
 
                 // Célula Ações (innerHTML é seguro aqui pois createActionButtons não usa dados do usuário na estrutura HTML)
                 const tdAcoes = tr.insertCell();
-                tdAcoes.style.cssText = 'padding:12px; text-align:center; white-space:nowrap;';
+                tdAcoes.style.cssText = 'text-align:center; white-space:nowrap;';
                 tdAcoes.innerHTML = createActionButtons(v, status);
 
                 fragment.appendChild(tr);
@@ -3086,12 +3095,13 @@
       function createActionButtons(v, status) {
           const temPermissao = AppState.user.podeTudo || v.registradoPor === AppState.user.email || v.solicitanteUID === AppState.user.uid;
           let btns = "";
+          const btnStyle = "width: 32px; height: 32px; padding: 0; font-size: 1em; margin-right: 3px; border: none; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;";
           if (temPermissao && status !== STATUS.FINALIZADO && status !== STATUS.CANCELADO) btns += `<button class="btn-edit" aria-label="Editar viagem" onclick="prepararEdicao('${v.id}')" title="Editar viagem">✏️</button>`;
-          if (temPermissao && (status === STATUS.PENDENTE || status === STATUS.CIENTE || status === STATUS.CONFIRMADO)) btns += `<button aria-label="Reenviar notificação" style="background:#3498db; color:white; width: 36px; height: 36px; padding: 0; font-size: 1.1em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" onclick="reenviarNotificacao('${v.id}')" title="Reenviar notificação para o motorista">🔄</button>`;
+          if (temPermissao && (status === STATUS.PENDENTE || status === STATUS.CIENTE || status === STATUS.CONFIRMADO)) btns += `<button aria-label="Reenviar notificação" style="background:#3498db; color:white; ${btnStyle}" onclick="reenviarNotificacao('${v.id}')" title="Reenviar notificação para o motorista">🔄</button>`;
           
           // Botão para administrador dar ciência da viagem
           if (AppState.user.podeTudo && !v.cienciaAdmin && status !== STATUS.CIENTE) {
-              btns += `<button aria-label="Dar ciência da viagem" style="background:#f39c12; color:white; width: 36px; height: 36px; padding: 0; font-size: 1.1em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" onclick="darCiencia('${v.id}')" title="Dar ciência da viagem (Apenas controle interno)">👁️</button>`;
+              btns += `<button aria-label="Dar ciência da viagem" style="background:#f39c12; color:white; ${btnStyle}" onclick="darCiencia('${v.id}')" title="Dar ciência da viagem (Apenas controle interno)">👁️</button>`;
           }
           
           // Botões para motorista confirmar/rejeitar em qualquer momento (mesmo antes do admin dar ciência)
@@ -3100,9 +3110,9 @@
               btns += `<button class="btn-reject" aria-label="Rejeitar viagem" onclick="rejeitar('${v.id}')" title="Rejeitar viagem">❌</button>`;
           }
           
-          if ((AppState.user.isMotorista || AppState.user.podeTudo) && status === STATUS.CONFIRMADO) btns += `<button aria-label="Reenviar confirmação" style="background:#27ae60; color:white; width: 36px; height: 36px; padding: 0; font-size: 1.1em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" onclick="reenviarConfirmacao('${v.id}')" title="Reenviar confirmação para o solicitante">🔄</button>`;
-          if (temPermissao && status !== STATUS.FINALIZADO && status !== STATUS.CANCELADO && status !== STATUS.REJEITADO) btns += `<button aria-label="Cancelar viagem" style="background:#e67e22; color:white; width: 36px; height: 36px; padding: 0; font-size: 1.1em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" onclick="cancelar('${v.id}')" title="Cancelar viagem">🚫</button>`;
-          if (status !== STATUS.FINALIZADO && status !== STATUS.CANCELADO) btns += `<button aria-label="Abrir rota no mapa" style="background:#16a085; color:white; width: 36px; height: 36px; padding: 0; font-size: 1.1em; margin-right: 4px; border: none; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" onclick="abrirRotaGoogleMaps('${v.id}')" title="Abrir rota no Google Maps">🗺️</button>`;
+          if ((AppState.user.isMotorista || AppState.user.podeTudo) && status === STATUS.CONFIRMADO) btns += `<button aria-label="Reenviar confirmação" style="background:#27ae60; color:white; ${btnStyle}" onclick="reenviarConfirmacao('${v.id}')" title="Reenviar confirmação para o solicitante">🔄</button>`;
+          if (temPermissao && status !== STATUS.FINALIZADO && status !== STATUS.CANCELADO && status !== STATUS.REJEITADO) btns += `<button aria-label="Cancelar viagem" style="background:#e67e22; color:white; ${btnStyle}" onclick="cancelar('${v.id}')" title="Cancelar viagem">🚫</button>`;
+          if (status !== STATUS.FINALIZADO && status !== STATUS.CANCELADO) btns += `<button aria-label="Abrir rota no mapa" style="background:#16a085; color:white; ${btnStyle}" onclick="abrirRotaGoogleMaps('${v.id}')" title="Abrir rota no Google Maps">🗺️</button>`;
           if (temPermissao && status !== STATUS.FINALIZADO) btns += `<button class="btn-delete" aria-label="Excluir viagem" onclick="deletar('${v.id}')" title="Excluir viagem">🗑️</button>`;
           return btns;
       };
@@ -3336,19 +3346,6 @@
           fragment.appendChild(div);
         }); 
         container.appendChild(fragment);
-      };
-      function renderFolgas() { window.renderFolgas(); }
-      
-      window.toggleMotivoVisibilidade = (el) => {
-        if (el.style.whiteSpace === 'normal') {
-            el.style.whiteSpace = 'nowrap';
-            el.style.overflow = 'hidden';
-            el.style.textOverflow = 'ellipsis';
-        } else {
-            el.style.whiteSpace = 'normal';
-            el.style.overflow = 'visible';
-            el.style.textOverflow = 'clip';
-        }
       };
 
       // --- Lógica do Histórico de Diárias ---
