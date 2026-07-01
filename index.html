@@ -2827,12 +2827,23 @@
             if (telMotorista) {
               let phone = formatarTelefoneWpp(telMotorista);
               window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msgMotorista)}`, '_blank');
-              showToast("Viagem salva! Mensagem enviada para o motorista.", "success");
             } else {
               alert("Telefone do motorista não encontrado. Verifique as configurações.");
-              showToast("Erro: Não foi possível enviar para o motorista.", "error");
             }
-            resetForm();
+
+            // Mantém o formulário em modo de edição para permitir a impressão da diária
+            document.getElementById('edit-id').value = newRef.key;
+            document.getElementById('form-title').innerText = '📝 Solicitação Salva (Pronta para Diária)';
+            btnSave.innerText = '✅ Salvar Alterações';
+            btnSave.disabled = false;
+            
+            const diariasPanel = document.getElementById('diarias-panel');
+            if (diariasPanel && !diariasPanel.classList.contains('hidden')) {
+                diariasPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                showToast("Viagem salva! Calcule e imprima a diária abaixo.", "success");
+            } else {
+                showToast("Viagem salva com sucesso!", "success");
+            }
           }
         } catch (error) {
             console.error(error);
