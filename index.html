@@ -106,6 +106,36 @@
         font-size: 0.875rem;
         opacity: 0.9;
       }
+      /* Padronização dos painéis de conteúdo */
+      .content-section {
+        background: white;
+        padding: clamp(15px, 3vw, 25px);
+        border-radius: 8px;
+        margin-top: 25px;
+        box-shadow: 0 3px 15px rgba(0,0,0,0.05);
+        border: 1px solid var(--border-color);
+      }
+      .content-section h3 {
+        margin-top: 0;
+        margin-bottom: 20px;
+        font-size: 1.5rem;
+      }
+      .section-controls {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+      }
+      html[data-theme="dark"] .content-section {
+        background: #2D3748;
+        border-color: #4A5568;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      }
       .container { width: 100%; max-width: none; margin: 0; padding: 0; background: white; border-radius: 0; box-shadow: none; display: flex; flex-direction: column; box-sizing: border-box; }
       #app-screen > * {
         margin-left: clamp(10px, 3vw, 40px);
@@ -423,6 +453,10 @@
       html[data-theme="dark"] .bg-green-600 { background-color: var(--primary) !important; }
       html[data-theme="dark"] .border-green-600 { border-color: var(--success) !important; }
       html[data-theme="dark"] .text-green-600 { color: var(--success) !important; }
+      html[data-theme="dark"] .section-controls {
+        background: #1A202C;
+        border: 1px solid #4A5568;
+      }
       .theme-btn-home { background: white; color: #333; transition: all 0.3s; }
       .theme-btn-home:hover { transform: scale(1.1); }
       html[data-theme="dark"] .theme-btn-home { background: #4A5568; color: #F7FAFC; border: 1px solid #718096 !important; }
@@ -802,43 +836,46 @@
         </div>
       </div>
 
-      <h3 style="margin-top: 40px; color: var(--primary);">📅 Agenda de Viagens</h3>
-      <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 15px; display: flex; gap: 15px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
-        <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
-          <label for="filtro-mes" style="font-weight: 600; margin-bottom: 0;">Mês:</label>
-          <select id="filtro-mes" onchange="atualizarEscutaViagens()" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></select>
-          <label for="filtro-ano" style="font-weight: 600; margin-bottom: 0;">Ano:</label>
-          <select id="filtro-ano" onchange="atualizarEscutaViagens()" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></select>
+      <!-- Seção da Agenda de Viagens (Agora padronizada) -->
+      <div class="content-section">
+        <h3 style="color: var(--primary);">📅 Agenda de Viagens</h3>
+        <div class="section-controls">
+          <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
+            <label for="filtro-mes" style="font-weight: 600; margin-bottom: 0;">Mês:</label>
+            <select id="filtro-mes" onchange="atualizarEscutaViagens()" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></select>
+            <label for="filtro-ano" style="font-weight: 600; margin-bottom: 0;">Ano:</label>
+            <select id="filtro-ano" onchange="atualizarEscutaViagens()" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></select>
+          </div>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button style="background: #17a2b8; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="imprimirAgenda()">🖨️ Imprimir</button>
+            <button style="background: #6f42c1; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="exportarCSV()">📥 Exportar CSV</button>
+            <button id="btn-toggle-historico" style="background: #6c757d; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="toggleHistorico()">📂 Mostrar Histórico Completo</button>
+          </div>
         </div>
-        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-          <button style="background: #17a2b8; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="imprimirAgenda()">🖨️ Imprimir</button>
-          <button style="background: #6f42c1; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="exportarCSV()">📥 Exportar CSV</button>
-          <button id="btn-toggle-historico" style="background: #6c757d; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="toggleHistorico()">📂 Mostrar Histórico Completo</button>
+
+        <!-- Dashboard de Resumo -->
+        <div class="dash-grid">
+          <div class="dash-card border-primary"><div class="dash-title">Total de Viagens</div><div class="dash-value" id="dash-total">0</div></div>
+          <div class="dash-card border-warning"><div class="dash-title">Pendentes</div><div class="dash-value" id="dash-pendentes">0</div></div>
+          <div class="dash-card border-success"><div class="dash-title">Confirmadas / Fim</div><div class="dash-value" id="dash-concluidas">0</div></div>
+          <div class="dash-card border-danger"><div class="dash-title">Canceladas / Rej.</div><div class="dash-value" id="dash-canceladas">0</div></div>
+          <div id="card-falta-ciencia" class="dash-card border-info hidden"><div class="dash-title">Falta Ciência</div><div class="dash-value" id="dash-ciencia">0</div></div>
         </div>
-      </div>
 
-      <!-- Dashboard de Resumo (Novidade) -->
-      <div class="dash-grid">
-        <div class="dash-card border-primary"><div class="dash-title">Total de Viagens</div><div class="dash-value" id="dash-total">0</div></div>
-        <div class="dash-card border-warning"><div class="dash-title">Pendentes</div><div class="dash-value" id="dash-pendentes">0</div></div>
-        <div class="dash-card border-success"><div class="dash-title">Confirmadas / Fim</div><div class="dash-value" id="dash-concluidas">0</div></div>
-        <div class="dash-card border-danger"><div class="dash-title">Canceladas / Rej.</div><div class="dash-value" id="dash-canceladas">0</div></div>
-        <div id="card-falta-ciencia" class="dash-card border-info hidden"><div class="dash-title">Falta Ciência</div><div class="dash-value" id="dash-ciencia">0</div></div>
-      </div>
-
-      <div class="table-responsive-container"><table class="table-custom"><thead class="table-header-custom"><tr><th style="padding:12px;">Status</th><th style="padding:12px;">Saída Prevista</th><th style="padding:12px;">Chegada Prevista</th><th style="padding:12px;">Solicitante</th><th style="padding:12px;">Motivo</th><th style="padding:12px;">Roteiro</th><th style="padding:12px; text-align:center;">Ações</th></tr></thead><tbody id="tb-corpo"></tbody></table></div>
-      
-      <!-- Paginação -->
-      <div id="paginacao-controles" class="hidden" style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 15px; margin-bottom: 25px; flex-wrap: wrap;">
-        <button id="btn-pagina-anterior" class="btn-secondary" style="width: auto; padding: 8px 15px; margin-bottom: 0;" onclick="mudarPagina(-1)">⬅ Anterior</button>
-        <span id="info-pagina" style="font-weight: bold; color: var(--primary);">Página 1 de 1</span>
-        <button id="btn-pagina-proxima" class="btn-secondary" style="width: auto; padding: 8px 15px; margin-bottom: 0;" onclick="mudarPagina(1)">Próximo ➡</button>
+        <div class="table-responsive-container"><table class="table-custom"><thead class="table-header-custom"><tr><th style="padding:12px;">Status</th><th style="padding:12px;">Saída Prevista</th><th style="padding:12px;">Chegada Prevista</th><th style="padding:12px;">Solicitante</th><th style="padding:12px;">Motivo</th><th style="padding:12px;">Roteiro</th><th style="padding:12px; text-align:center;">Ações</th></tr></thead><tbody id="tb-corpo"></tbody></table></div>
+        
+        <!-- Paginação -->
+        <div id="paginacao-controles" class="hidden" style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 20px; margin-bottom: 0; flex-wrap: wrap;">
+          <button id="btn-pagina-anterior" class="btn-secondary" style="width: auto; padding: 8px 15px; margin-bottom: 0;" onclick="mudarPagina(-1)">⬅ Anterior</button>
+          <span id="info-pagina" style="font-weight: bold; color: var(--primary);">Página 1 de 1</span>
+          <button id="btn-pagina-proxima" class="btn-secondary" style="width: auto; padding: 8px 15px; margin-bottom: 0;" onclick="mudarPagina(1)">Próximo ➡</button>
+        </div>
       </div>
 
       <!-- NOVO: Painel de Histórico de Solicitações de Diárias -->
-      <div id="diarias-historico-panel" class="hidden">
-        <h3 style="margin-top: 40px; color: var(--primary);">🗓️ Histórico de Solicitações de Diárias</h3>
-        <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 15px; display: flex; gap: 15px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
+      <div id="diarias-historico-panel" class="content-section hidden">
+        <h3 style="color: var(--primary);">🗓️ Histórico de Solicitações de Diárias</h3>
+        <div class="section-controls">
           <p style="margin: 0; font-size: 0.9em; color: #666;">Registros de todas as diárias solicitadas através do sistema.</p>
           <button style="background: #6f42c1; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="exportarDiariasCSV()">📥 Exportar CSV</button>
         </div>
