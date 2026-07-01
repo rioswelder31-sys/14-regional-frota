@@ -3,11 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Frota DPE - Multi-Regional (V81.0)</title>
-    <link rel="icon" type="image/png" href="logo-dpe.png" />
+    <title>Frota DPE - Multi-Regional (V81.1)</title>
+    <link rel="icon" type="image/png" href="logo-dpe-192.png" />
     <link rel="manifest" href="manifest.json" />
     <meta id="theme-color-meta" name="theme-color" content="#009c3b" />
-    <link rel="apple-touch-icon" href="logo-dpe.png" />
+    <link rel="apple-touch-icon" href="logo-dpe-192.png" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style type="text/css">
       :root { --primary: #009c3b; --secondary: #f8f9fa; --success: #28a745; --whatsapp: #25d366; --danger: #dc3545; --warning: #ffc107; --dark-text: #333; --blocked: #721c24; --blocked-bg: #f8d7da; --border-color: #dee2e6; --table-hover: #f1f5f9; --table-header: #007b2e; }
@@ -803,16 +803,18 @@
       </div>
 
       <h3 style="margin-top: 40px; color: var(--primary);">📅 Agenda de Viagens</h3>
-      <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 15px; display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
-        <label for="filtro-mes" style="font-weight: 600; margin-bottom: 0;">Mês:</label>
-        <select id="filtro-mes" onchange="atualizarEscutaViagens()" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></select>
-        <label for="filtro-ano" style="font-weight: 600; margin-bottom: 0;">Ano:</label>
-        <select id="filtro-ano" onchange="atualizarEscutaViagens()" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></select>
-      </div>
-      <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
-        <button style="background: #17a2b8; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="imprimirAgenda()">🖨️ Imprimir</button>
-        <button style="background: #6f42c1; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="exportarCSV()">📥 Exportar CSV</button>
-        <button id="btn-toggle-historico" style="background: #6c757d; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="toggleHistorico()">📂 Mostrar Histórico Completo</button>
+      <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 15px; display: flex; gap: 15px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
+        <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
+          <label for="filtro-mes" style="font-weight: 600; margin-bottom: 0;">Mês:</label>
+          <select id="filtro-mes" onchange="atualizarEscutaViagens()" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></select>
+          <label for="filtro-ano" style="font-weight: 600; margin-bottom: 0;">Ano:</label>
+          <select id="filtro-ano" onchange="atualizarEscutaViagens()" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></select>
+        </div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <button style="background: #17a2b8; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="imprimirAgenda()">🖨️ Imprimir</button>
+          <button style="background: #6f42c1; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="exportarCSV()">📥 Exportar CSV</button>
+          <button id="btn-toggle-historico" style="background: #6c757d; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="toggleHistorico()">📂 Mostrar Histórico Completo</button>
+        </div>
       </div>
 
       <!-- Dashboard de Resumo (Novidade) -->
@@ -836,7 +838,10 @@
       <!-- NOVO: Painel de Histórico de Solicitações de Diárias -->
       <div id="diarias-historico-panel" class="hidden">
         <h3 style="margin-top: 40px; color: var(--primary);">🗓️ Histórico de Solicitações de Diárias</h3>
-        <p style="margin-bottom: 15px; font-size: 0.9em; color: #666;">Registros de todas as diárias solicitadas através do sistema.</p>
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 15px; display: flex; gap: 15px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
+          <p style="margin: 0; font-size: 0.9em; color: #666;">Registros de todas as diárias solicitadas através do sistema.</p>
+          <button style="background: #6f42c1; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="exportarDiariasCSV()">📥 Exportar CSV</button>
+        </div>
         <div class="table-responsive-container">
             <table class="table-custom">
                 <thead class="table-header-custom">
@@ -3911,6 +3916,31 @@
         const url = URL.createObjectURL(blob);
         link.setAttribute('href', url);
         link.setAttribute('download', `agenda-viagens-${new Date().toISOString().split('T')[0]}.csv`);
+        link.click();
+      };
+
+      window.exportarDiariasCSV = () => {
+        if (!AppState.diariasSolicitadas || AppState.diariasSolicitadas.length === 0) {
+          alert('Nenhum registro de diária para exportar!');
+          return;
+        }
+        let csv = 'Data Solicitação,Viagem (Solicitante),Motorista,Qtd. Diárias,Valor Total,Status\n';
+        AppState.diariasSolicitadas
+          .sort((a, b) => new Date(b.dataSolicitacao) - new Date(a.dataSolicitacao))
+          .forEach(diaria => {
+            const dataSolicitacao = new Date(diaria.dataSolicitacao).toLocaleString('pt-BR');
+            const valorTotal = (typeof diaria.valorTotal === 'number') ? diaria.valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'R$ 0,00';
+            const solicitante = (diaria.viagemSolicitanteNome || '').replace(/"/g, '""');
+            const motorista = (diaria.motoristaNome || '').replace(/"/g, '""');
+            const qtd = (typeof diaria.qtdDiarias === 'number') ? diaria.qtdDiarias.toLocaleString('pt-BR') : '0';
+            const status = (diaria.status || '').replace(/"/g, '""');
+            csv += `"${dataSolicitacao}","${solicitante}","${motorista}","${qtd}","${valorTotal.replace(/"/g, '""')}","${status}"\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `historico-diarias-${new Date().toISOString().split('T')[0]}.csv`);
         link.click();
       };
     </script>

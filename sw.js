@@ -1,8 +1,9 @@
-const CACHE_NAME = 'frota-dpe-cache-v11'; // Atualizado para preencher Data de Saída automaticamente
+const CACHE_NAME = 'frota-dpe-cache-v12'; // Atualizado para corrigir ícones do manifest
 const urlsToCache = [
   './',
   './index.html',
-  './logo-dpe.png',
+  './logo-dpe-192.png',
+  './logo-dpe-512.png',
   './manifest.json',
   // Adicione aqui outros assets estáticos (imagens, fontes, etc.)
 ];
