@@ -144,10 +144,25 @@
         box-sizing: border-box;
         overflow-x: auto;
       }
-      .table-custom { width: 100%; border-collapse: collapse; }
-      .table-custom tr { border-bottom: 1px solid var(--border-color); transition: background-color 0.2s; }
-      .table-custom tbody tr:hover { background-color: var(--table-hover); }
-      .table-header-custom { background: var(--table-header); color: white; }
+      .table-custom { width: 100%; border-collapse: collapse; table-layout: fixed; }
+      .table-custom th,
+      .table-custom td {
+        padding: 12px;
+        border: 1px solid var(--border-color);
+        vertical-align: middle;
+      }
+      .table-custom th {
+        background: var(--table-header);
+        color: white;
+        font-weight: 700;
+      }
+      .table-custom th:last-child,
+      .table-custom td:last-child {
+        text-align: center;
+      }
+      .table-custom tbody tr:hover {
+        background-color: var(--table-hover);
+      }
 
       .main-form { background: var(--secondary); padding: 20px; border-radius: 6px; border: 1px solid #dee2e6; }
       .form-row { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
