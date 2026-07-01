@@ -114,10 +114,6 @@
       #app-screen > .header {
         margin-left: 0;
         margin-right: 0;
-      }
-      #app-screen > div[style*="overflow-x:auto"] {
-        margin-left: 0;
-        margin-right: 0;
         padding: 0 clamp(10px, 3vw, 40px);
       }
       .container > .folga-box:first-of-type,
@@ -142,10 +138,11 @@
       .btn-outline { background: white; color: var(--primary); border: 2px solid var(--primary); }
       .btn-tertiary { background: white; color: #666; border: 1px solid #ddd; }
 
-      div[style*="overflow-x:auto"] {
+      .table-responsive-container {
         margin: 20px 0;
         width: 100%;
         box-sizing: border-box;
+        overflow-x: auto;
       }
       .table-custom { width: 100%; border-collapse: collapse; }
       .table-custom tr { border-bottom: 1px solid var(--border-color); transition: background-color 0.2s; }
@@ -427,7 +424,6 @@
 
       /* Dashboard de Resumo */
       .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 120px), 1fr)); gap: 15px; margin-bottom: 20px; animation: fadeInUp 0.5s ease-out; }
-      .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 120px), 1fr)); gap: 15px; margin-top: 30px; margin-bottom: 40px; animation: fadeInUp 0.5s ease-out; }
       .dash-card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-left: 5px solid #ccc; transition: transform 0.2s; display: flex; flex-direction: column; justify-content: space-between; }
       .dash-card:hover { transform: translateY(-3px); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
       .dash-title { font-size: 0.8em; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
@@ -478,32 +474,32 @@
         .container > .folga-box,
         .container > .main-form,
         .container > h3,
-        .container > .dash-grid,
-        .container > div[style*="font-size: 0.9em"] { margin-left: 40px; margin-right: 40px; }
-        div[style*="overflow-x:auto"] { padding: 0 40px; }
+        .container > .dash-grid { margin-left: 40px; margin-right: 40px; }
+        .table-responsive-container { padding: 0 40px; }
         .form-row { gap: 20px; }
         .main-form { padding: 25px; }
         .dash-grid { grid-template-columns: repeat(5, 1fr); }
       }
       /* Responsividade - Tablets (769px a 1024px) */
       @media (min-width: 769px) and (max-width: 1024px) {
+        #app-screen > .table-responsive-container { padding: 0 18px; }
         .container > .folga-box,
         .container > .main-form,
         .container > h3,
-        .container > .dash-grid,
-        .container > div[style*="font-size: 0.9em"] { margin-left: 18px; margin-right: 18px; }
-        div[style*="overflow-x:auto"] { padding: 0 18px; }
+        .container > .dash-grid { margin-left: 18px; margin-right: 18px; }
         .form-row { gap: 14px; }
         .dash-grid { grid-template-columns: repeat(3, 1fr); }
       }
       /* Responsividade - Telas Médias (481px a 768px) */
       @media (max-width: 768px) {
+        #app-screen > .table-responsive-container {
+          padding: 0 15px;
+          margin: 15px 0;
+        }
         .container > .folga-box,
         .container > .main-form,
         .container > h3,
-        .container > .dash-grid,
-        .container > div[style*="font-size: 0.9em"] { margin-left: 15px; margin-right: 15px; }
-        div[style*="overflow-x:auto"] { padding: 0 15px; }
+        .container > .dash-grid { margin-left: 15px; margin-right: 15px; }
         .form-row { flex-direction: column; gap: 12px; }
         .col { min-width: auto; }
         .developer-section { flex-direction: column; gap: 1rem; padding: 0 1rem; }
@@ -512,7 +508,6 @@
         button { font-size: 0.9em; padding: 10px; }
         .dash-grid { grid-template-columns: repeat(2, 1fr); }
         .roteiro-controls { flex-direction: column; }
-        div[style*="overflow-x:auto"] { margin: 15px 0; }
       }
       /* Responsividade - Telas Pequenas (até 480px) */
       @media (max-width: 480px) {
@@ -814,7 +809,7 @@
         <div id="card-falta-ciencia" class="dash-card border-info hidden"><div class="dash-title">Falta Ciência</div><div class="dash-value" id="dash-ciencia">0</div></div>
       </div>
 
-      <div style="overflow-x:auto;"><table class="table-custom"><thead class="table-header-custom"><tr><th style="padding:12px;">Status</th><th style="padding:12px;">Saída Prevista</th><th style="padding:12px;">Chegada Prevista</th><th style="padding:12px;">Solicitante</th><th style="padding:12px;">Motivo</th><th style="padding:12px;">Roteiro</th><th style="padding:12px; text-align:center;">Ações</th></tr></thead><tbody id="tb-corpo"></tbody></table></div>
+      <div class="table-responsive-container"><table class="table-custom"><thead class="table-header-custom"><tr><th style="padding:12px;">Status</th><th style="padding:12px;">Saída Prevista</th><th style="padding:12px;">Chegada Prevista</th><th style="padding:12px;">Solicitante</th><th style="padding:12px;">Motivo</th><th style="padding:12px;">Roteiro</th><th style="padding:12px; text-align:center;">Ações</th></tr></thead><tbody id="tb-corpo"></tbody></table></div>
       
       <!-- Paginação -->
       <div id="paginacao-controles" class="hidden" style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 15px; margin-bottom: 25px; flex-wrap: wrap;">
@@ -2941,20 +2936,28 @@
                 // Célula Saída
                 const tdSaida = tr.insertCell();
                 tdSaida.style.padding = '12px';
-                let htmlSaida = formataDataComDiaDaSemana(v.saida);
+                tdSaida.textContent = formataDataComDiaDaSemana(v.saida);
                 if (v.saidaOriginal && new Date(v.saida).getTime() !== new Date(v.saidaOriginal).getTime()) {
-                    htmlSaida += `<br><small style="text-decoration: line-through; color: #888;" title="Data original">Orig: ${formataDataComDiaDaSemana(v.saidaOriginal)}</small>`;
+                    tdSaida.appendChild(document.createElement('br'));
+                    const small = document.createElement('small');
+                    small.style.cssText = 'text-decoration: line-through; color: #888;';
+                    small.title = 'Data original';
+                    small.textContent = `Orig: ${formataDataComDiaDaSemana(v.saidaOriginal)}`;
+                    tdSaida.appendChild(small);
                 }
-                tdSaida.innerHTML = htmlSaida;
 
                 // Célula Retorno
                 const tdRetorno = tr.insertCell();
                 tdRetorno.style.padding = '12px';
-                let htmlRetorno = formataDataComDiaDaSemana(v.chegada);
+                tdRetorno.textContent = formataDataComDiaDaSemana(v.chegada);
                 if (v.chegadaOriginal && new Date(v.chegada).getTime() !== new Date(v.chegadaOriginal).getTime()) {
-                    htmlRetorno += `<br><small style="text-decoration: line-through; color: #888;" title="Data original">Orig: ${formataDataComDiaDaSemana(v.chegadaOriginal)}</small>`;
+                    tdRetorno.appendChild(document.createElement('br'));
+                    const small = document.createElement('small');
+                    small.style.cssText = 'text-decoration: line-through; color: #888;';
+                    small.title = 'Data original';
+                    small.textContent = `Orig: ${formataDataComDiaDaSemana(v.chegadaOriginal)}`;
+                    tdRetorno.appendChild(small);
                 }
-                tdRetorno.innerHTML = htmlRetorno;
 
                 // Célula Solicitante (usando textContent para segurança)
                 const tdSolicitante = tr.insertCell();
