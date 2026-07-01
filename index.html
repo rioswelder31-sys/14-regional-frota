@@ -3065,8 +3065,11 @@
                 // Célula Motivo
                 const tdMotivo = tr.insertCell();
                 tdMotivo.style.cssText = 'font-size:0.9em; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;';
+                tdMotivo.style.cssText = 'font-size:0.9em; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;';
                 tdMotivo.textContent = v.motivo || '';
                 tdMotivo.title = v.motivo || ''; // Exibe o motivo completo no hover
+                tdMotivo.title = 'Clique para ver o motivo completo';
+                tdMotivo.addEventListener('click', () => toggleMotivoVisibilidade(tdMotivo));
 
                 // Célula Roteiro
                 const tdRoteiro = tr.insertCell();
@@ -3357,6 +3360,18 @@
           fragment.appendChild(div);
         }); 
         container.appendChild(fragment);
+      };
+
+      window.toggleMotivoVisibilidade = (el) => {
+        if (el.style.whiteSpace === 'normal') {
+            el.style.whiteSpace = 'nowrap';
+            el.style.overflow = 'hidden';
+            el.style.textOverflow = 'ellipsis';
+        } else {
+            el.style.whiteSpace = 'normal';
+            el.style.overflow = 'visible';
+            el.style.textOverflow = 'clip';
+        }
       };
 
       // --- Lógica do Histórico de Diárias ---
