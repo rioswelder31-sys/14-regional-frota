@@ -817,6 +817,28 @@
         <span id="info-pagina" style="font-weight: bold; color: var(--primary);">Página 1 de 1</span>
         <button id="btn-pagina-proxima" class="btn-secondary" style="width: auto; padding: 8px 15px; margin-bottom: 0;" onclick="mudarPagina(1)">Próximo ➡</button>
       </div>
+
+      <!-- NOVO: Painel de Histórico de Solicitações de Diárias -->
+      <div id="diarias-historico-panel" class="hidden">
+        <h3 style="margin-top: 40px; color: var(--primary);">🗓️ Histórico de Solicitações de Diárias</h3>
+        <p style="margin-bottom: 15px; font-size: 0.9em; color: #666;">Registros de todas as diárias solicitadas através do sistema.</p>
+        <div class="table-responsive-container">
+            <table class="table-custom">
+                <thead class="table-header-custom">
+                    <tr>
+                        <th style="padding:12px;">Data Solicitação</th>
+                        <th style="padding:12px;">Viagem (Solicitante)</th>
+                        <th style="padding:12px;">Motorista</th>
+                        <th style="padding:12px;">Qtd. Diárias</th>
+                        <th style="padding:12px;">Valor Total</th>
+                        <th style="padding:12px;">Status</th>
+                        <th style="padding:12px; text-align:center;">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tb-corpo-diarias"></tbody>
+            </table>
+        </div>
+      </div>
     </div>
 
     <div id="help-modal" class="hidden" onclick="if (event.target === this) toggleHelpModal(false)">
@@ -1369,6 +1391,7 @@
         regionalNome: "",
         unsubscribeViagens: null,
         user: { email: "", uid: "", podeTudo: false, isMotorista: false },
+        diariasSolicitadas: [],
         roteiroAtual: [],
         viagens: [],
         folgas: [],
@@ -2263,6 +2286,13 @@
                 document.getElementById('painel-add-folga').classList.remove('hidden');
                 if (AppState.user.podeTudo) document.getElementById('unit-settings-btn').classList.remove('hidden');
               }
+
+              // Mostra o painel de histórico de diárias para admins e motoristas
+              const diariasHistoricoPanel = document.getElementById('diarias-historico-panel');
+              if (AppState.user.isMotorista || AppState.user.podeTudo) {
+                  diariasHistoricoPanel.classList.remove('hidden');
+              }
+
               iniciarEscutaBanco();
           });
         } else {
@@ -2516,6 +2546,7 @@
         console.log('Iniciando escuta - Regional:', AppState.regionalID);
         onValue(getRegionalRef(DB_PATHS.FOLGAS), (s) => { AppState.folgas = s.val() ? Object.keys(s.val()).map(k => ({...s.val()[k], id: k})) : []; renderFolgas(); });
         
+        iniciarEscutaDiariasSolicitadas();
         atualizarEscutaViagens();
       }
 
@@ -3263,6 +3294,30 @@
         }
       };
 
+      // --- Lógica do Histórico de Diárias ---
+      function iniciarEscutaDiariasSolicitadas() {
+          const diariasRef = getRegionalRef('diarias_solicitadas');
+          onValue(diariasRef, (snapshot) => {
+              const data = snapshot.val();
+              AppState.diariasSolicitadas = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
+              renderTabelaDiarias();
+          });
+      }
+
+      window.alterarStatusDiaria = (diariaId, novoStatus) => {
+          if (!confirm(`Deseja alterar o status desta solicitação para "${novoStatus}"?`)) {
+              renderTabelaDiarias(); // Reverte o dropdown se o usuário cancelar
+              return;
+          }
+          update(getRegionalRef('diarias_solicitadas', diariaId), { status: novoStatus }).then(() => {
+              registrarLog('Alteração Status Diária', `Status da diária ID ${diariaId} alterado para ${novoStatus}.`);
+              showToast("Status da diária atualizado!", "success");
+          }).catch(err => {
+              showToast("Erro ao atualizar status.", "error");
+              renderTabelaDiarias(); // Reverte em caso de erro
+          });
+      };
+
       window.imprimirSolicitacaoDiaria = async () => {
         const motivo = document.getElementById('motivo').value?.trim() || 'Não informado';
         const saidaStr = document.getElementById('saida').value;
@@ -3276,6 +3331,38 @@
         const chegadaHora = document.getElementById('diaria-chegada-hora').value || '';
         const chegadaSemana = document.getElementById('diaria-chegada-semana').value || '';
         const distanciaTotal = document.getElementById('diaria-txt-dist').textContent || '0 km';
+
+        const viagemId = document.getElementById('edit-id').value;
+        if (!viagemId) {
+            return showToast("A viagem precisa ser salva antes de solicitar a diária.", "info");
+        }
+        const viagemAtual = AppState.viagens.find(v => v.id === viagemId);
+        if (!viagemAtual) {
+            return showToast("Dados da viagem não encontrados. Recarregue a página.", "error");
+        }
+        if (!qtdDiarias || parseFloat(qtdDiarias.replace(',', '.')) <= 0) {
+            return showToast("Calcule a diária antes de solicitar. A quantidade deve ser maior que zero.", "info");
+        }
+
+        if (!confirm("Isso irá registrar a solicitação de diária no sistema e abrir a janela de impressão. Deseja continuar?")) {
+            return;
+        }
+
+        // --- Lógica para salvar no Firebase ---
+        const dadosDiaria = {
+            viagemId: viagemId,
+            viagemSolicitanteNome: viagemAtual.solicitanteNome,
+            motoristaNome: AppState.unidade?.motorista?.nome || 'N/D',
+            dataSolicitacao: new Date().toISOString(),
+            qtdDiarias: parseFloat(qtdDiarias.replace(',', '.')),
+            valorTotal: parseFloat(valorTotal.replace('R$', '').replace('.', '').replace(',', '.').trim()),
+            status: 'Solicitada',
+            solicitadoPor: AppState.user.email
+        };
+
+        await set(getRegionalRef('diarias_solicitadas', viagemId), dadosDiaria).catch(error => {
+            showToast("Falha ao registrar a solicitação de diária no banco de dados.", "error");
+        });
 
         const motoristaNome = AppState.unidade?.motorista?.nome || AppState.unidade?.motoristaTitular?.nome || 'N/D';
         const funcaoBeneficiario = 'MOTORISTA';
@@ -3716,6 +3803,64 @@
           const celulasRestantes = (primeiroDia.getDay() + ultimoDia.getDate()) % 7;
           if (celulasRestantes !== 0) { for (let i = 0; i < (7 - celulasRestantes); i++) { html += `<div class="calendar-day empty-day"></div>`; } }
           html += '</div>'; container.innerHTML = html;
+      };
+
+      function renderTabelaDiarias() {
+          const tbody = document.getElementById('tb-corpo-diarias');
+          if (!tbody) return;
+
+          tbody.innerHTML = '';
+          const fragment = document.createDocumentFragment();
+
+          if (AppState.diariasSolicitadas.length === 0) {
+              tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 20px; font-style: italic;">Nenhuma solicitação de diária encontrada.</td></tr>';
+              return;
+          }
+
+          AppState.diariasSolicitadas
+              .sort((a, b) => new Date(b.dataSolicitacao) - new Date(a.dataSolicitacao))
+              .forEach(diaria => {
+                  const tr = document.createElement('tr');
+                  const dataSolicitacao = new Date(diaria.dataSolicitacao).toLocaleString('pt-BR');
+                  const valorTotal = diaria.valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+                  let statusHtml = escapeHtml(diaria.status);
+                  if (AppState.user.podeTudo) {
+                      statusHtml = `
+                          <select onchange="alterarStatusDiaria('${diaria.id}', this.value)" style="padding: 4px; border-radius: 4px; border: 1px solid #ccc; background: white; min-width: 120px;">
+                              <option value="Solicitada" ${diaria.status === 'Solicitada' ? 'selected' : ''}>Solicitada</option>
+                              <option value="Processando" ${diaria.status === 'Processando' ? 'selected' : ''}>Processando</option>
+                              <option value="Paga" ${diaria.status === 'Paga' ? 'selected' : ''}>Paga</option>
+                              <option value="Cancelada" ${diaria.status === 'Cancelada' ? 'selected' : ''}>Cancelada</option>
+                          </select>
+                      `;
+                  }
+
+                  tr.innerHTML = `
+                      <td style="padding:12px;">${dataSolicitacao}</td>
+                      <td style="padding:12px;">${escapeHtml(diaria.viagemSolicitanteNome)}</td>
+                      <td style="padding:12px;">${escapeHtml(diaria.motoristaNome)}</td>
+                      <td style="padding:12px;">${diaria.qtdDiarias.toLocaleString('pt-BR')}</td>
+                      <td style="padding:12px;">${valorTotal}</td>
+                      <td style="padding:12px;">${statusHtml}</td>
+                      <td style="padding:12px; text-align:center;">
+                          <button class="btn-delete" aria-label="Excluir registro de diária" onclick="excluirSolicitacaoDiaria('${diaria.id}')" title="Excluir Registro">🗑️</button>
+                      </td>
+                  `;
+                  
+                  if (!AppState.user.podeTudo) {
+                      tr.querySelector('.btn-delete').style.display = 'none';
+                  }
+
+                  fragment.appendChild(tr);
+              });
+
+          tbody.appendChild(fragment);
+      }
+
+      window.excluirSolicitacaoDiaria = (diariaId) => {
+          if (!confirm("Tem certeza que deseja excluir PERMANENTEMENTE este registro de solicitação de diária?")) return;
+          remove(getRegionalRef('diarias_solicitadas', diariaId)).then(() => { showToast("Registro de diária excluído.", "success"); });
       };
 
       window.exportarCSV = () => {
