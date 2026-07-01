@@ -1457,7 +1457,8 @@
         viagensIniciaisCarregadas: false,
         mostrarHistoricoCompleto: false,
         paginaAtual: 1,
-        registrosPorPagina: 20
+        registrosPorPagina: 20,
+        viagemRecemCriada: null, // Guarda a viagem recém-criada para evitar race conditions
       };
       window.AppState = AppState; // Expor para depuração no console
 
@@ -2689,6 +2690,7 @@
         document.getElementById('chegada').value = '';
         document.getElementById('motivo').value = '';
         AppState.roteiroAtual = [];
+        AppState.viagemRecemCriada = null; // Limpa a viagem temporária
         renderRoteiro();
         document.getElementById("btn-whatsapp-manual").classList.add("hidden");
         const btnSave = document.getElementById("btn-save");
@@ -2820,11 +2822,11 @@
           dados.registradoPor = AppState.user.email;
           dados.dataCriacao = new Date().toISOString();
             const newRef = await push(getRegionalRef(DB_PATHS.VIAGENS), dados);
-
-            // Adiciona a nova viagem ao estado local imediatamente para evitar race conditions.
-            // Isso garante que a função de imprimir diária encontre os dados da viagem.
-            AppState.viagens.push({ ...dados, id: newRef.key });
-
+            
+            // Armazena a viagem recém-criada em um estado temporário para evitar race conditions
+            // com o listener do Firebase que pode sobrescrever a lista principal.
+            AppState.viagemRecemCriada = { ...dados, id: newRef.key };
+            
             registrarLog('Criação de Viagem', `Nova viagem ID ${newRef.key} para ${dados.solicitanteNome} foi criada.`);
             
             // Enviar mensagem direto para o motorista
@@ -3421,9 +3423,16 @@
         if (!viagemId) {
             return showToast("A viagem precisa ser salva antes de solicitar a diária.", "info");
         }
-        const viagemAtual = AppState.viagens.find(v => v.id === viagemId);
+        let viagemAtual = AppState.viagens.find(v => v.id === viagemId);
+
+        // Fallback: Se a viagem não for encontrada na lista principal (devido a race condition do listener),
+        // verifica se ela é a que acabou de ser criada e está no estado temporário.
+        if (!viagemAtual && AppState.viagemRecemCriada && AppState.viagemRecemCriada.id === viagemId) {
+            viagemAtual = AppState.viagemRecemCriada;
+        }
+
         if (!viagemAtual) {
-            return showToast("Dados da viagem não encontrados. Recarregue a página.", "error");
+            return showToast("Dados da viagem não encontrados. Isso pode ocorrer por um atraso na sincronização. Tente novamente em alguns segundos.", "error");
         }
         if (!qtdDiarias || parseFloat(qtdDiarias.replace(',', '.')) <= 0) {
             return showToast("Calcule a diária antes de solicitar. A quantidade deve ser maior que zero.", "info");
