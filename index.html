@@ -2820,6 +2820,11 @@
           dados.registradoPor = AppState.user.email;
           dados.dataCriacao = new Date().toISOString();
             const newRef = await push(getRegionalRef(DB_PATHS.VIAGENS), dados);
+
+            // Adiciona a nova viagem ao estado local imediatamente para evitar race conditions.
+            // Isso garante que a função de imprimir diária encontre os dados da viagem.
+            AppState.viagens.push({ ...dados, id: newRef.key });
+
             registrarLog('Criação de Viagem', `Nova viagem ID ${newRef.key} para ${dados.solicitanteNome} foi criada.`);
             
             // Enviar mensagem direto para o motorista
