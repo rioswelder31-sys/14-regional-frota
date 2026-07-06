@@ -1,9 +1,10 @@
-const CACHE_NAME = 'frota-dpe-cache-v12'; // Atualizado para corrigir ícones do manifest
+const CACHE_NAME = 'frota-dpe-cache-v13'; // Adicionado logo-dpe.png ao cache
 const urlsToCache = [
   './',
   './index.html',
   './logo-dpe-192.png',
   './logo-dpe-512.png',
+  './logo-dpe.png', // Adicionado para corrigir erro de recurso não encontrado
   './manifest.json',
   // Adicione aqui outros assets estáticos (imagens, fontes, etc.)
 ];

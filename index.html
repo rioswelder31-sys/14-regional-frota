@@ -3259,12 +3259,10 @@
           }).catch(err => alert("Erro ao excluir: " + err.message));
         } 
       };
-      window.salvarFolga = () => { 
       window.salvarFolga = () => {
         const inicio = document.getElementById('folga-inicio').value;
         const fim = document.getElementById('folga-fim').value;
         const motivo = document.getElementById('folga-motivo').value;
-        const id = document.getElementById('folga-id') ? document.getElementById('folga-id').value : '';
         const id = document.getElementById('folga-id').value;
         
         if (!inicio || !fim || !motivo) return alert('Por favor, preencha todos os campos do bloqueio.');
@@ -3281,14 +3279,12 @@
             registrarLog('Edição de Folga/Bloqueio', `Período editado para ${parseFolgaDate(inicio, false).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })} a ${parseFolgaDate(fim, true).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}. Motivo: ${motivo}`);
             showToast('Bloqueio atualizado com sucesso!', 'success');
             limparFormFolga();
-          });
           }).catch(handleError);
         } else {
           push(getRegionalRef(DB_PATHS.FOLGAS), dadosFolga).then(() => {
             registrarLog('Criação de Folga/Bloqueio', `Período de ${parseFolgaDate(inicio, false).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })} a ${parseFolgaDate(fim, true).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })} foi criado. Motivo: ${motivo}`);
             showToast('Bloqueio adicionado com sucesso!', 'success');
             limparFormFolga();
-          });
           }).catch(handleError);
         }
       };
@@ -3296,7 +3292,6 @@
         document.getElementById('folga-inicio').value = '';
         document.getElementById('folga-fim').value = '';
         document.getElementById('folga-motivo').value = '';
-        if (document.getElementById('folga-id')) document.getElementById('folga-id').value = '';
         document.getElementById('folga-id').value = '';
         
         const btnSalvar = document.getElementById('btn-salvar-folga');
@@ -3312,7 +3307,6 @@
         document.getElementById('folga-inicio').value = folga.inicio.includes('T') ? folga.inicio : folga.inicio + 'T00:00';
         document.getElementById('folga-fim').value = folga.fim.includes('T') ? folga.fim : folga.fim + 'T23:59';
         document.getElementById('folga-motivo').value = folga.motivo;
-        if (document.getElementById('folga-id')) document.getElementById('folga-id').value = id;
         document.getElementById('folga-id').value = id;
         
         const btnSalvar = document.getElementById('btn-salvar-folga');
