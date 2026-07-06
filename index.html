@@ -222,6 +222,8 @@
       .toggle-password { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #666; font-size: 1.3em; }
 
       .folga-box { background-color: var(--blocked-bg); border: 1px solid var(--blocked); color: var(--blocked); padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+      .folga-box input, .folga-box button { background: #ffffff; color: #333333; border: 1px solid #ccc; }
+      .folga-box input:focus, .folga-box button:focus { outline: none; box-shadow: 0 0 0 3px rgba(0, 156, 59, 0.15); }
       .roteiro-box { border: 1px solid #ccc; background: #fdfdfd; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
       .roteiro-controls { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 10px; }
       .roteiro-lista { width: 100%; border-collapse: collapse; font-size: 0.95em; margin-top: 10px; }
@@ -2146,8 +2148,10 @@
           pathArray = []; // Medida de segurança, usa a raiz.
         }
         
-        // Filtramos segmentos nulos ou vazios
-        const cleanSegments = pathSegments.filter(s => s && s !== "");
+        // Filtramos segmentos nulos ou vazios e removemos barras extras
+        const cleanSegments = pathSegments
+          .filter(s => s !== undefined && s !== null && s !== "")
+          .flatMap(s => String(s).split('/').filter(Boolean));
         pathArray = pathArray.concat(cleanSegments);
         
         const finalPath = pathArray.join('/');
@@ -3401,6 +3405,7 @@
         });
       };
       window.renderFolgas = () => {
+      window.renderFolgas = () => { 
         const container = document.getElementById('lista-folgas-visual'); 
         container.innerHTML = ""; 
         const fragment = document.createDocumentFragment();
