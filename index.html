@@ -3274,7 +3274,7 @@
           }).catch(err => alert("Erro ao excluir: " + err.message));
         } 
       };
-      window.salvarFolga = () => {
+      window.salvarFolga = async () => {
         const inicio = document.getElementById('folga-inicio').value;
         const fim = document.getElementById('folga-fim').value;
         const motivo = document.getElementById('folga-motivo').value?.trim();
@@ -3285,67 +3285,73 @@
  
         const inicioDate = new Date(inicio);
         const fimDate = new Date(fim);
-        if (isNaN(inicioDate.getTime()) || isNaN(fimDate.getTime())) {
-          return alert('As datas do bloqueio estão inválidas. Verifique o formato e tente novamente.');
-        }
-        if (inicioDate >= fimDate) {
-          return alert('A data de início deve ser anterior à data de término do bloqueio.');
-        }
+        if (isNaN(inicioDate.getTime()) || isNaN(fimDate.getTime())) return alert('As datas do bloqueio estão inválidas. Verifique o formato e tente novamente.');
+        if (inicioDate >= fimDate) return alert('A data de início deve ser anterior à data de término do bloqueio.');
  
         const inicioMs = inicioDate.getTime();
         const fimMs = fimDate.getTime();
  
         // 1. Validação: Verifica se o novo bloqueio se sobrepõe a outro bloqueio existente.
         const conflitoFolga = AppState.folgas.find(f => {
-          if (id && f.id === id) return false; // Ignora o próprio bloqueio ao editar
-          const iniF = parseFolgaDate(f.inicio, false).getTime();
-          const fimF = parseFolgaDate(f.fim, true).getTime();
-          return inicioMs < fimF && fimMs > iniF; // Lógica de sobreposição
+            if (id && f.id === id) return false; // Ignora o próprio bloqueio ao editar
+            const iniF = parseFolgaDate(f.inicio, false).getTime();
+            const fimF = parseFolgaDate(f.fim, true).getTime();
+            return inicioMs < fimF && fimMs > iniF; // Lógica de sobreposição
         });
         if (conflitoFolga) {
-          return alert(`Conflito com outro bloqueio: ${conflitoFolga.motivo}.\n\nPeríodo: ${new Date(conflitoFolga.inicio).toLocaleString('pt-BR')} a ${new Date(conflitoFolga.fim).toLocaleString('pt-BR')}.\n\nEscolha datas diferentes ou edite o bloqueio existente.`);
+            return alert(`Conflito com outro bloqueio: ${conflitoFolga.motivo}.\n\nPeríodo: ${new Date(conflitoFolga.inicio).toLocaleString('pt-BR')} a ${new Date(conflitoFolga.fim).toLocaleString('pt-BR')}.\n\nEscolha datas diferentes ou edite o bloqueio existente.`);
         }
- 
-        // 2. Validação: Verifica se o novo bloqueio se sobrepõe a uma viagem agendada.
-        const conflitoViagem = AppState.viagens.find(v => {
-            if (v.status === STATUS.CANCELADO || v.status === STATUS.REJEITADO) return false; // Ignora viagens canceladas/rejeitadas
-            const iniV = new Date(v.saida).getTime();
-            const fimV = new Date(v.chegada).getTime();
-            return inicioMs < fimV && fimMs > iniV; // Lógica de sobreposição
-        });
-        if (conflitoViagem) {
-            const nomeSolicitante = getNomeSolicitante(conflitoViagem) || 'Desconhecido';
-            return alert(`Conflito com uma viagem existente para "${nomeSolicitante}".\n\nPeríodo da viagem: ${formataDataComDiaDaSemana(conflitoViagem.saida)} a ${formataDataComDiaDaSemana(conflitoViagem.chegada)}.\n\nNão é possível bloquear este período.`);
-        }
- 
-        const dadosFolga = { inicio: inicio.trim(), fim: fim.trim(), motivo };
- 
-        if (btnSalvar) {
-          btnSalvar.disabled = true;
-          btnSalvar.innerText = id ? 'Salvando...' : 'Bloqueando...';
-        }
- 
-        const handleError = (error) => {
-          console.error("Erro ao salvar bloqueio:", error);
-          if (btnSalvar) {
+
+        const btnSalvarOriginalText = btnSalvar.innerText;
+        btnSalvar.disabled = true;
+        btnSalvar.innerText = 'Validando...';
+
+        try {
+            // 2. Validação: Busca viagens no período e verifica se há sobreposição.
+            // Buscamos viagens que começam até 30 dias ANTES do início do bloqueio,
+            // até o FIM do bloqueio, para capturar viagens longas que possam cruzar o período.
+            const margin = 30 * 24 * 60 * 60 * 1000; // 30 dias de margem
+            const inicioBuscaDate = new Date(inicioDate.getTime() - margin);
+            const inicioBuscaStr = inicioBuscaDate.toISOString().slice(0, 16); // Formato YYYY-MM-DDTHH:mm
+
+            const viagensQuery = query(getRegionalRef(DB_PATHS.VIAGENS), orderByChild('saida'), startAt(inicioBuscaStr), endAt(fim));
+            const snapshot = await get(viagensQuery);
+            const viagensBanco = snapshot.val() ? Object.keys(snapshot.val()).map(k => ({...snapshot.val()[k], id: k})) : [];
+
+            const conflitoViagem = viagensBanco.find(v => {
+                if (v.status === STATUS.CANCELADO || v.status === STATUS.REJEITADO) return false;
+                const iniV = new Date(v.saida).getTime();
+                const fimV = new Date(v.chegada).getTime();
+                // Verifica se o intervalo da viagem [iniV, fimV] sobrepõe o intervalo do bloqueio [inicioMs, fimMs]
+                return inicioMs < fimV && fimMs > iniV;
+            });
+
+            if (conflitoViagem) {
+                const nomeSolicitante = getNomeSolicitante(conflitoViagem) || 'Desconhecido';
+                alert(`Conflito com uma viagem existente para "${nomeSolicitante}".\n\nPeríodo da viagem: ${formataDataComDiaDaSemana(conflitoViagem.saida)} a ${formataDataComDiaDaSemana(conflitoViagem.chegada)}.\n\nNão é possível bloquear este período.`);
+                btnSalvar.disabled = false;
+                btnSalvar.innerText = btnSalvarOriginalText;
+                return;
+            }
+
+            const dadosFolga = { inicio: inicio.trim(), fim: fim.trim(), motivo };
+
+            if (id) {
+                await update(getRegionalRef(DB_PATHS.FOLGAS, id), dadosFolga);
+                registrarLog('Edição de Folga/Bloqueio', `Período editado para ${parseFolgaDate(inicio, false).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })} a ${parseFolgaDate(fim, true).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}. Motivo: ${motivo}`);
+                showToast('Bloqueio atualizado com sucesso!', 'success');
+            } else {
+                await push(getRegionalRef(DB_PATHS.FOLGAS), dadosFolga);
+                registrarLog('Criação de Folga/Bloqueio', `Período de ${parseFolgaDate(inicio, false).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })} a ${parseFolgaDate(fim, true).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })} foi criado. Motivo: ${motivo}`);
+                showToast('Bloqueio adicionado com sucesso!', 'success');
+            }
+            limparFormFolga();
+
+        } catch (error) {
+            console.error("Erro ao salvar bloqueio:", error);
+            showToast("Erro ao salvar: " + error.message, "error");
             btnSalvar.disabled = false;
-            btnSalvar.innerText = id ? 'Salvar Edição' : 'Bloquear';
-          }
-          showToast("Erro ao salvar: " + error.message, "error");
-        };
- 
-        if (id) {
-          update(getRegionalRef(DB_PATHS.FOLGAS, id), dadosFolga).then(() => {
-            registrarLog('Edição de Folga/Bloqueio', `Período editado para ${parseFolgaDate(inicio, false).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })} a ${parseFolgaDate(fim, true).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}. Motivo: ${motivo}`);
-            showToast('Bloqueio atualizado com sucesso!', 'success');
-            limparFormFolga();
-          }).catch(handleError);
-        } else {
-          push(getRegionalRef(DB_PATHS.FOLGAS), dadosFolga).then(() => {
-            registrarLog('Criação de Folga/Bloqueio', `Período de ${parseFolgaDate(inicio, false).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })} a ${parseFolgaDate(fim, true).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })} foi criado. Motivo: ${motivo}`);
-            showToast('Bloqueio adicionado com sucesso!', 'success');
-            limparFormFolga();
-          }).catch(handleError);
+            btnSalvar.innerText = btnSalvarOriginalText;
         }
       };
       window.limparFormFolga = () => {
