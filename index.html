@@ -490,31 +490,6 @@
       .sticky-thead { position: sticky; top: -11px; background: white; box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1); }
       html[data-theme="dark"] .sticky-thead { background: #2D3748; }
 
-      /* Calendar Styles for Selection */
-      .folga-calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
-      .folga-calendar-day-header { font-weight: bold; text-align: center; padding: 8px 0; font-size: 0.9em; color: #555; }
-      html[data-theme="dark"] .folga-calendar-day-header { color: #a0aec0; }
-      .folga-calendar-day { border: 1px solid var(--border-color); min-height: 80px; padding: 5px; font-size: 0.9em; transition: background-color 0.2s; position: relative; }
-      .folga-calendar-day:not(.empty-day) { cursor: pointer; }
-      .folga-calendar-day:not(.empty-day):hover { background-color: var(--table-hover); }
-      .folga-calendar-day.empty-day { background-color: #f9f9f9; cursor: default; }
-      html[data-theme="dark"] .folga-calendar-day.empty-day { background-color: #1A202C; }
-      .folga-calendar-date { font-weight: bold; margin-bottom: 5px; }
-      .folga-calendar-day.today .folga-calendar-date { background-color: var(--primary); color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; }
-
-      /* Selection styles */
-      .folga-calendar-day.selected-start, .folga-calendar-day.selected-end { background-color: #007b2e !important; color: white; }
-      html[data-theme="dark"] .folga-calendar-day.selected-start, html[data-theme="dark"] .folga-calendar-day.selected-end { background-color: var(--success) !important; color: #1A202C; }
-      .folga-calendar-day.selected-start .folga-calendar-date, .folga-calendar-day.selected-end .folga-calendar-date { color: white !important; }
-      html[data-theme="dark"] .folga-calendar-day.selected-start .folga-calendar-date, html[data-theme="dark"] .folga-calendar-day.selected-end .folga-calendar-date { color: #1A202C !important; }
-      .folga-calendar-day.in-range { background-color: #d4edda; }
-      html[data-theme="dark"] .folga-calendar-day.in-range { background-color: #1c4532; }
-
-      /* Conflict styles */
-      .folga-calendar-day.has-conflict::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: repeating-linear-gradient(45deg, rgba(220, 53, 69, 0.15), rgba(220, 53, 69, 0.15) 5px, transparent 5px, transparent 10px); pointer-events: none; }
-      .folga-calendar-event { font-size: 11px; padding: 2px 4px; border-radius: 3px; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      .folga-event-viagem { background-color: #e8f0fe; color: #333; border-left: 3px solid #17a2b8; }
-      .folga-event-folga { background-color: #f8d7da; color: #721c24; border-left: 3px solid #dc3545; }
       /* Painel de Diárias */
       .panel-diarias { border: 1px solid #ccc; border-radius: 6px; overflow: hidden; margin-top: 25px; background-color: #f9f9f9; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
       html[data-theme="dark"] .panel-diarias { background-color: #2d3748; border-color: #4a5568; }
@@ -765,7 +740,6 @@
                 <input type="hidden" id="folga-id" />
                 <input type="datetime-local" id="folga-inicio" aria-label="Data e hora de início do bloqueio" style="flex:1"><input type="datetime-local" id="folga-fim" aria-label="Data e hora de fim do bloqueio" style="flex:1">
                 <input type="text" id="folga-motivo" aria-label="Motivo do bloqueio" placeholder="Motivo" style="flex:2">
-                <button id="btn-abrir-calendario" style="background:#17a2b8; color:white; width: auto; border:1px solid #ccc;" onclick="toggleFolgaCalendarModal(true)">📅 Calendário</button>
                 <button id="btn-salvar-folga" style="background:white; color:black; width: auto; border:1px solid #ccc;" onclick="salvarFolga()">Bloquear</button>
                 <button id="btn-cancelar-folga" class="hidden" style="background:#f8d7da; color:#721c24; width: auto; border:1px solid #f5c6cb;" onclick="limparFormFolga()">Cancelar</button>
             </div>
@@ -1262,27 +1236,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Modal do Calendário de Bloqueio -->
-    <div id="folga-calendar-modal" class="hidden" onclick="if (event.target === this) toggleFolgaCalendarModal(false)">
-      <div id="folga-calendar-modal-content" style="background: white; padding: 20px; border-radius: 8px; max-width: min(95vw, 900px); width: 100%; position: relative; animation: fadeInUp 0.4s ease-out;">
-        <span onclick="toggleFolgaCalendarModal(false)" style="position: absolute; top: 10px; right: 15px; font-size: 2.5rem; font-weight: bold; color: #888; cursor: pointer; line-height: 1;">&times;</span>
-        <h3 style="color: var(--primary); margin-bottom: 15px;">Selecione o Período de Bloqueio</h3>
-        <p style="text-align: center; font-size: 0.9em; margin-bottom: 15px; color: #666;">Clique no dia de início e depois no dia de fim. Dias com listras já possuem eventos.</p>
-        <div style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; align-items: center; justify-content: center;">
-          <label for="folga-cal-mes" style="font-weight: 600; margin-bottom: 0;">Mês:</label>
-          <select id="folga-cal-mes" onchange="renderFolgaCalendar()" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></select>
-          <label for="folga-cal-ano" style="font-weight: 600; margin-bottom: 0;">Ano:</label>
-          <select id="folga-cal-ano" onchange="renderFolgaCalendar()" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></select>
-        </div>
-        <div id="folga-calendar-container"></div>
-        <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 10px;">
-          <button class="btn-secondary" onclick="toggleFolgaCalendarModal(false)">Cancelar</button>
-          <button class="btn-primary" onclick="confirmarSelecaoFolga()">Confirmar Período</button>
-        </div>
-      </div>
-    </div>
-
 
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
@@ -3326,10 +3279,6 @@
  
         if (!inicio || !fim || !motivo) return alert('Por favor, preencha todos os campos do bloqueio.');
  
-        if (!AppState.user.podeTudo && !AppState.user.isMotorista) {
-          return alert('Somente administradores ou motoristas podem salvar bloqueios.');
-        }
-
         const inicioDate = new Date(inicio);
         const fimDate = new Date(fim);
         if (isNaN(inicioDate.getTime()) || isNaN(fimDate.getTime())) {
@@ -3408,10 +3357,6 @@
         if (btnCancelar) btnCancelar.classList.add('hidden');
       };
       window.prepararEdicaoFolga = (id) => {
-        if (!AppState.user.podeTudo && !AppState.user.isMotorista) {
-          return alert('Somente administradores ou motoristas podem editar bloqueios.');
-        }
-
         const folga = AppState.folgas.find(f => f.id === id);
         if (!folga) return alert('Bloqueio não encontrado!');
 
@@ -3440,8 +3385,6 @@
         const btnCancelar = document.getElementById('btn-cancelar-folga');
         if (btnCancelar) btnCancelar.classList.remove('hidden');
 
-        const painel = document.getElementById('painel-add-folga');
-        if (painel) painel.classList.remove('hidden');
         document.getElementById('painel-add-folga').scrollIntoView({ behavior: 'smooth', block: 'center' });
       };
       window.deletarFolga = (id) => { 
@@ -3457,111 +3400,7 @@
           alert('Erro ao excluir bloqueio: ' + (error.message || 'Sem permissão.'));
         });
       };
-      window.renderFolgas = () => { 
-        // --- NOVO: Lógica do Calendário de Bloqueio ---
-        const folgaCalState = { start: null, end: null };
-
-        window.toggleFolgaCalendarModal = (show) => {
-          const modal = document.getElementById('folga-calendar-modal');
-          if (show) {
-            folgaCalState.start = null;
-            folgaCalState.end = null;
-            
-            document.getElementById('folga-cal-mes').innerHTML = document.getElementById('filtro-mes-folga').innerHTML;
-            document.getElementById('folga-cal-ano').innerHTML = document.getElementById('filtro-ano-folga').innerHTML;
-            document.getElementById('folga-cal-mes').value = document.getElementById('filtro-mes-folga').value;
-            document.getElementById('folga-cal-ano').value = document.getElementById('filtro-ano-folga').value;
-            
-            renderFolgaCalendar();
-            modal.classList.remove('hidden');
-          } else {
-            modal.classList.add('hidden');
-          }
-        };
-
-        window.renderFolgaCalendar = () => {
-            const container = document.getElementById('folga-calendar-container');
-            const mes = parseInt(document.getElementById('folga-cal-mes').value, 10);
-            const ano = parseInt(document.getElementById('folga-cal-ano').value, 10);
-            
-            const primeiroDia = new Date(ano, mes, 1);
-            const ultimoDia = new Date(ano, mes + 1, 0);
-            const hoje = new Date();
-            
-            let html = '<div class="folga-calendar-grid">';
-            const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-            diasSemana.forEach(dia => { html += `<div class="folga-calendar-day-header">${dia}</div>`; });
-            
-            for (let i = 0; i < primeiroDia.getDay(); i++) { html += `<div class="folga-calendar-day empty-day"></div>`; }
-            
-            for (let d = 1; d <= ultimoDia.getDate(); d++) {
-                const currentDate = new Date(ano, mes, d);
-                const currentDateMs = new Date(ano, mes, d, 12, 0, 0).getTime(); // Use meio-dia para evitar problemas de fuso
-                
-                let classes = 'folga-calendar-day';
-                if (d === hoje.getDate() && mes === hoje.getMonth() && ano === hoje.getFullYear()) classes += ' today';
-
-                if (folgaCalState.start) {
-                    const startMs = new Date(folgaCalState.start.getFullYear(), folgaCalState.start.getMonth(), folgaCalState.start.getDate(), 12, 0, 0).getTime();
-                    if (currentDateMs === startMs) classes += ' selected-start';
-                    if (folgaCalState.end) {
-                        const endMs = new Date(folgaCalState.end.getFullYear(), folgaCalState.end.getMonth(), folgaCalState.end.getDate(), 12, 0, 0).getTime();
-                        if (currentDateMs === endMs) classes += ' selected-end';
-                        if (currentDateMs > startMs && currentDateMs < endMs) classes += ' in-range';
-                    }
-                }
-                
-                const diaInicioMs = new Date(ano, mes, d, 0, 0, 0).getTime();
-                const diaFimMs = new Date(ano, mes, d, 23, 59, 59).getTime();
-
-                const temConflitoViagem = AppState.viagens.some(v => (v.status !== STATUS.CANCELADO && v.status !== STATUS.REJEITADO) && diaInicioMs < new Date(v.chegada).getTime() && diaFimMs > new Date(v.saida).getTime());
-                const temConflitoFolga = AppState.folgas.some(f => diaInicioMs < parseFolgaDate(f.fim, true).getTime() && diaFimMs > parseFolgaDate(f.inicio, false).getTime());
-
-                if (temConflitoViagem || temConflitoFolga) classes += ' has-conflict';
-
-                html += `<div class="${classes}" onclick="handleFolgaDayClick(${ano}, ${mes}, ${d})">`;
-                html += `<div class="folga-calendar-date">${d}</div>`;
-                if (temConflitoViagem) html += `<div class="folga-calendar-event folga-event-viagem" title="Há uma viagem agendada neste dia">🚗 Viagem</div>`;
-                if (temConflitoFolga) html += `<div class="folga-calendar-event folga-event-folga" title="Há um bloqueio neste dia">🛑 Bloqueio</div>`;
-                html += `</div>`;
-            }
-            
-            const celulasRestantes = (primeiroDia.getDay() + ultimoDia.getDate()) % 7;
-            if (celulasRestantes !== 0) { for (let i = 0; i < (7 - celulasRestantes); i++) { html += `<div class="folga-calendar-day empty-day"></div>`; } }
-            html += '</div>';
-            container.innerHTML = html;
-        };
-
-        window.handleFolgaDayClick = (year, month, day) => {
-          const clickedDate = new Date(year, month, day);
-          if (!folgaCalState.start || folgaCalState.end) {
-            folgaCalState.start = clickedDate;
-            folgaCalState.end = null;
-          } else {
-            if (clickedDate < folgaCalState.start) {
-              folgaCalState.start = clickedDate;
-            } else {
-              folgaCalState.end = clickedDate;
-            }
-          }
-          renderFolgaCalendar();
-        };
-
-        window.confirmarSelecaoFolga = () => {
-          if (!folgaCalState.start) return showToast('Selecione pelo menos a data de início.', 'info');
-          
-          const end = folgaCalState.end || folgaCalState.start;
-          const formatForInput = (date, isEnd = false) => {
-            const pad = (n) => String(n).padStart(2, '0');
-            const time = isEnd ? '23:59' : '00:00';
-            return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${time}`;
-          };
-
-          document.getElementById('folga-inicio').value = formatForInput(folgaCalState.start, false);
-          document.getElementById('folga-fim').value = formatForInput(end, true);
-          toggleFolgaCalendarModal(false);
-        };
-
+      window.renderFolgas = () => {
         const container = document.getElementById('lista-folgas-visual'); 
         container.innerHTML = ""; 
         const fragment = document.createDocumentFragment();
@@ -3598,9 +3437,7 @@
             btnEdit.setAttribute('aria-label', 'Editar bloqueio');
             btnEdit.onclick = () => prepararEdicaoFolga(f.id);
             div.appendChild(btnEdit);
-          }
 
-          if (AppState.user.podeTudo || AppState.user.isMotorista) {
             const button = document.createElement('button');
             button.style.cssText = "background:none; color:red; width:auto; border:none; cursor:pointer;";
             button.textContent = '🗑️';
