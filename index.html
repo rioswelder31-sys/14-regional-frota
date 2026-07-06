@@ -3326,6 +3326,10 @@
  
         if (!inicio || !fim || !motivo) return alert('Por favor, preencha todos os campos do bloqueio.');
  
+        if (!AppState.user.podeTudo && !AppState.user.isMotorista) {
+          return alert('Somente administradores ou motoristas podem salvar bloqueios.');
+        }
+
         const inicioDate = new Date(inicio);
         const fimDate = new Date(fim);
         if (isNaN(inicioDate.getTime()) || isNaN(fimDate.getTime())) {
@@ -3404,6 +3408,10 @@
         if (btnCancelar) btnCancelar.classList.add('hidden');
       };
       window.prepararEdicaoFolga = (id) => {
+        if (!AppState.user.podeTudo) {
+          return alert('Somente administradores podem editar bloqueios.');
+        }
+
         const folga = AppState.folgas.find(f => f.id === id);
         if (!folga) return alert('Bloqueio não encontrado!');
 
@@ -3435,10 +3443,16 @@
         document.getElementById('painel-add-folga').scrollIntoView({ behavior: 'smooth', block: 'center' });
       };
       window.deletarFolga = (id) => { 
+        if (!AppState.user.podeTudo && !AppState.user.isMotorista) {
+          return alert('Somente administradores ou motoristas podem excluir bloqueios.');
+        }
         if (!confirm("Tem certeza que deseja excluir este bloqueio?")) return;
         const folga = AppState.folgas.find(f => f.id === id);
         remove(getRegionalRef(DB_PATHS.FOLGAS, id)).then(() => {
           if (folga) registrarLog('Exclusão de Folga/Bloqueio', `Período de ${parseFolgaDate(folga.inicio, false).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })} a ${parseFolgaDate(folga.fim, true).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })} foi excluído. Motivo: ${folga.motivo}`);
+        }).catch(error => {
+          console.error('Erro ao excluir bloqueio:', error);
+          alert('Erro ao excluir bloqueio: ' + (error.message || 'Sem permissão.'));
         });
       };
       window.renderFolgas = () => { 
@@ -3574,7 +3588,7 @@
           strong.textContent = `🚫 ${parseFolgaDate(f.inicio, false).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })} a ${parseFolgaDate(f.fim, true).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}`;
           div.appendChild(strong);
           div.appendChild(document.createTextNode(`: ${f.motivo} `));
-          if (AppState.user.podeTudo || AppState.user.isMotorista) {
+          if (AppState.user.podeTudo) {
             const btnEdit = document.createElement('button');
             btnEdit.style.cssText = "background:none; color:inherit; width:auto; border:none; cursor:pointer; margin-right: 5px;";
             btnEdit.textContent = '✏️';
@@ -3582,7 +3596,9 @@
             btnEdit.setAttribute('aria-label', 'Editar bloqueio');
             btnEdit.onclick = () => prepararEdicaoFolga(f.id);
             div.appendChild(btnEdit);
+          }
 
+          if (AppState.user.podeTudo || AppState.user.isMotorista) {
             const button = document.createElement('button');
             button.style.cssText = "background:none; color:red; width:auto; border:none; cursor:pointer;";
             button.textContent = '🗑️';
