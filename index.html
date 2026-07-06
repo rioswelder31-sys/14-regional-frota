@@ -903,6 +903,7 @@
                         <th style="padding:12px;">Qtd. Diárias</th>
                         <th style="padding:12px;">Valor Total</th>
                         <th style="padding:12px;">Status</th>
+                        <th style="padding:12px;">Processo SEI</th>
                         <th style="padding:12px; text-align:center;">Ações</th>
                     </tr>
                 </thead>
@@ -3488,9 +3489,10 @@
       // --- Lógica do Histórico de Diárias ---
       // --- Função de Atualização do Processo SEI no Banco de Dados ---
       window.atualizarProcessoSEI = (diariaId, novoValor) => {
-          update(getRegionalRef('diarias_solicitadas', diariaId), { processoSEI: novoValor }).then(() => {
+          const valorLimpo = (novoValor || '').trim();
+          update(getRegionalRef('diarias_solicitadas', diariaId), { processoSEI: valorLimpo }).then(() => {
               showToast("Processo SEI atualizado!", "success");
-          }).catch(err => {
+          }).catch(() => {
               showToast("Erro ao salvar Processo SEI.", "error");
           });
       };
@@ -4021,7 +4023,7 @@
           const fragment = document.createDocumentFragment();
 
           if (AppState.diariasSolicitadas.length === 0) {
-              tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 20px; font-style: italic;">Nenhuma solicitação de diária encontrada.</td></tr>';
+              tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 20px; font-style: italic;">Nenhuma solicitação de diária encontrada.</td></tr>';
               return;
           }
 
@@ -4035,7 +4037,7 @@
                   let statusHtml = escapeHtml(diaria.status);
                   if (AppState.user.podeTudo) {
                       statusHtml = `
-                          <select onchange="alterarStatusDiaria('${diaria.id}', this.value)" style="padding: 4px; border-radius: 4px; border: 1px solid #ccc; background: white; min-width: 120px;">
+                          <select class="diaria-status-select" onchange="alterarStatusDiaria('${diaria.id}', this.value)" style="padding: 4px; border-radius: 4px; border: 1px solid #ccc; background: white; min-width: 120px;">
                               <option value="Solicitada" ${diaria.status === 'Solicitada' ? 'selected' : ''}>Solicitada</option>
                               <option value="Processando" ${diaria.status === 'Processando' ? 'selected' : ''}>Processando</option>
                               <option value="Paga" ${diaria.status === 'Paga' ? 'selected' : ''}>Paga</option>
@@ -4044,6 +4046,11 @@
                       `;
                   }
 
+                  const processoSeiValor = (diaria.processoSEI || '').toString();
+                  const processoSeiHtml = AppState.user.podeTudo
+                      ? `<input type="text" class="diaria-sei-input" value="${escapeHtml(processoSeiValor)}" placeholder="Nº SEI" onchange="window.atualizarProcessoSEI('${diaria.id}', this.value)" style="width:100%; min-width:140px; padding:6px 8px;" />`
+                      : `<span>${escapeHtml(processoSeiValor || '—')}</span>`;
+
                   tr.innerHTML = `
                       <td style="padding:12px;">${dataSolicitacao}</td>
                       <td style="padding:12px;">${escapeHtml(diaria.viagemSolicitanteNome)}</td>
@@ -4051,6 +4058,7 @@
                       <td style="padding:12px;">${diaria.qtdDiarias.toLocaleString('pt-BR')}</td>
                       <td style="padding:12px;">${valorTotal}</td>
                       <td style="padding:12px;">${statusHtml}</td>
+                      <td style="padding:12px;">${processoSeiHtml}</td>
                       <td style="padding:12px; text-align:center;">
                           <button class="btn-delete" aria-label="Excluir registro de diária" onclick="excluirSolicitacaoDiaria('${diaria.id}')" title="Excluir Registro">🗑️</button>
                       </td>
