@@ -2303,15 +2303,22 @@
               const isMotoristaPorEmail = ["motorista", "cleones", "ramona", "neyrailson", "frota"].some(termo => AppState.user.email.includes(termo));
               
               // Verifica se o usuário logado é o motorista ATIVO da unidade (comparando telefones)
-              const activeDriverTel = AppState.unidade.motorista.tel ? String(AppState.unidade.motorista.tel).replace(/\D/g, '') : null;
-              const userTel = currentUserProfile && currentUserProfile.telefone ? String(currentUserProfile.telefone).replace(/\D/g, '') : null;
-              const isCurrentActiveDriver = activeDriverTel && userTel && activeDriverTel === userTel;
+              const normalizePhone = (tel) => {
+                if (!tel) return '';
+                const digits = String(tel).replace(/\D/g, '');
+                return digits.startsWith('55') ? digits.slice(2) : digits;
+              };
+              const activeDriverTel = normalizePhone(AppState.unidade.motorista.tel);
+              const userTel = normalizePhone(currentUserProfile && currentUserProfile.telefone);
+              const isCurrentActiveDriver = activeDriverTel && userTel && (activeDriverTel === userTel || activeDriverTel.endsWith(userTel) || userTel.endsWith(activeDriverTel));
+              const isSameDriverName = currentUserProfile && AppState.unidade.motorista.nome && currentUserProfile.nome && currentUserProfile.nome.toLowerCase().trim() === AppState.unidade.motorista.nome.toLowerCase().trim();
 
               // Um usuário é considerado motorista se:
               // 1. O e-mail for de um motorista principal (legado).
               // 2. Tiver a flag `isMotorista: true` em seu perfil na equipe.
-              // 3. O seu telefone for o mesmo do motorista ATIVO da unidade.
-              AppState.user.isMotorista = isMotoristaPorEmail || (currentUserProfile && currentUserProfile.isMotorista === true) || isCurrentActiveDriver;
+              // 3. O seu telefone bater com o motorista ATIVO da unidade.
+              // 4. O seu nome bater com o motorista ATIVO da unidade.
+              AppState.user.isMotorista = isMotoristaPorEmail || (currentUserProfile && currentUserProfile.isMotorista === true) || isCurrentActiveDriver || isSameDriverName;
 
               // Atualiza podeTudo incluindo os administradores personalizados
               const isCustomAdmin = currentUserProfile && currentUserProfile.isAdmin === true;
