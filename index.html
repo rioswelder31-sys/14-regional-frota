@@ -3408,8 +3408,8 @@
         if (btnCancelar) btnCancelar.classList.add('hidden');
       };
       window.prepararEdicaoFolga = (id) => {
-        if (!AppState.user.podeTudo) {
-          return alert('Somente administradores podem editar bloqueios.');
+        if (!AppState.user.podeTudo && !AppState.user.isMotorista) {
+          return alert('Somente administradores ou motoristas podem editar bloqueios.');
         }
 
         const folga = AppState.folgas.find(f => f.id === id);
@@ -3440,6 +3440,8 @@
         const btnCancelar = document.getElementById('btn-cancelar-folga');
         if (btnCancelar) btnCancelar.classList.remove('hidden');
 
+        const painel = document.getElementById('painel-add-folga');
+        if (painel) painel.classList.remove('hidden');
         document.getElementById('painel-add-folga').scrollIntoView({ behavior: 'smooth', block: 'center' });
       };
       window.deletarFolga = (id) => { 
@@ -3588,7 +3590,7 @@
           strong.textContent = `🚫 ${parseFolgaDate(f.inicio, false).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })} a ${parseFolgaDate(f.fim, true).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}`;
           div.appendChild(strong);
           div.appendChild(document.createTextNode(`: ${f.motivo} `));
-          if (AppState.user.podeTudo) {
+          if (AppState.user.podeTudo || AppState.user.isMotorista) {
             const btnEdit = document.createElement('button');
             btnEdit.style.cssText = "background:none; color:inherit; width:auto; border:none; cursor:pointer; margin-right: 5px;";
             btnEdit.textContent = '✏️';
