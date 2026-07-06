@@ -510,6 +510,18 @@
       .btn-imprimir-diaria:hover { background-color: #0f6b1f; }
 
       /* Toast Notifications */
+      .diaria-status-select, .diaria-sei-input {
+        background: white;
+        color: #333;
+        border: 1px solid #ccc;
+      }
+      html[data-theme="dark"] .diaria-status-select,
+      html[data-theme="dark"] .diaria-sei-input {
+        background-color: #1A202C;
+        border-color: #4A5568;
+        color: var(--dark-text);
+      }
+
       #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 12px; pointer-events: none; }
       .toast { background: white; color: #333; padding: 16px 20px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid rgba(0,0,0,0.05); font-weight: 600; display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); min-width: max(200px, 80%); max-width: 400px; pointer-events: auto; border-left: 6px solid transparent; }
       .toast.show { transform: translateX(0); }
@@ -3474,6 +3486,16 @@
       };
 
       // --- Lógica do Histórico de Diárias ---
+      // --- Função de Atualização do Processo SEI no Banco de Dados ---
+      window.atualizarProcessoSEI = (diariaId, novoValor) => {
+          update(getRegionalRef('diarias_solicitadas', diariaId), { processoSEI: novoValor }).then(() => {
+              showToast("Processo SEI atualizado!", "success");
+          }).catch(err => {
+              showToast("Erro ao salvar Processo SEI.", "error");
+          });
+      };
+
+      // --- RENDERIZADOR ATUALIZADO DO HISTÓRICO DE DIÁRIAS ---
       function iniciarEscutaDiariasSolicitadas() {
           const diariasRef = getRegionalRef('diarias_solicitadas');
           onValue(diariasRef, (snapshot) => {
@@ -4043,6 +4065,7 @@
 
           tbody.appendChild(fragment);
       }
+
 
       window.excluirSolicitacaoDiaria = (diariaId) => {
           if (!confirm("Tem certeza que deseja excluir PERMANENTEMENTE este registro de solicitação de diária?")) return;
