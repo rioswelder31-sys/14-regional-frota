@@ -3488,8 +3488,7 @@
       // --- Lógica do Histórico de Diárias ---
       // --- Função de Atualização do Processo SEI no Banco de Dados ---
       window.atualizarProcessoSEI = (diariaId, novoValor) => {
-          const valorLimpo = (novoValor || '').trim();
-          update(getRegionalRef('diarias_solicitadas', diariaId), { processoSEI: valorLimpo }).then(() => {
+          update(getRegionalRef('diarias_solicitadas', diariaId), { processoSEI: novoValor }).then(() => {
               showToast("Processo SEI atualizado!", "success");
           }).catch(err => {
               showToast("Erro ao salvar Processo SEI.", "error");
@@ -4059,13 +4058,27 @@
 
                   // Tornando o campo do Motorista editável para adicionar o número SEI
                   const valorSEI = diaria.processoSEI || '';
+                  const seiUrl = `https://sei.defensoria.ba.def.br/sei/controlador.php?acao=protocolo_pesquisar&acao_origem=protocolo_pesquisar&num_protocolo=${encodeURIComponent(valorSEI.trim())}`;
+                  
+                  // O link só será exibido se houver um valor SEI válido
+                  const linkSeiHtml = valorSEI.trim() ? `
+                    <a href="${seiUrl}" target="_blank" rel="noopener noreferrer" title="Abrir Processo no SEI" class="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 p-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                    </a>
+                  ` : '';
+
                   const campoMotoristaEditavel = `
                     <div class="flex flex-col gap-1">
-                      <input type="text" 
-                             placeholder="Nº do Processo SEI" 
-                             value="${escapeHtml(valorSEI)}" 
-                             onchange="atualizarProcessoSEI('${diaria.id}', this.value)"
-                             class="diaria-sei-input p-1 text-xs rounded font-mono w-full" />
+                      <div class="flex items-center gap-1">
+                        <input type="text" 
+                               placeholder="Nº do Processo SEI" 
+                               value="${escapeHtml(valorSEI)}" 
+                               onchange="atualizarProcessoSEI('${diaria.id}', this.value.trim())"
+                               class="diaria-sei-input p-1 text-xs rounded font-mono w-full" />
+                        ${linkSeiHtml}
+                      </div>
                       <span class="text-xs font-semibold opacity-70 text-gray-600 dark:text-gray-300">🪪 Mtr: ${escapeHtml(diaria.motoristaNome)}</span>
                     </div>
                   `;
