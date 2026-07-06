@@ -3269,9 +3269,9 @@
         const motivo = document.getElementById('folga-motivo').value?.trim();
         const id = document.getElementById('folga-id').value;
         const btnSalvar = document.getElementById('btn-salvar-folga');
-
+ 
         if (!inicio || !fim || !motivo) return alert('Por favor, preencha todos os campos do bloqueio.');
-
+ 
         const inicioDate = new Date(inicio);
         const fimDate = new Date(fim);
         if (isNaN(inicioDate.getTime()) || isNaN(fimDate.getTime())) {
@@ -3280,29 +3280,40 @@
         if (inicioDate >= fimDate) {
           return alert('A data de início deve ser anterior à data de término do bloqueio.');
         }
-
-        const dadosFolga = { inicio: inicio.trim(), fim: fim.trim(), motivo };
-
-        if (id) {
-          const folgaExistente = AppState.folgas.find(f => f.id === id);
-          if (!folgaExistente) return alert('Bloqueio inválido. Atualize a página e tente novamente.');
-        }
-
+ 
+        const inicioMs = inicioDate.getTime();
+        const fimMs = fimDate.getTime();
+ 
+        // 1. Validação: Verifica se o novo bloqueio se sobrepõe a outro bloqueio existente.
         const conflitoFolga = AppState.folgas.find(f => {
-          if (id && f.id === id) return false;
+          if (id && f.id === id) return false; // Ignora o próprio bloqueio ao editar
           const iniF = parseFolgaDate(f.inicio, false).getTime();
           const fimF = parseFolgaDate(f.fim, true).getTime();
-          return inicioDate.getTime() <= fimF && fimDate.getTime() >= iniF;
+          return inicioMs < fimF && fimMs > iniF; // Lógica de sobreposição
         });
         if (conflitoFolga) {
-          return alert(`Já existe um bloqueio nesse período: ${conflitoFolga.motivo}. Escolha datas diferentes ou edite o bloqueio existente.`);
+          return alert(`Conflito com outro bloqueio: ${conflitoFolga.motivo}.\n\nPeríodo: ${new Date(conflitoFolga.inicio).toLocaleString('pt-BR')} a ${new Date(conflitoFolga.fim).toLocaleString('pt-BR')}.\n\nEscolha datas diferentes ou edite o bloqueio existente.`);
         }
-
+ 
+        // 2. Validação: Verifica se o novo bloqueio se sobrepõe a uma viagem agendada.
+        const conflitoViagem = AppState.viagens.find(v => {
+            if (v.status === STATUS.CANCELADO || v.status === STATUS.REJEITADO) return false; // Ignora viagens canceladas/rejeitadas
+            const iniV = new Date(v.saida).getTime();
+            const fimV = new Date(v.chegada).getTime();
+            return inicioMs < fimV && fimMs > iniV; // Lógica de sobreposição
+        });
+        if (conflitoViagem) {
+            const nomeSolicitante = getNomeSolicitante(conflitoViagem) || 'Desconhecido';
+            return alert(`Conflito com uma viagem existente para "${nomeSolicitante}".\n\nPeríodo da viagem: ${formataDataComDiaDaSemana(conflitoViagem.saida)} a ${formataDataComDiaDaSemana(conflitoViagem.chegada)}.\n\nNão é possível bloquear este período.`);
+        }
+ 
+        const dadosFolga = { inicio: inicio.trim(), fim: fim.trim(), motivo };
+ 
         if (btnSalvar) {
           btnSalvar.disabled = true;
           btnSalvar.innerText = id ? 'Salvando...' : 'Bloqueando...';
         }
-
+ 
         const handleError = (error) => {
           console.error("Erro ao salvar bloqueio:", error);
           if (btnSalvar) {
@@ -3311,7 +3322,7 @@
           }
           showToast("Erro ao salvar: " + error.message, "error");
         };
-
+ 
         if (id) {
           update(getRegionalRef(DB_PATHS.FOLGAS, id), dadosFolga).then(() => {
             registrarLog('Edição de Folga/Bloqueio', `Período editado para ${parseFolgaDate(inicio, false).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })} a ${parseFolgaDate(fim, true).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}. Motivo: ${motivo}`);
