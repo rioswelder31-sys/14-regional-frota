@@ -915,7 +915,7 @@
     <div id="help-modal" class="hidden" onclick="if (event.target === this) toggleHelpModal(false)">
       <div id="help-modal-content">
         <span id="help-modal-close" onclick="toggleHelpModal(false)">&times;</span>
-        <h3>📑 MANUAL DO USUÁRIO: SAD V81.0</h3>
+        <h3>📑 MANUAL DO USUÁRIO: SAD V81.1</h3>
         <div style="text-align: center; margin-bottom: 15px;">
           <button onclick="lerElementoEmVozAlta('help-modal-content')" class="btn-tertiary" style="width: auto; border-radius: 20px; padding: 8px 16px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">🔊 Ouvir Manual Completo</button>
         </div>
@@ -964,6 +964,13 @@
         <p><strong>REGRAS DE CÁLCULO:</strong> O sistema calcula automaticamente com base nas seguintes regras: 1 diária por pernoite; +0.5 diária se a duração exceder o número de pernoites em mais de 6h; e 0.5 diária para viagens "bate-volta" com mais de 6h de duração e 80km de distância.</p>
         <p><strong>IMPRESSÃO:</strong> Após o cálculo, clique em [🖨️ Imprimir Solicitação de Diária] para gerar um formulário oficial pronto para ser assinado e encaminhado ao setor responsável.</p>
     
+        <h4>🗓️ HISTÓRICO DE DIÁRIAS E PROCESSO SEI</h4>
+        <p><strong>REGISTRO AUTOMÁTICO:</strong> Após clicar em [🖨️ Imprimir Solicitação de Diária], a solicitação é automaticamente salva no painel "Histórico de Solicitações de Diárias", visível para Administradores e Motoristas.</p>
+        <p><strong>LANÇAMENTO DO PROCESSO SEI:</strong> Na tabela de histórico, o administrador pode digitar o número do Processo SEI correspondente diretamente no campo de texto. A alteração é salva automaticamente ao sair do campo.</p>
+        <p><strong>LINK DIRETO PARA O SEI ↗️:</strong> Uma vez que o número do Processo SEI é salvo, um ícone de "abrir em nova aba" aparece ao lado do campo. Clicar neste ícone abre o processo diretamente no sistema SEI da Defensoria, agilizando a consulta.</p>
+        <p><strong>CONTROLE DE STATUS:</strong> Administradores podem alterar o status de cada solicitação de diária (ex: de "Solicitada" para "Paga") usando o menu de seleção na coluna "Status".</p>
+        <p><strong>EXPORTAÇÃO:</strong> O histórico de diárias também pode ser exportado para um arquivo CSV (Excel) através do botão [📥 Exportar CSV] no topo do painel.</p>
+
         <h4>📊 GESTÃO E EXPORTAÇÃO</h4>
         <p><strong>VISUALIZAÇÃO LIMPA:</strong> Viagens finalizadas, canceladas ou rejeitadas ficam ocultas por padrão. Clique em [📂 Mostrar Histórico Completo] para exibi-las.</p>
         <p><strong>PAGINAÇÃO:</strong> A tabela exibe até 20 agendamentos por página, melhorando a velocidade do sistema. Use os botões [Anterior/Próximo] no rodapé para navegar.</p>
@@ -1049,6 +1056,12 @@
             <button class="accordion-question" onclick="toggleAccordion(this)">Como gero o formulário para solicitar o pagamento da diária?</button>
             <div class="accordion-answer">
               <p><strong>R:</strong> Após preencher os dados da viagem (roteiro, datas de saída/chegada), o "Painel de Diárias" aparecerá para Administradores e Motoristas. Clique no botão [Calcular Diária] para ver os valores. Em seguida, clique em <strong>[🖨️ Imprimir Solicitação de Diária]</strong> para gerar um documento oficial, pronto para impressão e assinatura.</p>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-question" onclick="toggleAccordion(this)">Onde eu lanço o número do Processo SEI da diária?</button>
+            <div class="accordion-answer">
+              <p><strong>R:</strong> Após imprimir a solicitação, ela é salva no painel "Histórico de Solicitações de Diárias". Neste painel, administradores podem digitar o número do processo diretamente na tabela, na coluna "Processo SEI / Motorista". Ao salvar, um link para abrir o processo no sistema SEI aparecerá automaticamente.</p>
             </div>
           </div>
           <div class="accordion-item">
