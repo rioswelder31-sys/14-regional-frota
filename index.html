@@ -891,7 +891,10 @@
         <h3 style="color: var(--primary);">🗓️ Histórico de Solicitações de Diárias</h3>
         <div class="section-controls">
           <p style="margin: 0; font-size: 0.9em; color: #666;">Registros de todas as diárias solicitadas através do sistema.</p>
-          <button style="background: #6f42c1; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="exportarDiariasCSV()">📥 Exportar CSV</button>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button style="background: #17a2b8; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="imprimirHistoricoDiarias()">🖨️ Imprimir</button>
+            <button style="background: #6f42c1; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="exportarDiariasCSV()">📥 Exportar CSV</button>
+          </div>
         </div>
         <div class="table-responsive-container">
             <table class="table-custom">
@@ -4174,6 +4177,140 @@
       window.excluirSolicitacaoDiaria = (diariaId) => {
           if (!confirm("Tem certeza que deseja excluir PERMANENTEMENTE este registro de solicitação de diária?")) return;
           remove(getRegionalRef('diarias_solicitadas', diariaId)).then(() => { showToast("Registro de diária excluído.", "success"); });
+      };
+
+      window.imprimirHistoricoDiarias = async () => {
+        if (!AppState.diariasSolicitadas || AppState.diariasSolicitadas.length === 0) {
+          alert('Nenhum registro de diária para imprimir!');
+          return;
+        }
+
+        const printWindow = window.open('', '', 'height=800,width=1100');
+        if (!printWindow) {
+          alert('Popup foi bloqueado. Por favor, permita popups para imprimir.');
+          return;
+        }
+
+        // Mostra uma mensagem de carregamento no popup
+        printWindow.document.write('<html><head><title>Imprimindo Histórico de Diárias...</title></head><body><h1>Carregando dados das viagens...</h1><p>Por favor, aguarde.</p></body></html>');
+
+        // --- Busca os dados das viagens que faltam (lógica de renderTabelaDiarias) ---
+        const sortedDiarias = [...AppState.diariasSolicitadas].sort((a, b) => new Date(b.dataSolicitacao) - new Date(a.dataSolicitacao));
+        const viagensMap = new Map(AppState.viagens.map(v => [v.id, v]));
+        if (AppState.viagemRecemCriada) {
+            viagensMap.set(AppState.viagemRecemCriada.id, AppState.viagemRecemCriada);
+        }
+        const fetchPromises = sortedDiarias
+            .filter(diaria => !viagensMap.has(diaria.viagemId))
+            .map(diaria => 
+                get(getRegionalRef(DB_PATHS.VIAGENS, diaria.viagemId)).then(snapshot => {
+                    if (snapshot.exists()) {
+                        viagensMap.set(diaria.viagemId, { id: diaria.viagemId, ...snapshot.val() });
+                    }
+                })
+            );
+        if (fetchPromises.length > 0) {
+            await Promise.all(fetchPromises);
+        }
+        // --- Fim da busca de dados ---
+
+        const styles = `
+          body { font-family: Arial, sans-serif; margin: 20px; color: #333; }
+          .print-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #009c3b; padding-bottom: 15px; margin-bottom: 25px; }
+          .print-header img { height: 60px; object-fit: contain; }
+          .header-text { text-align: right; }
+          .header-text h2 { margin: 0; color: #009c3b; font-size: 1.8rem; }
+          .header-text p { margin: 2px 0 0 0; font-size: 0.9rem; color: #555; }
+          table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+          th, td { border: 1px solid #ccc; padding: 7px 10px; text-align: left; vertical-align: top; word-break: break-word; }
+          th { background-color: #009c3b; color: white; font-weight: bold; }
+          tr:nth-child(even) { background-color: #f8f9fa; }
+          .footer { margin-top: 30px; text-align: center; font-size: 0.8rem; color: #888; }
+          .viagem-details { font-size: 0.9em; color: #555; margin-top: 4px; background: #f0f0f0; padding: 3px 5px; border-radius: 3px; }
+          @media print {
+            body { margin: 1cm; }
+            .no-print { display: none !important; }
+            .footer { position: fixed; bottom: 0; width: 95%; }
+            tr:nth-child(even) { background-color: #f8f9fa !important; -webkit-print-color-adjust: exact; }
+            th { background-color: #009c3b !important; color: white !important; -webkit-print-color-adjust: exact; }
+          }
+        `;
+
+        let tableRows = '';
+        sortedDiarias.forEach(diaria => {
+            const dataSolicitacao = new Date(diaria.dataSolicitacao).toLocaleString('pt-BR');
+            const valorTotal = (typeof diaria.valorTotal === 'number') ? diaria.valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'R$ 0,00';
+            const solicitante = escapeHtml(diaria.viagemSolicitanteNome || '');
+            const motorista = escapeHtml(diaria.motoristaNome || '');
+            const processoSEI = escapeHtml(diaria.processoSEI || '');
+            const qtd = (typeof diaria.qtdDiarias === 'number') ? diaria.qtdDiarias.toLocaleString('pt-BR') : '0';
+            const status = escapeHtml(diaria.status || '');
+
+            const viagemInfo = viagensMap.get(diaria.viagemId);
+            let datasDeslocamentoHtml = "Dados da viagem não encontrados.";
+            if (viagemInfo) {
+                datasDeslocamentoHtml = `
+                  <div class="viagem-details">
+                    Saída: ${formataDataComDiaDaSemana(viagemInfo.saida)}<br>
+                    Chegada: ${formataDataComDiaDaSemana(viagemInfo.chegada)}
+                  </div>
+                `;
+            }
+
+            tableRows += `
+              <tr>
+                <td>${dataSolicitacao}</td>
+                <td><strong>${solicitante}</strong>${datasDeslocamentoHtml}</td>
+                <td>${processoSEI}<br><small>Mtr: ${motorista}</small></td>
+                <td style="text-align:center;">${qtd}</td>
+                <td style="font-weight:bold;">${valorTotal}</td>
+                <td style="text-align:center;">${status}</td>
+              </tr>
+            `;
+        });
+
+        const html = `
+          <html>
+            <head>
+              <title>Histórico de Solicitações de Diárias - ${escapeHtml(AppState.regionalNome)}</title>
+              <style>${styles}</style>
+            </head>
+            <body>
+              <div class="no-print" style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-weight: bold; color: #555;">📄 Pré-visualização da Impressão</span>
+                <div>
+                  <button onclick="window.print()" style="background: #17a2b8; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 0.9rem; margin-right: 8px;">🖨️ Confirmar Impressão</button>
+                  <button onclick="window.close()" style="background: #6c757d; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">❌ Fechar</button>
+                </div>
+              </div>
+              <div class="print-header">
+                <img src="./logo-dpe.png" alt="Logo DPE-BA">
+                <div class="header-text">
+                  <h2>Histórico de Diárias</h2>
+                  <p><strong>Unidade:</strong> ${escapeHtml(AppState.regionalNome)}</p>
+                  <p><strong>Emissão:</strong> ${new Date().toLocaleString('pt-BR')}</p>
+                </div>
+              </div>
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width: 15%;">Data Solicitação</th>
+                    <th style="width: 30%;">Viagem (Solicitante)</th>
+                    <th style="width: 20%;">Proc. SEI / Motorista</th>
+                    <th style="width: 10%; text-align:center;">Qtd. Diárias</th>
+                    <th style="width: 12%;">Valor Total</th>
+                    <th style="width: 13%; text-align:center;">Status</th>
+                  </tr>
+                </thead>
+                <tbody>${tableRows}</tbody>
+              </table>
+              <div class="footer"><p>SAD - Sistema de Agendamento Defensorial | Gerado em ${new Date().toLocaleString('pt-BR')}</p></div>
+            </body>
+          </html>`;
+        
+        printWindow.document.open();
+        printWindow.document.write(html);
+        printWindow.document.close();
       };
 
       window.exportarCSV = () => {
