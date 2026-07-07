@@ -2675,6 +2675,9 @@
             AppState.viagensIniciaisCarregadas = true;
             console.log(`Viagens carregadas para ${mes+1}/${ano}:`, AppState.viagens.length); 
             atualizarTabelaGlobal();
+            if (typeof renderTabelaDiarias === 'function') {
+                renderTabelaDiarias();
+            }
         });
       }
 
@@ -3625,6 +3628,9 @@
             viagemId: viagemId,
             viagemSolicitanteNome: viagemAtual.solicitanteNome,
             motoristaNome: AppState.unidade?.motorista?.nome || 'N/D',
+            viagemSaida: viagemAtual.saida,
+            viagemChegada: viagemAtual.chegada,
+            viagemTrajetoExibicao: viagemAtual.trajetoExibicao,
             dataSolicitacao: new Date().toISOString(),
             qtdDiarias: parseFloat(qtdDiarias.replace(',', '.')),
             valorTotal: parseFloat(valorTotal.replace('R$', '').replace('.', '').replace(',', '.').trim()),
@@ -4097,9 +4103,12 @@
                   const valorTotal = diaria.valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
                   // Resgata a viagem correspondente para extrair as datas de saída e chegada
-                  const viagemInfo = AppState.viagens.find(v => v.id === diaria.viagemId) || AppState.viagemRecemCriada;
+                  let viagemInfo = AppState.viagens.find(v => v.id === diaria.viagemId) || AppState.viagemRecemCriada;
+                  if (!viagemInfo && (diaria.viagemSaida || diaria.viagemChegada)) {
+                      viagemInfo = { saida: diaria.viagemSaida, chegada: diaria.viagemChegada };
+                  }
                   let datasDeslocamentoHtml = "";
-                  if (viagemInfo) {
+                  if (viagemInfo && (viagemInfo.saida || viagemInfo.chegada)) {
                       datasDeslocamentoHtml = `
                         <div class="text-xs text-gray-500 dark:text-gray-400 mt-1 bg-gray-100 dark:bg-gray-800 p-1 rounded border border-gray-200 dark:border-gray-700">
                           🛫 <b>Saída:</b> ${formataDataComDiaDaSemana(viagemInfo.saida)}<br>
