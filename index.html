@@ -1484,7 +1484,7 @@
         viagensIniciaisCarregadas: false,
         mostrarHistoricoCompleto: false,
         paginaAtual: 1,
-        registrosPorPagina: 20,
+        registrosPorPagina: 10, // ⚡ OTIMIZAÇÃO: Reduzido de 20 para 10 para melhorar a performance de renderização da tabela.
         viagemRecemCriada: null, // Guarda a viagem recém-criada para evitar race conditions
       };
       window.AppState = AppState; // Expor para depuração no console
