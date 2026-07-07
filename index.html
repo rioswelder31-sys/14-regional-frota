@@ -856,9 +856,9 @@
         <div class="section-controls">
           <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
             <label for="filtro-mes" style="font-weight: 600; margin-bottom: 0;">Mês:</label>
-            <select id="filtro-mes" onchange="atualizarEscutaViagens()" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></select>
+            <select id="filtro-mes" onchange="atualizarEscutaViagensDebounced()" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></select>
             <label for="filtro-ano" style="font-weight: 600; margin-bottom: 0;">Ano:</label>
-            <select id="filtro-ano" onchange="atualizarEscutaViagens()" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></select>
+            <select id="filtro-ano" onchange="atualizarEscutaViagensDebounced()" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></select>
           </div>
           <div style="display: flex; gap: 10px; flex-wrap: wrap;">
             <button style="background: #17a2b8; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="imprimirAgenda()">🖨️ Imprimir</button>
@@ -1702,6 +1702,36 @@
 
       window.fazerLogout = () => { signOut(auth).then(() => { localStorage.clear(); AppState.regionalID = ""; location.reload(); }); };
 
+      // ⚡ OTIMIZAÇÃO: Fetch com timeout (evita travar indefinidamente)
+      async function fetchComTimeout(url, timeoutMs = 3000) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+        try {
+          const response = await fetch(url, { signal: controller.signal });
+          clearTimeout(timeoutId);
+          return response;
+        } catch (error) {
+          clearTimeout(timeoutId);
+          if (error.name === 'AbortError') {
+            throw new Error(`Timeout na requisição (${timeoutMs}ms)`);
+          }
+          throw error;
+        }
+      }
+
+      // ⚡ OTIMIZAÇÃO: Cálculo de distância estimada (fallback se API falhar)
+      function calcularDistanciaEstimada(coord1, coord2) {
+        const R = 6371; // Raio da Terra em km
+        const dLat = (coord2.lat - coord1.lat) * Math.PI / 180;
+        const dLon = (coord2.lon - coord1.lon) * Math.PI / 180;
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                  Math.cos(coord1.lat * Math.PI / 180) * Math.cos(coord2.lat * Math.PI / 180) *
+                  Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        const distanciaEstimada = Math.round(R * c * 1.35);
+        return Math.max(distanciaEstimada, 5);
+      }
+
       // Função para calcular a distância dinamicamente usando a API do OSRM (OpenStreetMap) com cache local
       window.obtenerDistanciaTrecho = async (origem, destino) => {
         const origemCidade = (origem.split(' - ')[1] || origem).toUpperCase();
@@ -1729,14 +1759,15 @@
         const url = `https://router.project-osrm.org/route/v1/driving/${coordOrigem.lon},${coordOrigem.lat};${coordDestino.lon},${coordDestino.lat}?overview=false`;
 
         try {
-            const response = await fetch(url);
+            // ⚡ OTIMIZAÇÃO: Usar fetchComTimeout para evitar travamentos
+            const response = await fetchComTimeout(url, 3000);
             if (!response.ok) throw new Error(`API OSRM respondeu com status: ${response.status}`);
             
             const data = await response.json();
             if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
                 const distanciaMetros = data.routes[0].distance;
                 const distanciaKm = Math.round(distanciaMetros / 1000);
-                console.log(`Distância para ${trechoNaoEncontrado} (API): ${distanciaKm} km. Salvando no cache.`);
+                console.log(`✓ Distância (API OSRM): ${trechoNaoEncontrado} = ${distanciaKm} km`);
                 
                 // Salva o resultado no cache local para uso futuro
                 localStorage.setItem(cacheKey, distanciaKm);
@@ -1744,13 +1775,21 @@
                 return distanciaKm;
             } else {
                 console.error(`Nenhuma rota encontrada pela API para ${trechoNaoEncontrado}.`, data);
-                showToast(`API não encontrou rota para '${trechoNaoEncontrado}'.`, 'error');
-                return 0;
+                throw new Error('API não retornou rota válida');
             }
         } catch (error) {
-            console.error(`Falha ao buscar distância para ${trechoNaoEncontrado}:`, error);
-            showToast(`Erro de rede ao calcular distância para '${trechoNaoEncontrado}'. Verifique sua conexão.`, 'error');
-            return 0;
+            console.warn(`⚠️ Falha na API OSRM para ${trechoNaoEncontrado}: ${error.message}. Usando distância estimada.`);
+            
+            // ⚡ OTIMIZAÇÃO: Fallback para cálculo local (muito mais rápido que API)
+            const distanciaEstimada = calcularDistanciaEstimada(coordOrigem, coordDestino);
+            console.log(`📍 Distância (estimada - fallback): ${trechoNaoEncontrado} = ${distanciaEstimada} km`);
+            
+            showToast(`Usando distância estimada para '${trechoNaoEncontrado}': ${distanciaEstimada}km`, 'info');
+            
+            // Salvar no cache para não tentar API novamente em breve
+            localStorage.setItem(cacheKey, distanciaEstimada);
+            
+            return distanciaEstimada;
         }
       };
 
@@ -2211,12 +2250,12 @@
         return new Promise((resolve) => {
             let carregados = { motorista: false, equipe: false, config: false };
             
-            // Timeout de segurança: se em 4 segundos não carregar, libera a tela para não travar o usuário
+            // ⚡ OTIMIZAÇÃO: Aumentar timeout de 4s para 8s (mais tempo para carregar do Firebase)
             const safetyTimeout = setTimeout(() => {
-              console.warn("Aviso: Carregamento demorou muito. Liberando interface...");
+              console.warn("⚠️ Aviso: Carregamento de dados demorou mais de 8 segundos. Liberando interface com dados parciais...");
               if (!carregados.config) AppState.unidade.config = {}; // Garante que o objeto exista
               resolve(); // Ensure resolve is always called
-            }, 4000);
+            }, 8000);
 
             const checarConclusao = () => {
               if (carregados.motorista && carregados.equipe && carregados.config) {
@@ -2635,6 +2674,15 @@
             atualizarTabelaGlobal();
         });
       }
+
+      // ⚡ OTIMIZAÇÃO: Debounce para evitar múltiplas requisições ao mudar filtros
+      let debounceTimerFiltro = null;
+      window.atualizarEscutaViagensDebounced = function() {
+        clearTimeout(debounceTimerFiltro);
+        debounceTimerFiltro = setTimeout(() => {
+          atualizarEscutaViagens();
+        }, 300); // Esperar 300ms após última mudança
+      };
 
       function iniciarEscutaBanco() {
         console.log('Iniciando escuta - Regional:', AppState.regionalID);
