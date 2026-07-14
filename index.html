@@ -3707,11 +3707,12 @@
         const roteiro = (AppState.roteiroAtual || []).length > 0
           ? (AppState.roteiroAtual || []).map((trecho, index) => `
               <tr>
-                <td style="width: 8%; text-align: center; font-weight: bold;">${index + 1}</td>
-                <td style="width: 46%;">${escapeHtml(trecho.origem || '')}</td>
-                <td style="width: 46%;">${escapeHtml(trecho.destino || '')}</td>
+                <td style="text-align: center; font-weight: bold;">${index + 1}</td>
+                <td>${escapeHtml(trecho.origem || '')}</td>
+                <td>${escapeHtml(trecho.destino || '')}</td>
+                <td style="text-align: center;">${trecho.distancia !== undefined ? `${trecho.distancia} km` : 'N/A'}</td>
               </tr>`).join('')
-          : `<tr><td colspan="3" style="text-align:center; color:#777;">Nenhum trecho adicionado ao roteiro.</td></tr>`;
+          : `<tr><td colspan="4" style="text-align:center; color:#777;">Nenhum trecho adicionado ao roteiro.</td></tr>`;
 
         const printWindow = window.open('', '', 'height=900,width=900');
         if (!printWindow) {
@@ -3844,14 +3845,17 @@
                 <div class="info-box" style="min-height: 60px;">${escapeHtml(motivo)}</div>
 
                 <div class="section-title">Dados da Viagem e Roteiro</div>
-                <div class="summary">
-                  <strong>Distância Total do Roteiro:</strong> ${escapeHtml(distanciaTotal)}<br/>
-                </div>
                 <table>
                   <thead>
-                    <tr><th style="width: 8%;">Nº</th><th style="width: 46%;">Origem</th><th style="width: 46%;">Destino</th></tr>
+                    <tr><th style="width: 5%;">Nº</th><th style="width: 40%;">Origem</th><th style="width: 40%;">Destino</th><th style="width: 15%; text-align:center;">Distância</th></tr>
                   </thead>
                   <tbody>${roteiro}</tbody>
+                  <tfoot>
+                    <tr>
+                      <td colspan="3" style="text-align: right; font-weight: bold; background: #e9f5eb;">Distância Total:</td>
+                      <td style="text-align: center; font-weight: bold; background: #e9f5eb;">${escapeHtml(distanciaTotal)}</td>
+                    </tr>
+                  </tfoot>
                 </table>
 
                 <div class="section-title">Cálculo da Diária</div>
