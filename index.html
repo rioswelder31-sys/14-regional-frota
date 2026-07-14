@@ -797,7 +797,16 @@
                   </div>
               </div>
               <datalist id="list-origem"></datalist><datalist id="list-destino"></datalist>
-              <table class="roteiro-lista"><thead><tr style="background: #eee;"><th>De</th><th>Para</th></tr></thead><tbody id="roteiro-lista-body"></tbody></table>
+              <table class="roteiro-lista">
+                <thead><tr style="background: #eee;"><th style="width:45%;">De</th><th style="width:45%;">Para</th><th style="width:10%; text-align:center;">Dist.</th></tr></thead>
+                <tbody id="roteiro-lista-body"></tbody>
+                <tfoot style="background: #f0f0f0; border-top: 2px solid #ccc;">
+                  <tr>
+                    <td colspan="2" style="text-align: right; font-weight: bold; padding-right: 10px;">Distância Total:</td>
+                    <td id="roteiro-distancia-total" style="text-align: center; font-weight: bold;">0 km</td>
+                  </tr>
+                </tfoot>
+              </table>
           </div>
 
           <div class="form-row">
@@ -1542,6 +1551,7 @@
         "CAMAÇARI": { lat: -12.697, lon: -38.324 },
         "JEQUIÉ": { lat: -13.856, lon: -40.084 },
         "JUZEIRO": { lat: -9.412, lon: -40.503 },
+        "JUAZEIRO": { lat: -9.412, lon: -40.503 },
         "LAURO DE FREITAS": { lat: -12.894, lon: -38.331 },
         "LUÍS EDUARDO MAGALHÃES": { lat: -12.096, lon: -45.794 },
         "PAULO AFONSO": { lat: -9.407, lon: -38.215 },
@@ -2526,7 +2536,12 @@
         const co = document.getElementById('cidade-origem').value; const cd = document.getElementById('cidade-destino').value;
         const ufo = document.getElementById('uf-origem').value; const ufd = document.getElementById('uf-destino').value;
         if(!co || !cd) return alert("Por favor, selecione as cidades de origem e destino!");
-        AppState.roteiroAtual.push({ origem: `${ufo} - ${co}`, destino: `${ufd} - ${cd}` });
+
+        const origem = `${ufo} - ${co}`;
+        const destino = `${ufd} - ${cd}`;
+        const distancia = await obtenerDistanciaTrecho(origem, destino);
+
+        AppState.roteiroAtual.push({ origem, destino, distancia });
         renderRoteiro();
         await updateDistanciaTotal();
         
@@ -2547,8 +2562,11 @@
             const tr = fragment.appendChild(document.createElement('tr'));
             const tdOrigem = tr.appendChild(document.createElement('td'));
             const tdDestino = tr.appendChild(document.createElement('td'));
+            const tdDistancia = tr.appendChild(document.createElement('td'));
             tdOrigem.textContent = t.origem;
             tdDestino.textContent = t.destino;
+            tdDistancia.textContent = t.distancia !== undefined ? `${t.distancia} km` : '...';
+            tdDistancia.style.cssText = 'text-align: center; font-weight: bold;';
         });
         b.appendChild(fragment);
       }
@@ -2556,14 +2574,16 @@
       async function updateDistanciaTotal() {
         let kmTotal = 0;
         if (AppState.roteiroAtual && AppState.roteiroAtual.length > 0) {
-          const promises = AppState.roteiroAtual.map(t =>
-            obtenerDistanciaTrecho(t.origem, t.destino)
-          );
-          const distancias = await Promise.all(promises);
-          kmTotal = distancias.reduce((acc, curr) => acc + curr, 0);
+          // Otimização: Soma as distâncias já calculadas e armazenadas no roteiro.
+          kmTotal = AppState.roteiroAtual.reduce((acc, curr) => acc + (curr.distancia || 0), 0);
         }
         const distEl = document.getElementById('diaria-txt-dist');
         if (distEl) distEl.innerText = `${kmTotal} km`;
+
+        // Atualiza o total na tabela do roteiro
+        const distElRoteiro = document.getElementById('roteiro-distancia-total');
+        if (distElRoteiro) distElRoteiro.innerText = `${kmTotal} km`;
+
         return kmTotal;
       }
 
@@ -3265,9 +3285,27 @@
         }).catch(err => alert("Erro ao cancelar: " + err.message));
       };
 
-      window.prepararEdicao = (id) => { 
+      window.prepararEdicao = async (id) => { 
         const v = AppState.viagens.find(x => x.id === id);
-        document.getElementById('edit-id').value = id; document.getElementById('solicitante').value = getNomeSolicitante(v) || ''; document.getElementById('saida').value = v.saida; document.getElementById('chegada').value = v.chegada; document.getElementById('motivo').value = v.motivo; AppState.roteiroAtual = v.roteiroArray || []; renderRoteiro(); window.scrollTo(0,0); 
+        document.getElementById('edit-id').value = id;
+        document.getElementById('solicitante').value = getNomeSolicitante(v) || '';
+        document.getElementById('saida').value = v.saida;
+        document.getElementById('chegada').value = v.chegada;
+        document.getElementById('motivo').value = v.motivo;
+        AppState.roteiroAtual = v.roteiroArray || [];
+
+        // Garante que viagens antigas (sem distância salva) tenham suas distâncias calculadas.
+        const promises = AppState.roteiroAtual.map(async (trecho) => {
+          if (trecho.distancia === undefined) {
+            trecho.distancia = await obtenerDistanciaTrecho(trecho.origem, trecho.destino);
+          }
+          return trecho;
+        });
+        AppState.roteiroAtual = await Promise.all(promises);
+
+        renderRoteiro();
+        await updateDistanciaTotal();
+        window.scrollTo(0,0);
       };
       
       window.confirmar = (id) => {
