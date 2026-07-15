@@ -813,7 +813,7 @@
             <div class="col"><label for="saida">Saída Prevista:</label><input type="datetime-local" id="saida" /></div>
             <div class="col"><label for="chegada">Chegada Prevista:</label><input type="datetime-local" id="chegada" /></div>
           </div>
-          <label for="motivo">Motivo:</label><textarea id="motivo" rows="2"></textarea>
+          <label for="motivo">Motivo:</label><textarea id="motivo" rows="2" required></textarea>
           <button id="btn-save" class="btn-primary" style="margin-top: 15px;" onclick="salvarNoFirebase()">✅ Salvar Solicitação</button>
           <button id="btn-whatsapp-manual" class="btn-wpp-notif hidden" onclick="abrirWhatsAppManual()">📱 Clique Aqui para Notificar o Motorista</button>
         </div>
@@ -2831,8 +2831,9 @@
         const solicitanteNome = document.getElementById("solicitante").value;
         const saida = document.getElementById("saida").value;
         const chegada = document.getElementById("chegada").value;
+        const motivo = document.getElementById("motivo").value.trim();
         const id = document.getElementById("edit-id").value;
-        if(!solicitanteNome || !saida || !chegada) return alert("Preencha solicitante e horários!");
+        if(!solicitanteNome || !saida || !chegada || !motivo) return alert("Preencha todos os campos obrigatórios: solicitante, horários e motivo!");
           if(new Date(chegada) < new Date(saida)) return alert("A data de chegada prevista não pode ser anterior à data de saída prevista!");
         if(AppState.roteiroAtual.length === 0) return alert("Preencha o roteiro da viagem!");
 
@@ -2899,7 +2900,7 @@
         const dados = { 
           solicitanteNome: solicitante.nome, 
           solicitanteUID: solicitante.uid,
-          setor: document.getElementById("setor").value, saida, chegada, motivo: document.getElementById("motivo").value, 
+          setor: document.getElementById("setor").value, saida, chegada, motivo: motivo, 
           trajetoExibicao: trajetoString, 
           roteiroArray: AppState.roteiroAtual
         };
