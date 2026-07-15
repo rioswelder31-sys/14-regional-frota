@@ -1751,6 +1751,15 @@
         const origemCidade = (origem.split(' - ')[1] || origem).toUpperCase();
         const destinoCidade = (destino.split(' - ')[1] || destino).toUpperCase();
         
+        // Exceção para a rota Salvador <-> Teixeira de Freitas, que a API OSRM calcula incorretamente.
+        const rotaEspecial = ['SALVADOR', 'TEIXEIRA DE FREITAS'];
+        if (rotaEspecial.includes(origemCidade) && rotaEspecial.includes(destinoCidade)) {
+            const distanciaFixa = 809;
+            console.log(`Distância (fixa): ${origemCidade} ➔ ${destinoCidade} = ${distanciaFixa} km`);
+            localStorage.setItem(`distancia_${rotaEspecial.sort().join('_')}`, distanciaFixa); // Atualiza o cache também
+            return distanciaFixa;
+        }
+        
         // Cria uma chave de cache padronizada e ordenada para tratar A->B e B->A da mesma forma
         const cacheKey = `distancia_${[origemCidade, destinoCidade].sort().join('_')}`;
         const cachedDistance = localStorage.getItem(cacheKey);
