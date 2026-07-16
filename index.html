@@ -15,6 +15,14 @@
       html { height: 100%; width: 100%; margin: 0; padding: 0; }
       body { font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f3f4f6; color: #333; width: 100%; margin: 0; padding: 0; }
       
+      /* Melhoria de Acessibilidade: Estilo de foco visível para navegação por teclado */
+      *:focus-visible {
+        outline: 3px solid #0d6efd !important; /* Um contorno azul brilhante e de alto contraste */
+        outline-offset: 2px;
+        box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.35) !important;
+        border-radius: 4px;
+      }
+      
       @keyframes fadeInUp {
         from {
           opacity: 0;
@@ -204,6 +212,8 @@
       
       .protected-info { filter: blur(5px); transition: filter 0.3s ease; cursor: help; }
       .protected-info:hover, .protected-info:active { filter: blur(0); }
+      .protected-info { filter: blur(5px); transition: filter 0.3s ease; cursor: help; border-radius: 3px; }
+      .protected-info:hover, .protected-info:active, .protected-info:focus { filter: blur(0); }
 
       /* Estilo Telas de Login/Registro conforme foto */
       #login-screen, #comarca-screen, #register-screen { 
@@ -736,6 +746,7 @@
           <button id="theme-toggle-btn" class="btn-tertiary" aria-label="Alternar tema claro e escuro" style="width: auto; padding: 8px 12px; margin-bottom: 0; font-size: 1.1rem; line-height: 1;" onclick="toggleTheme()">🌙</button>
           <button id="unit-settings-btn" class="btn-outline hidden" style="width: auto; padding: 8px 12px; margin-bottom: 0; font-weight: bold;" onclick="toggleUnitSettingsModal(true)">⚙️ Gestão da Unidade</button>
           <button class="btn-outline" style="width: auto; padding: 8px 12px; margin-bottom: 0; font-weight: bold;" onclick="toggleProfileModal(true)">Meu Perfil</button>
+          <button id="profile-btn" class="btn-outline" style="width: auto; padding: 8px 12px; margin-bottom: 0; font-weight: bold;" onclick="toggleProfileModal(true)">Meu Perfil</button>
           <button class="btn-primary" style="width: auto; padding: 8px 15px; margin-bottom: 0; background: var(--success); border: none;" onclick="abrirNovaSolicitacao()">➕ Nova Solicitação</button>
           <button class="btn-primary" style="width: auto; padding: 8px 15px; margin-bottom: 0; background: var(--danger); border: none;" onclick="fazerLogout()">Sair</button>
         </div>
@@ -764,10 +775,10 @@
       <div class="main-form">
         <div class="driver-badge">
           <div>🚘 Motorista: <strong id="nome-motorista"></strong></div>
-          <span id="tel-motorista" class="protected-info" title="Passe o mouse para ver o número" style="font-weight: bold;"></span>
+          <span id="tel-motorista" class="protected-info" tabindex="0" title="Passe o mouse ou foque com o teclado para ver o número" style="font-weight: bold;"></span>
         </div>
         <div id="form-content">
-          <h3 id="form-title" style="color: var(--primary); cursor: pointer;" onclick="abrirNovaSolicitacao()" title="Clique para resetar e focar no formulário">📝 Nova Solicitação de Agendamento</h3>
+          <h3 id="form-title" style="color: var(--primary); cursor: pointer;" onclick="abrirNovaSolicitacao()" title="Clique para resetar e focar no formulário" tabindex="0" role="button" onkeydown="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); abrirNovaSolicitacao(); }">📝 Nova Solicitação de Agendamento</h3>
           <input type="hidden" id="edit-id" />
           <div class="form-row">
             <div class="col" style="flex: 2"><label for="solicitante">Solicitante:</label><input type="text" id="solicitante" list="lista-solicitantes" required /><datalist id="lista-solicitantes"></datalist></div>
@@ -927,7 +938,7 @@
 
     <div id="help-modal" class="hidden" onclick="if (event.target === this) toggleHelpModal(false)">
       <div id="help-modal-content">
-        <span id="help-modal-close" onclick="toggleHelpModal(false)">&times;</span>
+        <button id="help-modal-close" aria-label="Fechar manual de ajuda" onclick="toggleHelpModal(false)" style="background:none; border:none;">&times;</button>
         <h3>📑 MANUAL DO USUÁRIO: SAD V81.1</h3>
         <div style="text-align: center; margin-bottom: 15px;">
           <button onclick="lerElementoEmVozAlta('help-modal-content')" class="btn-tertiary" style="width: auto; border-radius: 20px; padding: 8px 16px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">🔊 Ouvir Manual Completo</button>
@@ -1610,12 +1621,59 @@
       }
 
       window.togglePassword = (id) => { const i = document.getElementById(id); i.type = i.type === "password" ? "text" : "password"; };
+
+      // --- Melhorias de Acessibilidade: Funções de Foco e Modais ---
+      let focusTrapListener = null;
+      let lastFocusedElement = null;
+
+      function trapFocus(element) {
+        lastFocusedElement = document.activeElement; // Salva o elemento que tinha foco antes de abrir o modal
+        const focusableEls = element.querySelectorAll('a[href]:not([disabled]), button:not([disabled]), textarea:not([disabled]), input:not([type="hidden"]):not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])');
+        if (focusableEls.length === 0) return;
+        const firstFocusableEl = focusableEls[0];
+        const lastFocusableEl = focusableEls[focusableEls.length - 1];
+
+        setTimeout(() => firstFocusableEl.focus(), 50); // Foca no primeiro elemento do modal
+
+        focusTrapListener = function(e) {
+            const isTabPressed = e.key === 'Tab' || e.keyCode === 9;
+            if (!isTabPressed) return;
+
+            if (e.shiftKey) { // Shift + Tab
+                if (document.activeElement === firstFocusableEl) {
+                    lastFocusableEl.focus();
+                    e.preventDefault();
+                }
+            } else { // Tab
+                if (document.activeElement === lastFocusableEl) {
+                    firstFocusableEl.focus();
+                    e.preventDefault();
+                }
+            }
+        };
+        element.addEventListener('keydown', focusTrapListener);
+      }
+
+      function removeTrapFocus(element) {
+        if (focusTrapListener) {
+            element.removeEventListener('keydown', focusTrapListener);
+            focusTrapListener = null;
+        }
+        if (lastFocusedElement) {
+            lastFocusedElement.focus(); // Devolve o foco ao elemento original
+            lastFocusedElement = null;
+        }
+      }
+      // --- Fim das Funções de Acessibilidade ---
+
       window.toggleHelpModal = (show) => {
         const modal = document.getElementById('help-modal');
         if (show) {
           modal.classList.remove('hidden');
+          trapFocus(modal);
         } else {
           modal.classList.add('hidden');
+          removeTrapFocus(modal);
         }
       };
       window.toggleAccordion = (element) => {
@@ -3222,7 +3280,20 @@
                 tdMotivo.textContent = v.motivo || '';
                 tdMotivo.title = v.motivo || ''; // Exibe o motivo completo no hover
                 tdMotivo.title = 'Clique para ver o motivo completo';
+                tdMotivo.title = 'Clique ou pressione Enter para ver o motivo completo';
+                
+                // Melhoria de Acessibilidade: Tornar o motivo expansível pelo teclado
+                tdMotivo.tabIndex = 0;
+                tdMotivo.setAttribute('role', 'button');
+                tdMotivo.setAttribute('aria-expanded', 'false');
+                tdMotivo.style.cursor = 'pointer';
                 tdMotivo.addEventListener('click', () => toggleMotivoVisibilidade(tdMotivo));
+                tdMotivo.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault(); // Previne a rolagem da página com a tecla de espaço
+                        toggleMotivoVisibilidade(tdMotivo);
+                    }
+                });
 
                 // Célula Roteiro
                 const tdRoteiro = tr.insertCell();
@@ -3671,14 +3742,19 @@
       };
 
       window.toggleMotivoVisibilidade = (el) => {
-        if (el.style.whiteSpace === 'normal') {
-            el.style.whiteSpace = 'nowrap';
-            el.style.overflow = 'hidden';
-            el.style.textOverflow = 'ellipsis';
+        const isExpanded = el.getAttribute('aria-expanded') === 'true';
+        if (isExpanded) {
+          el.style.whiteSpace = 'nowrap';
+          el.style.overflow = 'hidden';
+          el.style.textOverflow = 'ellipsis';
+          el.setAttribute('aria-expanded', 'false');
+          el.title = 'Clique ou pressione Enter para ver o motivo completo';
         } else {
-            el.style.whiteSpace = 'normal';
-            el.style.overflow = 'visible';
-            el.style.textOverflow = 'clip';
+          el.style.whiteSpace = 'normal';
+          el.style.overflow = 'visible';
+          el.style.textOverflow = 'clip';
+          el.setAttribute('aria-expanded', 'true');
+          el.title = 'Clique ou pressione Enter para ocultar o motivo';
         }
       };
 
