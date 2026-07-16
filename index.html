@@ -234,6 +234,7 @@
       .status-ciente { background-color: #17a2b8; color: white; }
       .status-confirmado { background-color: var(--success); color: white; }
       .status-finalizado { background-color: #6c757d; color: white; }
+      .status-em-deslocamento { background-color: #0d6efd; color: white; }
       .status-rejeitado { background-color: var(--danger); color: white; }
       .status-cancelado { background-color: #d35400; color: white; }
       .linha-confirmada { background-color: #d4edda !important; color: #155724; }
@@ -1503,7 +1504,7 @@
 
       // Constantes para caminhos do DB, evitando "magic strings"
       const STATUS = { PENDENTE: 'Pendente', CIENTE: 'Ciente', CONFIRMADO: 'Confirmado', FINALIZADO: 'Finalizado', REJEITADO: 'Rejeitado', CANCELADO: 'Cancelado' };
-      const DB_PATHS = { VIAGENS: 'viagens', FOLGAS: 'folgas', UNIDADES: 'unidades', EQUIPE: 'equipe', MOTORISTA: 'motorista' };
+      const DB_PATHS = { VIAGENS: 'viagens', FOLGAS: 'folgas', UNIDADES: 'unidades', EQUIPE: 'equipe', MOTORISTA: 'motorista' };const STATUS = { PENDENTE: 'Pendente', CIENTE: 'Ciente', CONFIRMADO: 'Confirmado', EM_DESLOCAMENTO: 'Em Deslocamento', FINALIZADO: 'Finalizado', REJEITADO: 'Rejeitado', CANCELADO: 'Cancelado' };
 
       /*
        * NOTA SOBRE DADOS LEGADOS: O objeto `CONTATOS` abaixo é mantido como um "fallback" (plano B).
@@ -3098,7 +3099,7 @@
                 let status = v.status || STATUS.PENDENTE;
                 const agora = new Date();
                 const chegada = new Date(v.chegada);
-                if (status === STATUS.CONFIRMADO && chegada < agora) {
+                if ((status === STATUS.CONFIRMADO || status === STATUS.EM_DESLOCAMENTO) && chegada < agora) {
                     status = STATUS.FINALIZADO;
                 // Somente administradores ou motoristas disparam a atualização no banco para evitar múltiplas gravações simultâneas
                 if (AppState.user.podeTudo || AppState.user.isMotorista) {                    
@@ -3111,7 +3112,7 @@
                 // Contabiliza para o Dashboard
                 total++;
                 if (status === STATUS.PENDENTE || status === STATUS.CIENTE) pendentes++;
-                else if (status === STATUS.CONFIRMADO || status === STATUS.FINALIZADO) concluidas++;
+                else if (status === STATUS.CONFIRMADO || status === STATUS.FINALIZADO || status === STATUS.EM_DESLOCAMENTO) concluidas++;
                 else if (status === STATUS.CANCELADO || status === STATUS.REJEITADO) canceladas++;
                 
                 if (!v.cienciaAdmin && status !== STATUS.CIENTE && status !== STATUS.CANCELADO && status !== STATUS.REJEITADO) faltaCiencia++;
@@ -3163,8 +3164,7 @@
                 
                 const nomeParaExibir = getNomeSolicitante(v);
                 let classeLinha = (status === STATUS.FINALIZADO || status === STATUS.CANCELADO) ? 'linha-confirmada' : '';
-                if (!classeLinha && v.cienciaAdmin) classeLinha = 'linha-ciente';
-                const badgeCor = status === STATUS.CONFIRMADO ? 'status-confirmado' : status === STATUS.FINALIZADO ? 'status-finalizado' : status === STATUS.REJEITADO ? 'status-rejeitado' : status === STATUS.CANCELADO ? 'status-cancelado' : status === STATUS.CIENTE ? 'status-ciente' : 'status-pendente';
+                if (!classeLinha && v.cienciaAdmin) classeLinha = 'linha-ciente';const badgeCor = status === STATUS.CONFIRMADO ? 'status-confirmado' : status === STATUS.EM_DESLOCAMENTO ? 'status-em-deslocamento' : status === STATUS.FINALIZADO ? 'status-finalizado' : status === STATUS.REJEITADO ? 'status-rejeitado' : status === STATUS.CANCELADO ? 'status-cancelado' : status === STATUS.CIENTE ? 'status-ciente' : 'status-pendente';
                 
                 const tr = document.createElement('tr');
                 tr.className = classeLinha;
@@ -3260,28 +3260,53 @@
       };
 
       function createActionButtons(v, status) {
-          const temPermissao = AppState.user.podeTudo || v.registradoPor === AppState.user.email || v.solicitanteUID === AppState.user.uid;
-          let btns = "";
-          const btnStyle = "width: 32px; height: 32px; padding: 0; font-size: 1em; margin-right: 3px; border: none; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;";
-          if (temPermissao && status !== STATUS.FINALIZADO && status !== STATUS.CANCELADO) btns += `<button class="btn-edit" aria-label="Editar viagem" onclick="prepararEdicao('${v.id}')" title="Editar viagem">✏️</button>`;
-          if (temPermissao && (status === STATUS.PENDENTE || status === STATUS.CIENTE || status === STATUS.CONFIRMADO)) btns += `<button aria-label="Reenviar notificação" style="background:#3498db; color:white; ${btnStyle}" onclick="reenviarNotificacao('${v.id}')" title="Reenviar notificação para o motorista">🔄</button>`;
-          
-          // Botão para administrador dar ciência da viagem
-          if (AppState.user.podeTudo && !v.cienciaAdmin && status !== STATUS.CIENTE) {
-              btns += `<button aria-label="Dar ciência da viagem" style="background:#f39c12; color:white; ${btnStyle}" onclick="darCiencia('${v.id}')" title="Dar ciência da viagem (Apenas controle interno)">👁️</button>`;
-          }
-          
-          // Botões para motorista confirmar/rejeitar em qualquer momento (mesmo antes do admin dar ciência)
-          if ((AppState.user.isMotorista || AppState.user.podeTudo) && (status === STATUS.PENDENTE || status === STATUS.CIENTE)) {
-              btns += `<button class="btn-confirm" aria-label="Confirmar viagem" onclick="confirmar('${v.id}')" title="Confirmar viagem">✅</button>`;
-              btns += `<button class="btn-reject" aria-label="Rejeitar viagem" onclick="rejeitar('${v.id}')" title="Rejeitar viagem">❌</button>`;
-          }
-          
-          if ((AppState.user.isMotorista || AppState.user.podeTudo) && status === STATUS.CONFIRMADO) btns += `<button aria-label="Reenviar confirmação" style="background:#27ae60; color:white; ${btnStyle}" onclick="reenviarConfirmacao('${v.id}')" title="Reenviar confirmação para o solicitante">🔄</button>`;
-          if (temPermissao && status !== STATUS.FINALIZADO && status !== STATUS.CANCELADO && status !== STATUS.REJEITADO) btns += `<button aria-label="Cancelar viagem" style="background:#e67e22; color:white; ${btnStyle}" onclick="cancelar('${v.id}')" title="Cancelar viagem">🚫</button>`;
-          if (status !== STATUS.FINALIZADO && status !== STATUS.CANCELADO) btns += `<button aria-label="Abrir rota no mapa" style="background:#16a085; color:white; ${btnStyle}" onclick="abrirRotaGoogleMaps('${v.id}')" title="Abrir rota no Google Maps">🗺️</button>`;
-          if (temPermissao && status !== STATUS.FINALIZADO) btns += `<button class="btn-delete" aria-label="Excluir viagem" onclick="deletar('${v.id}')" title="Excluir viagem">🗑️</button>`;
-          return btns;
+        const temPermissao = AppState.user.podeTudo || v.registradoPor === AppState.user.email || v.solicitanteUID === AppState.user.uid;
+        const isMotoristaOuAdmin = AppState.user.isMotorista || AppState.user.podeTudo;
+        let btns = "";
+        const btnStyle = "width: 32px; height: 32px; padding: 0; font-size: 1em; margin-right: 3px; border: none; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;";
+
+        // --- Ações do Motorista/Admin ---
+        if (isMotoristaOuAdmin) {
+            if (status === STATUS.PENDENTE || status === STATUS.CIENTE) {
+                btns += `<button class="btn-confirm" aria-label="Confirmar viagem" onclick="confirmar('${v.id}')" title="Confirmar viagem">✅</button>`;
+                btns += `<button class="btn-reject" aria-label="Rejeitar viagem" onclick="rejeitar('${v.id}')" title="Rejeitar viagem">❌</button>`;
+            }
+            if (status === STATUS.CONFIRMADO) {
+                btns += `<button aria-label="Iniciar Deslocamento" style="background:#0d6efd; color:white; ${btnStyle}" onclick="iniciarDeslocamento('${v.id}')" title="Iniciar Deslocamento">▶️</button>`;
+                btns += `<button aria-label="Reenviar confirmação" style="background:#27ae60; color:white; ${btnStyle}" onclick="reenviarConfirmacao('${v.id}')" title="Reenviar confirmação para o solicitante">🔄</button>`;
+            }
+            if (status === STATUS.EM_DESLOCAMENTO) {
+                btns += `<button aria-label="Finalizar Viagem" style="background:var(--success); color:white; ${btnStyle}" onclick="finalizarViagem('${v.id}')" title="Finalizar Viagem Manualmente">🏁</button>`;
+            }
+        }
+
+        // --- Ações do Admin ---
+        if (AppState.user.podeTudo && !v.cienciaAdmin && status !== STATUS.CIENTE) {
+            btns += `<button aria-label="Dar ciência da viagem" style="background:#f39c12; color:white; ${btnStyle}" onclick="darCiencia('${v.id}')" title="Dar ciência da viagem (Apenas controle interno)">👁️</button>`;
+        }
+
+        // --- Ações do Solicitante/Admin ---
+        if (temPermissao) {
+            if (status !== STATUS.FINALIZADO && status !== STATUS.CANCELADO && status !== STATUS.EM_DESLOCAMENTO) {
+                btns += `<button class="btn-edit" aria-label="Editar viagem" onclick="prepararEdicao('${v.id}')" title="Editar viagem">✏️</button>`;
+            }
+            if (status === STATUS.PENDENTE || status === STATUS.CIENTE || status === STATUS.CONFIRMADO) {
+                btns += `<button aria-label="Reenviar notificação" style="background:#3498db; color:white; ${btnStyle}" onclick="reenviarNotificacao('${v.id}')" title="Reenviar notificação para o motorista">🔄</button>`;
+            }
+            if (status !== STATUS.FINALIZADO && status !== STATUS.CANCELADO && status !== STATUS.REJEITADO && status !== STATUS.EM_DESLOCAMENTO) {
+                btns += `<button aria-label="Cancelar viagem" style="background:#e67e22; color:white; ${btnStyle}" onclick="cancelar('${v.id}')" title="Cancelar viagem">🚫</button>`;
+            }
+            if (status !== STATUS.FINALIZADO && status !== STATUS.EM_DESLOCAMENTO) {
+                btns += `<button class="btn-delete" aria-label="Excluir viagem" onclick="deletar('${v.id}')" title="Excluir viagem">🗑️</button>`;
+            }
+        }
+        
+        // --- Ações Gerais ---
+        if (status !== STATUS.FINALIZADO && status !== STATUS.CANCELADO) {
+            btns += `<button aria-label="Abrir rota no mapa" style="background:#16a085; color:white; ${btnStyle}" onclick="abrirRotaGoogleMaps('${v.id}')" title="Abrir rota no Google Maps">🗺️</button>`;
+        }
+        
+        return btns;
       };
 
       window.cancelar = (id) => {
@@ -3375,6 +3400,41 @@
               }
               showToast("Viagem rejeitada! Solicitante notificado.", "success");
           }).catch(err => alert("Erro ao rejeitar: " + err.message));
+      };
+
+      window.iniciarDeslocamento = (id) => {
+          const v = AppState.viagens.find(x => x.id === id);
+          if(!v) return alert("Viagem não encontrada!");
+
+          if(!confirm("Deseja marcar esta viagem como 'Em Deslocamento'? O solicitante será notificado.")) return;
+
+          update(getRegionalRef(DB_PATHS.VIAGENS, id), {status: STATUS.EM_DESLOCAMENTO}).then(() => {              
+              registrarLog('Início de Deslocamento', `Viagem ID ${id} de ${v.solicitanteNome} foi marcada como 'Em Deslocamento'.`);
+              
+              const solicitante = AppState.unidade.equipe.find(m => m.uid === v.solicitanteUID);
+              const telSol = solicitante ? solicitante.telefone : null;
+              
+              const destinoFinal = v.roteiroArray && v.roteiroArray.length > 0 ? (v.roteiroArray[v.roteiroArray.length-1].destino.split(' - ')[1] || 'destino') : 'destino';
+              const msgInicio = `🚗 *VIAGEM INICIADA*\n\n${AppState.regionalNome}\n\nSua viagem com destino a ${destinoFinal} acaba de ser iniciada pelo motorista.\n\nBoa viagem!`;
+              
+              if(telSol) {
+                  let phone = formatarTelefoneWpp(telSol);
+                  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msgInicio)}`, '_blank');
+              }
+              showToast("Viagem iniciada! Solicitante notificado.", "success");
+          }).catch(err => alert("Erro ao iniciar deslocamento: " + err.message));
+      };
+
+      window.finalizarViagem = (id) => {
+          const v = AppState.viagens.find(x => x.id === id);
+          if(!v) return alert("Viagem não encontrada!");
+
+          if(!confirm("Deseja finalizar esta viagem manualmente?")) return;
+
+          update(getRegionalRef(DB_PATHS.VIAGENS, id), {status: STATUS.FINALIZADO}).then(() => {              
+              registrarLog('Finalização Manual', `Viagem ID ${id} de ${v.solicitanteNome} foi finalizada manualmente.`);
+              showToast("Viagem finalizada!", "success");
+          }).catch(err => alert("Erro ao finalizar viagem: " + err.message));
       };
 
       window.darCiencia = (id) => {
