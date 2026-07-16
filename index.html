@@ -2597,6 +2597,27 @@
       }
 
       window.limparRoteiro = async () => { AppState.roteiroAtual = []; renderRoteiro(); await updateDistanciaTotal(); };
+      window.limparRoteiro = async () => {
+        // Limpa o estado do roteiro no backend
+        AppState.roteiroAtual = [];
+        // Renderiza a lista de roteiro vazia na UI
+        renderRoteiro();
+        // Atualiza a distância total para 0 km em todos os painéis
+        await updateDistanciaTotal();
+        
+        // Restaura a cidade de origem padrão da regional e limpa o destino
+        let origemPadrao = '';
+        if (AppState.regionalID === '14-regional') origemPadrao = "TEIXEIRA DE FREITAS";
+        else if (AppState.regionalID === 'PORTO SEGURO') origemPadrao = "PORTO SEGURO";
+        else if (AppState.regionalID === 'EUNAPOLIS') origemPadrao = "EUNÁPOLIS";
+        document.getElementById('cidade-origem').value = origemPadrao;
+        document.getElementById('cidade-destino').value = '';
+        
+        // Reseta os valores calculados no painel de diárias, que dependem do roteiro
+        document.getElementById('diaria-qtd').value = '';
+        document.getElementById('diaria-total-val').innerText = 'R$ 0,00';
+        document.getElementById('cidade-destino').focus(); // Foca no campo de destino para facilitar
+      };
 
       window.abrirNoGoogleMaps = () => {
         if (AppState.roteiroAtual.length === 0) {
