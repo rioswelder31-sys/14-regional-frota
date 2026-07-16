@@ -870,9 +870,9 @@
             <select id="filtro-ano" onchange="atualizarEscutaViagensDebounced()" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></select>
           </div>
           <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <button style="background: #17a2b8; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="imprimirAgenda()">🖨️ Imprimir</button>
-            <button style="background: #6f42c1; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="exportarCSV()">📥 Exportar CSV</button>
-            <button id="btn-toggle-historico" style="background: #6c757d; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="toggleHistorico()">📂 Mostrar Histórico Completo</button>
+            <button style="background: #17a2b8; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; min-width: 190px; white-space: nowrap;" onclick="imprimirAgenda()">🖨️ Imprimir</button>
+            <button style="background: #6f42c1; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; min-width: 190px; white-space: nowrap;" onclick="exportarCSV()">📥 Exportar CSV</button>
+            <button id="btn-toggle-historico" style="background: #6c757d; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; min-width: 190px; white-space: nowrap;" onclick="toggleHistorico()">📂 Mostrar Histórico</button>
           </div>
         </div>
 
@@ -995,7 +995,7 @@
           <div class="accordion-item">
             <button class="accordion-question" onclick="toggleAccordion(this)">Minhas viagens sumiram depois que aconteceram. Onde estão?</button>
             <div class="accordion-answer">
-              <p><strong>R:</strong> Elas ficam ocultas automaticamente para manter sua tabela limpa e focada nas viagens futuras. Para visualizá-las, basta clicar no botão cinza <strong>[📂 Mostrar Histórico Completo]</strong> localizado logo acima da tabela. Lembre-se também de usar os botões de <strong>Página Anterior/Próximo</strong> no rodapé da tabela caso haja muitas viagens!</p>
+              <p><strong>R:</strong> Elas ficam ocultas automaticamente para manter sua tabela limpa e focada nas viagens futuras. Para visualizá-las, basta clicar no botão cinza <strong>[📂 Mostrar Histórico]</strong> localizado logo acima da tabela. Lembre-se também de usar os botões de <strong>Página Anterior/Próximo</strong> no rodapé da tabela caso haja muitas viagens!</p>
             </div>
           </div>
           <div class="accordion-item">
@@ -3042,7 +3042,7 @@
             btn.innerHTML = '📂 Ocultar Histórico';
             btn.style.background = '#495057';
         } else {
-            btn.innerHTML = '📂 Mostrar Histórico Completo';
+            btn.innerHTML = '📂 Mostrar Histórico';
             btn.style.background = '#6c757d';
         }
         atualizarTabelaGlobal();
