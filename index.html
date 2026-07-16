@@ -730,7 +730,7 @@
         
         <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
           <button class="btn-tertiary" aria-label="Ouvir resumo da tela principal" style="width: auto; padding: 8px 12px; margin-bottom: 0; font-size: 1.1rem; line-height: 1;" onclick="lerTextoEmVozAlta('Painel Principal. Aqui você visualiza o motorista disponível, pode registrar um novo agendamento e acompanhar a agenda de viagens da sua unidade.')" title="Ouvir Resumo da Tela">🔊</button>
-          <button id="hover-read-btn" class="btn-tertiary" aria-label="Ativar leitura ao passar o mouse" style="width: auto; padding: 8px 12px; margin-bottom: 0; font-size: 1.1rem; line-height: 1;" onclick="toggleLeituraMouse()" title="Leitura Automática ao Mouse">🖱️🔊</button>
+          <button id="leitura-foco-btn" class="btn-tertiary" aria-label="Ativar leitura por foco (tecla Tab)" style="width: auto; padding: 8px 12px; margin-bottom: 0; font-size: 1.1rem; line-height: 1;" onclick="toggleLeituraFoco()" title="Leitura Automática por Foco (Tab)">⌨️🔊</button>
           <button id="help-btn" class="btn-tertiary" aria-label="Abrir manual de ajuda" style="width: auto; padding: 8px 12px; margin-bottom: 0; font-size: 1.1rem; line-height: 1; font-weight: bold;" onclick="toggleHelpModal(true)" title="Manual de Ajuda">❓</button>
           <button id="fullscreen-btn" class="btn-tertiary" aria-label="Alternar tela cheia" style="width: auto; padding: 8px 12px; margin-bottom: 0; font-size: 1.1rem; line-height: 1;" onclick="toggleFullScreen()" title="Tela Cheia">⛶</button>
           <button id="theme-toggle-btn" class="btn-tertiary" aria-label="Alternar tema claro e escuro" style="width: auto; padding: 8px 12px; margin-bottom: 0; font-size: 1.1rem; line-height: 1;" onclick="toggleTheme()">🌙</button>
@@ -944,7 +944,7 @@
         <p><strong>PRIVACIDADE 🔒:</strong> O número do motorista exibido na tela principal fica oculto sob uma capa protetora. Passe o mouse (ou toque na tela, pelo celular) para visualizá-lo.</p>
         <p><strong>MODO ESCURO (DARK MODE) 🌙:</strong> Clique no ícone da Lua/Sol no cabeçalho para alternar entre o tema claro e o escuro, garantindo maior conforto visual.</p>
         <p><strong>SITE OFICIAL:</strong> O logo da Defensoria no cabeçalho é clicável e direciona rapidamente para o portal da DPE-BA.</p>
-        <p><strong>ACESSIBILIDADE 🔊:</strong> Os controles de ajuda (❓) e leitura automática (🖱️🔊) estão localizados no painel superior, junto ao seu nome.</p>
+        <p><strong>ACESSIBILIDADE 🔊:</strong> Os controles de ajuda (❓) e leitura automática por foco (⌨️🔊) estão localizados no painel superior, junto ao seu nome. Quando ativado, o sistema lê em voz alta o conteúdo dos campos conforme você navega com a tecla TAB.</p>
 
         <h4>⚙️ GESTÃO DA UNIDADE E EQUIPE (ADMINISTRADORES)</h4>
         <p><strong>CONFIGURAÇÕES E MEMBROS:</strong> Administradores e motoristas têm acesso ao botão [⚙️ Gestão da Unidade]. Nele é possível: definir o <strong>valor de referência da diária (R$)</strong>, limpar o cache de distâncias, editar dados da equipe, definir o tipo de vínculo (Servidor, Defensor) e conceder a permissão de "Atuar como Motorista" a qualquer membro.</p>
@@ -1370,28 +1370,28 @@
 
     // Variáveis globais para o Sistema de Leitura
     window.ultimoTextoLido = "";
-    window.leituraAoPassarMouseAtiva = false;
-    window.ultimoTextoLidoHover = "";
+    window.leituraPorFocoAtiva = false;
+    window.ultimoTextoLidoFoco = "";
 
-    window.toggleLeituraMouse = () => {
-      window.leituraAoPassarMouseAtiva = !window.leituraAoPassarMouseAtiva;
-      const btn = document.getElementById('hover-read-btn');
-      if (window.leituraAoPassarMouseAtiva) {
+    window.toggleLeituraFoco = () => {
+      window.leituraPorFocoAtiva = !window.leituraPorFocoAtiva;
+      const btn = document.getElementById('leitura-foco-btn');
+      if (window.leituraPorFocoAtiva) {
         btn.style.backgroundColor = "var(--primary)";
         btn.style.color = "white";
-        showToast("Leitura ao passar o mouse ativada!", "info");
+        showToast("Leitura por foco (Tab) ativada!", "info");
       } else {
         btn.style.backgroundColor = "";
         btn.style.color = "";
         window.speechSynthesis.cancel();
-        window.ultimoTextoLidoHover = "";
-        showToast("Leitura ao passar o mouse desativada.", "info");
+        window.ultimoTextoLidoFoco = "";
+        showToast("Leitura por foco (Tab) desativada.", "info");
       }
     };
 
-    // Função centralizada para ler elementos focados, clicados (mobile) ou com mouse em cima
+    // Função centralizada para ler elementos com foco (via tecla Tab) ou por toque (mobile)
     const lerElemento = (e) => {
-      if (!window.leituraAoPassarMouseAtiva) return;
+      if (!window.leituraPorFocoAtiva) return;
       const target = e.target;
       const readableTags = ['H1', 'H2', 'H3', 'H4', 'H5', 'P', 'SPAN', 'A', 'BUTTON', 'LABEL', 'LI', 'TD', 'TH', 'STRONG', 'DIV'];
       const formTags = ['INPUT', 'TEXTAREA', 'SELECT'];
@@ -1409,8 +1409,8 @@
           text = target.innerText || target.textContent;
       }
 
-      if (text && text.trim().length > 0 && text.trim() !== window.ultimoTextoLidoHover) {
-          window.ultimoTextoLidoHover = text.trim();
+      if (text && text.trim().length > 0 && text.trim() !== window.ultimoTextoLidoFoco) {
+          window.ultimoTextoLidoFoco = text.trim();
           
           window.speechSynthesis.cancel();
           // Delay necessário para que o áudio seja processado sem engasgos em celulares (iOS/Android)
@@ -1425,8 +1425,8 @@
       }
     };
 
-    // Suporte para Desktop (hover) e Celulares (toque na tela)
-    document.addEventListener('mouseover', lerElemento);
+    // Suporte para Desktop (foco com Tab) e Celulares (toque na tela)
+    document.addEventListener('focusin', lerElemento);
     document.addEventListener('touchstart', lerElemento, {passive: true});
 
     // Sistema de Leitura em Voz Alta com Pausa/Retomar
