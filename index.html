@@ -1552,6 +1552,7 @@
         "VITÓRIA DA CONQUISTA": { lat: -14.866, lon: -40.839 },
         "ALCOBAÇA": { lat: -17.516, lon: -39.195 },
         "CARAVELAS": { lat: -17.730, lon: -39.266 },
+        "CARINHANHA": { lat: -14.305, lon: -43.766 },
         "ITAMARAJU": { lat: -17.039, lon: -39.531 },
         "MEDEIROS NETO": { lat: -17.374, lon: -40.222 },
         "PRADO": { lat: -17.341, lon: -39.221 },
@@ -1825,6 +1826,15 @@
             const distanciaFixa = 809;
             console.log(`Distância (fixa): ${origemCidade} ➔ ${destinoCidade} = ${distanciaFixa} km`);
             localStorage.setItem(`distancia_${rotaEspecial.sort().join('_')}`, distanciaFixa); // Atualiza o cache também
+            return distanciaFixa;
+        }
+
+        // Exceção para a rota Teixeira de Freitas <-> Carinhanha.
+        const rotaCarinhanha = ['TEIXEIRA DE FREITAS', 'CARINHANHA'];
+        if (rotaCarinhanha.includes(origemCidade) && rotaCarinhanha.includes(destinoCidade)) {
+            const distanciaFixa = 866;
+            console.log(`Distância (fixa): ${origemCidade} ➔ ${destinoCidade} = ${distanciaFixa} km`);
+            localStorage.setItem(`distancia_${rotaCarinhanha.sort().join('_')}`, distanciaFixa);
             return distanciaFixa;
         }
         
