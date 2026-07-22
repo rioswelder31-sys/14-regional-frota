@@ -923,7 +923,8 @@
                         <th style="padding:12px;">Data Solicitação</th>
                         <th style="padding:12px;">Viagem (Solicitante)</th>
                         <th style="padding:12px;">Processo SEI / Motorista</th>
-                        <th style="padding:12px;">Qtd. Diárias</th>
+                        <th style="padding:12px; text-align:center;">Qtd.</th>
+                        <th style="padding:12px;">Valor Unitário</th>
                         <th style="padding:12px;">Valor Total</th>
                         <th style="padding:12px;">Status</th>
                         <th style="padding:12px; text-align:center;">Ações</th>
@@ -4322,7 +4323,7 @@
           const fragment = document.createDocumentFragment();
 
           if (AppState.diariasSolicitadas.length === 0) {
-              tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 20px; font-style: italic;">Nenhuma solicitação de diária encontrada.</td></tr>';
+              tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 20px; font-style: italic;">Nenhuma solicitação de diária encontrada.</td></tr>';
               return;
           }
 
@@ -4331,7 +4332,13 @@
               .forEach(diaria => {
                   const tr = document.createElement('tr');
                   const dataSolicitacao = new Date(diaria.dataSolicitacao).toLocaleString('pt-BR');
-                  const valorTotal = diaria.valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+                  const valorTotalNumerico = typeof diaria.valorTotal === 'number' ? diaria.valorTotal : 0;
+                  const qtdNumerico = typeof diaria.qtdDiarias === 'number' ? diaria.qtdDiarias : 0;
+                  const valorUnitarioNumerico = diaria.valorUnitario || (qtdNumerico > 0 ? valorTotalNumerico / qtdNumerico : 0);
+
+                  const valorTotal = valorTotalNumerico.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                  const valorUnitario = valorUnitarioNumerico.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
                   // Resgata a viagem correspondente para extrair as datas de saída e chegada
                   let viagemInfo = AppState.viagens.find(v => v.id === diaria.viagemId) || AppState.viagemRecemCriada;
@@ -4394,7 +4401,8 @@
                         ${datasDeslocamentoHtml}
                       </td>
                       <td style="padding:12px; vertical-align: middle; min-width:180px;">${campoMotoristaEditavel}</td>
-                      <td style="padding:12px; vertical-align: middle; text-align:center;">${diaria.qtdDiarias.toLocaleString('pt-BR')}</td>
+                      <td style="padding:12px; vertical-align: middle; text-align:center;">${qtdNumerico.toLocaleString('pt-BR')}</td>
+                      <td style="padding:12px; vertical-align: middle;">${valorUnitario}</td>
                       <td style="padding:12px; vertical-align: middle; font-weight: bold; color: var(--primary);">${valorTotal}</td>
                       <td style="padding:12px; vertical-align: middle; text-align:center;">${statusHtml}</td>
                       <td style="padding:12px; vertical-align: middle; text-align:center;">
@@ -4478,12 +4486,18 @@
 
         let tableRows = '';
         sortedDiarias.forEach(diaria => {
+            const valorTotalNumerico = typeof diaria.valorTotal === 'number' ? diaria.valorTotal : 0;
+            const qtdNumerico = typeof diaria.qtdDiarias === 'number' ? diaria.qtdDiarias : 0;
+            const valorUnitarioNumerico = diaria.valorUnitario || (qtdNumerico > 0 ? valorTotalNumerico / qtdNumerico : 0);
+
             const dataSolicitacao = new Date(diaria.dataSolicitacao).toLocaleString('pt-BR');
-            const valorTotal = (typeof diaria.valorTotal === 'number') ? diaria.valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'R$ 0,00';
+            const valorTotal = valorTotalNumerico.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            const valorUnitario = valorUnitarioNumerico.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
             const solicitante = escapeHtml(diaria.viagemSolicitanteNome || '');
             const motorista = escapeHtml(diaria.motoristaNome || '');
             const processoSEI = escapeHtml(diaria.processoSEI || '');
-            const qtd = (typeof diaria.qtdDiarias === 'number') ? diaria.qtdDiarias.toLocaleString('pt-BR') : '0';
+            const qtd = qtdNumerico.toLocaleString('pt-BR');
             const status = escapeHtml(diaria.status || '');
 
             const viagemInfo = viagensMap.get(diaria.viagemId);
@@ -4503,6 +4517,7 @@
                 <td><strong>${solicitante}</strong>${datasDeslocamentoHtml}</td>
                 <td>${processoSEI}<br><small>Mtr: ${motorista}</small></td>
                 <td style="text-align:center;">${qtd}</td>
+                <td style="font-weight:bold;">${valorUnitario}</td>
                 <td style="font-weight:bold;">${valorTotal}</td>
                 <td style="text-align:center;">${status}</td>
               </tr>
@@ -4535,11 +4550,12 @@
                 <thead>
                   <tr>
                     <th style="width: 15%;">Data Solicitação</th>
-                    <th style="width: 30%;">Viagem (Solicitante)</th>
-                    <th style="width: 20%;">Proc. SEI / Motorista</th>
-                    <th style="width: 10%; text-align:center;">Qtd. Diárias</th>
+                    <th style="width: 25%;">Viagem (Solicitante)</th>
+                    <th style="width: 18%;">Proc. SEI / Motorista</th>
+                    <th style="width: 8%; text-align:center;">Qtd.</th>
+                    <th style="width: 12%;">Valor Unitário</th>
                     <th style="width: 12%;">Valor Total</th>
-                    <th style="width: 13%; text-align:center;">Status</th>
+                    <th style="width: 10%; text-align:center;">Status</th>
                   </tr>
                 </thead>
                 <tbody>${tableRows}</tbody>
@@ -4594,17 +4610,23 @@
           alert('Nenhum registro de diária para exportar!');
           return;
         }
-        let csv = 'Data Solicitação,Viagem (Solicitante),Motorista,Qtd. Diárias,Valor Total,Status\n';
+        let csv = 'Data Solicitação,Viagem (Solicitante),Motorista,Qtd. Diárias,Valor Unitário,Valor Total,Status\n';
         AppState.diariasSolicitadas
           .sort((a, b) => new Date(b.dataSolicitacao) - new Date(a.dataSolicitacao))
           .forEach(diaria => {
+            const valorTotalNumerico = typeof diaria.valorTotal === 'number' ? diaria.valorTotal : 0;
+            const qtdNumerico = typeof diaria.qtdDiarias === 'number' ? diaria.qtdDiarias : 0;
+            const valorUnitarioNumerico = diaria.valorUnitario || (qtdNumerico > 0 ? valorTotalNumerico / qtdNumerico : 0);
+
             const dataSolicitacao = new Date(diaria.dataSolicitacao).toLocaleString('pt-BR');
-            const valorTotal = (typeof diaria.valorTotal === 'number') ? diaria.valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'R$ 0,00';
+            const valorTotal = valorTotalNumerico.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            const valorUnitario = valorUnitarioNumerico.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
             const solicitante = (diaria.viagemSolicitanteNome || '').replace(/"/g, '""');
             const motorista = (diaria.motoristaNome || '').replace(/"/g, '""');
-            const qtd = (typeof diaria.qtdDiarias === 'number') ? diaria.qtdDiarias.toLocaleString('pt-BR') : '0';
+            const qtd = qtdNumerico.toLocaleString('pt-BR');
             const status = (diaria.status || '').replace(/"/g, '""');
-            csv += `"${dataSolicitacao}","${solicitante}","${motorista}","${qtd}","${valorTotal.replace(/"/g, '""')}","${status}"\n`;
+            csv += `"${dataSolicitacao}","${solicitante}","${motorista}","${qtd}","${valorUnitario.replace(/"/g, '""')}","${valorTotal.replace(/"/g, '""')}","${status}"\n`;
         });
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
