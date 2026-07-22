@@ -884,6 +884,7 @@
             <button style="background: #17a2b8; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; min-width: 190px; white-space: nowrap;" onclick="imprimirAgenda()">🖨️ Imprimir</button>
             <button style="background: #6f42c1; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; min-width: 190px; white-space: nowrap;" onclick="exportarCSV()">📥 Exportar CSV</button>
             <button id="btn-toggle-historico" style="background: #6c757d; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; min-width: 190px; white-space: nowrap;" onclick="toggleHistorico()">📂 Mostrar Histórico</button>
+            <button id="btn-toggle-diarias-panel" style="background: #34495e; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; min-width: 190px; white-space: nowrap;" onclick="toggleDiariasPanel()">🗓️ Ver Histórico de Diárias</button>
           </div>
         </div>
 
@@ -3144,6 +3145,21 @@
             btn.style.background = '#6c757d';
         }
         atualizarTabelaGlobal();
+      };
+
+      window.toggleDiariasPanel = () => {
+        const panel = document.getElementById('diarias-historico-panel');
+        const btn = document.getElementById('btn-toggle-diarias-panel');
+        const isHidden = panel.classList.toggle('hidden');
+
+        if (isHidden) {
+            btn.innerHTML = '🗓️ Ver Histórico de Diárias';
+            btn.style.background = '#34495e'; // Cor original
+        } else {
+            btn.innerHTML = '🗓️ Ocultar Histórico de Diárias';
+            btn.style.background = '#16a085'; // Cor de "ativo"
+            panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
       };
 
       window.atualizarTabelaGlobal = () => {
