@@ -3815,6 +3815,8 @@
         const chegadaStr = document.getElementById('chegada').value;
         const qtdDiarias = document.getElementById('diaria-qtd').value || '0,0';
         const valorTotal = document.getElementById('diaria-total-val').textContent || 'R$ 0,00';
+        const valorUnitarioNumerico = AppState.unidade.config?.valorDiaria || 404.00;
+        const valorUnitario = valorUnitarioNumerico.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         const partidaData = document.getElementById('diaria-partida-data').value || '';
         const partidaHora = document.getElementById('diaria-partida-hora').value || '';
         const partidaSemana = document.getElementById('diaria-partida-semana').value || '';
@@ -3856,6 +3858,7 @@
             viagemTrajetoExibicao: viagemAtual.trajetoExibicao,
             dataSolicitacao: new Date().toISOString(),
             qtdDiarias: parseFloat(qtdDiarias.replace(',', '.')),
+            valorUnitario: valorUnitarioNumerico,
             valorTotal: parseFloat(valorTotal.replace('R$', '').replace('.', '').replace(',', '.').trim()),
             status: 'Solicitada',
             solicitadoPor: AppState.user.email
@@ -4045,13 +4048,14 @@
                 <div class="section-title">Cálculo da Diária</div>
                 <table>
                   <thead>
-                    <tr><th style="width: 25%;">Partida Prevista</th><th style="width: 25%;">Chegada Prevista</th><th style="width: 20%;">Qtde. Diárias</th><th style="width: 30%;">Valor Total</th></tr>
+                    <tr><th style="width: 25%;">Partida Prevista</th><th style="width: 25%;">Chegada Prevista</th><th style="width: 15%;">Qtde. Diárias</th><th style="width: 15%;">Valor Unitário</th><th style="width: 20%;">Valor Total</th></tr>
                   </thead>
                   <tbody>
                     <tr>
                       <td>${escapeHtml(`${partidaData} ${partidaHora}`.trim())}<br/><small>${escapeHtml(`${partidaSemana}`)}</small></td>
                       <td>${escapeHtml(`${chegadaData} ${chegadaHora}`.trim())}<br/><small>${escapeHtml(`${chegadaSemana}`)}</small></td>
                       <td>${escapeHtml(qtdDiarias)}</td>
+                      <td>${escapeHtml(valorUnitario)}</td>
                       <td>${escapeHtml(valorTotal)}</td>
                     </tr>
                   </tbody>
