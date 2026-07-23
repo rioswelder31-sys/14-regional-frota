@@ -8,6 +8,11 @@
     <link rel="manifest" href="manifest.json" />
     <meta id="theme-color-meta" name="theme-color" content="#009c3b" />
     <link rel="apple-touch-icon" href="logo-dpe-192.png" />
+    <script>
+      // Configura o Tailwind CSS para usar o atributo 'data-theme' para o modo escuro,
+      // garantindo que os prefixos 'dark:' funcionem corretamente com a nossa lógica de tema.
+      tailwind.config = { darkMode: ['attr', 'data-theme'] }
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style type="text/css">
       :root { --primary: #009c3b; --secondary: #f8f9fa; --success: #28a745; --whatsapp: #25d366; --danger: #dc3545; --warning: #ffc107; --dark-text: #333; --blocked: #721c24; --blocked-bg: #f8d7da; --border-color: #dee2e6; --table-hover: #f1f5f9; --table-header: #007b2e; }
@@ -853,8 +858,8 @@
             <div class="p-2">Distância Total do Roteiro (Múltiplos Trechos)</div>
           </div>
           <div class="grid grid-cols-2 bg-white dark:bg-[#1a202c] items-center text-center">
-            <div class="p-2 border-r border-[#b5b5b5] text-left text-[11px]">R$ <span id="diaria-ref-val">404,00</span></div>
-            <div class="p-2 font-bold text-green-700 dark:text-green-400 text-sm" id="diaria-txt-dist">0 km</div>
+            <div class="p-2 border-r border-[#b5b5b5] text-left text-[11px] dark:text-gray-300">R$ <span id="diaria-ref-val">404,00</span></div>
+            <div class="p-2 font-bold text-green-700 dark:text-green-300 text-sm" id="diaria-txt-dist">0 km</div>
           </div>
           <div class="grid grid-cols-3 bg-[#cdcdcd] dark:bg-[#1a202c] border-t border-[#b5b5b5] font-bold text-center">
             <div class="p-2 border-r border-[#b5b5b5]">Quantidade de Diárias</div>
@@ -863,7 +868,7 @@
           </div>
           <div class="grid grid-cols-3 bg-white dark:bg-[#2d3748] items-center text-center py-2">
             <div class="p-1"><input type="text" id="diaria-qtd" style="text-align:center; font-weight:bold; width:80px; margin:0 auto;" readonly /></div>
-            <div class="p-1 font-bold text-blue-700 dark:text-blue-400 text-base" id="diaria-total-val">R$ 0,00</div>
+            <div class="p-1 font-bold text-blue-700 dark:text-blue-300 text-base" id="diaria-total-val">R$ 0,00</div>
             <div class="p-1"><button type="button" class="btn-calcular-diaria" onclick="calcularDiariasManual()">Calcular Diária</button></div>
           </div>
           <div style="grid-column: 1 / -1; padding: 12px 10px 10px; border-top: 1px solid #d0d0d0; background: #f5f5f5; text-align: center;">
