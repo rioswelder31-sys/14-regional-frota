@@ -510,7 +510,8 @@
 
       /* Painel de Diárias */
       .panel-diarias { border: 1px solid #ccc; border-radius: 6px; overflow: hidden; margin-top: 25px; background-color: #f9f9f9; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-      html[data-theme="dark"] .panel-diarias { background-color: #2d3748; border-color: #4a5568; }
+      html[data-theme="dark"] .panel-diarias { background-color: #2d3748; border-color: #4a5568; color: var(--dark-text); }
+      html[data-theme="dark"] .panel-diarias * { color: var(--dark-text) !important; }
       .panel-diarias-header { display: grid; grid-template-columns: 1fr 1fr; background-color: #e0e0e0; font-weight: bold; text-align: center; }
       html[data-theme="dark"] .panel-diarias-header { background-color: #232d3d; }
       .panel-diarias-header-col { padding: 8px; }
@@ -518,10 +519,42 @@
       html[data-theme="dark"] .panel-diarias-subfields { background-color: #3a475a; color: #cbd5e0; border-bottom-color: #4a5568; }
       .panel-diarias-inputs { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; padding: 8px; background: white; }
       html[data-theme="dark"] .panel-diarias-inputs { background: #1a202c; }
-      .panel-diarias-inputs input { text-align: center; font-size: 12px; padding: 6px; background: #eee; font-weight: bold; }
-      html[data-theme="dark"] .panel-diarias-inputs input { background: #1A202C; }
-      html[data-theme="dark"] .panel-diarias-inputs input:disabled { color: #94A3B8; -webkit-text-fill-color: #94A3B8; opacity: 0.7; }
+      .panel-diarias-inputs input { text-align: center; font-size: 12px; padding: 6px; background: #eee; font-weight: bold; color: #333; }
+      html[data-theme="dark"] .panel-diarias-inputs input { background: #1A202C; color: #E2E8F0; border-color: #4A5568; }
+      html[data-theme="dark"] .panel-diarias-inputs input:disabled { color: #E2E8F0; -webkit-text-fill-color: #E2E8F0; opacity: 1; }
       html[data-theme="dark"] .panel-diarias > div:last-child { background: #232d3d !important; border-top-color: #4a5568 !important; }
+      html[data-theme="dark"] .panel-diarias .grid,
+      html[data-theme="dark"] .panel-diarias .grid > div,
+      html[data-theme="dark"] .panel-diarias .grid > button,
+      html[data-theme="dark"] .panel-diarias .grid > .p-2,
+      html[data-theme="dark"] .panel-diarias .grid > .p-1 {
+        color: var(--dark-text) !important;
+        background: transparent !important;
+      }
+      html[data-theme="dark"] .panel-diarias .panel-diarias-header-col,
+      html[data-theme="dark"] .panel-diarias-subfields div,
+      html[data-theme="dark"] .panel-diarias-inputs div,
+      html[data-theme="dark"] .panel-diarias-inputs input,
+      html[data-theme="dark"] .panel-diarias .p-2,
+      html[data-theme="dark"] .panel-diarias .p-1 {
+        color: #E2E8F0 !important;
+      }
+      html[data-theme="dark"] .panel-diarias .border-[#b5b5b5] {
+        border-color: #4A5568 !important;
+      }
+      html[data-theme="dark"] .panel-diarias .bg-white {
+        background: #1A202C !important;
+      }
+      .diarias-action-row {
+        padding: 12px 10px 10px;
+        border-top: 1px solid #d0d0d0;
+        background: #f5f5f5;
+        text-align: center;
+      }
+      html[data-theme="dark"] .diarias-action-row {
+        background: #232d3d;
+        border-color: #4a5568;
+      }
       .btn-calcular-diaria { background-color: #17a2b8; color: white; padding: 6px 12px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; font-size: 12px; transition: background-color 0.2s; }
       .btn-calcular-diaria:hover { background-color: #138496; }
       .btn-imprimir-diaria { background-color: var(--primary); color: white; padding: 8px 14px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; font-size: 13px; transition: background-color 0.2s; }
@@ -871,7 +904,7 @@
             <div class="p-1 font-bold text-blue-700 dark:text-blue-300 text-base" id="diaria-total-val">R$ 0,00</div>
             <div class="p-1"><button type="button" class="btn-calcular-diaria" onclick="calcularDiariasManual()">Calcular Diária</button></div>
           </div>
-          <div style="grid-column: 1 / -1; padding: 12px 10px 10px; border-top: 1px solid #d0d0d0; background: #f5f5f5; text-align: center;">
+          <div class="diarias-action-row">
             <button type="button" class="btn-imprimir-diaria" onclick="imprimirSolicitacaoDiaria()">🖨️ Imprimir Solicitação de Diária</button>
           </div>
         </div>
