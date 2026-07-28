@@ -267,6 +267,25 @@
       html[data-theme="dark"] .folga-accordion-content input, html[data-theme="dark"] .folga-accordion-content select { background: #1A202C; color: #E2E8F0; border-color: #4A5568; }
 
       .roteiro-box { border: 1px solid #ccc; background: #fdfdfd; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
+
+      /* Estilos para o novo painel recolhível de diárias */
+      .neutral-accordion {
+        margin-top: 25px;
+        border: 1px solid var(--border-color);
+        background-color: white;
+      }
+      .neutral-accordion .folga-accordion-header {
+        color: var(--primary);
+        font-size: 1.2rem;
+      }
+      .neutral-accordion .folga-accordion-content.open {
+        border-top: 1px solid var(--border-color);
+      }
+      html[data-theme="dark"] .neutral-accordion {
+        border-color: #4A5568;
+        background-color: #2D3748;
+      }
+
       .roteiro-controls { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 10px; }
       .roteiro-lista { width: 100%; border-collapse: collapse; font-size: 0.95em; margin-top: 10px; }
       .roteiro-lista td { padding: 6px 10px; border: 1px solid var(--border-color); }
@@ -1066,6 +1085,35 @@
           <div style="display: flex; gap: 10px; flex-wrap: wrap;">
             <button style="background: #17a2b8; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="imprimirHistoricoDiarias()">🖨️ Imprimir</button>
             <button style="background: #6f42c1; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="exportarDiariasCSV()">📥 Exportar CSV</button>
+      <div id="diarias-historico-panel" class="folga-accordion neutral-accordion hidden">
+        <button class="folga-accordion-header" onclick="toggleFolgaPanel(this)" aria-expanded="false" aria-controls="diarias-historico-content">
+            <span>🗓️ Histórico de Solicitações de Diárias</span>
+            <span class="folga-accordion-icon">▼</span>
+        </button>
+        <div id="diarias-historico-content" class="folga-accordion-content">
+          <div class="section-controls">
+            <p style="margin: 0; font-size: 0.9em; color: #666;">Registros de todas as diárias solicitadas através do sistema.</p>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <button style="background: #17a2b8; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="imprimirHistoricoDiarias()">🖨️ Imprimir</button>
+              <button style="background: #6f42c1; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="exportarDiariasCSV()">📥 Exportar CSV</button>
+            </div>
+          </div>
+          <div class="table-responsive-container">
+              <table class="table-custom">
+                  <thead class="table-header-custom">
+                      <tr>
+                          <th style="padding:12px;">Data Solicitação</th>
+                          <th style="padding:12px;">Viagem (Solicitante)</th>
+                          <th style="padding:12px;">Processo SEI / Motorista</th>
+                          <th style="padding:12px; text-align:center;">Qtd.</th>
+                          <th style="padding:12px;">Valor Unitário</th>
+                          <th style="padding:12px;">Valor Total</th>
+                          <th style="padding:12px;">Status</th>
+                          <th style="padding:12px; text-align:center;">Ações</th>
+                      </tr>
+                  </thead>
+                  <tbody id="tb-corpo-diarias"></tbody>
+              </table>
           </div>
         </div>
         <div class="table-responsive-container">
