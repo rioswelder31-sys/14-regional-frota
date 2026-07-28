@@ -3320,14 +3320,20 @@
       window.toggleFolgaPanel = (headerElement) => {
         headerElement.classList.toggle('active');
         const content = headerElement.nextElementSibling;
+        const panel = headerElement.closest('.folga-accordion'); // Pega o painel pai
         content.classList.toggle('open');
         
         headerElement.setAttribute('aria-expanded', headerElement.classList.contains('active'));
 
         if (content.style.maxHeight) {
             content.style.maxHeight = null;
+            // Se o painel está sendo fechado, não precisamos rolar
         } else {
             content.style.maxHeight = content.scrollHeight + "px";
+            // Se o painel está sendo aberto, rola para ele ficar visível
+            if (panel) {
+                panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         }
       };
 
