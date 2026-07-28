@@ -564,8 +564,16 @@
 
       /* Dashboard de Resumo */
       .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 120px), 1fr)); gap: 15px; margin-bottom: 20px; animation: fadeInUp 0.5s ease-out; }
-      .dash-card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-left: 5px solid #ccc; transition: transform 0.2s; display: flex; flex-direction: column; justify-content: space-between; }
+      .dash-card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-left: 5px solid #ccc; transition: all 0.2s ease-in-out; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; }
       .dash-card:hover { transform: translateY(-3px); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+      .dash-card.active {
+        transform: translateY(-4px);
+        box-shadow: 0 6px 20px rgba(0, 156, 59, 0.2);
+        border-width: 3px;
+      }
+      html[data-theme="dark"] .dash-card.active {
+        box-shadow: 0 6px 20px rgba(0, 184, 70, 0.25);
+      }
       .dash-title { font-size: 0.8em; font-weight: 700; color: #6B7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
       .dash-value { font-size: 2rem; font-weight: 800; color: #333; line-height: 1; }
       .border-primary { border-left-color: var(--primary); }
@@ -1003,12 +1011,14 @@
 
         <!-- Dashboard de Resumo -->
         <div class="dash-grid">
-          <div class="dash-card border-primary"><div class="dash-title">Total de Viagens</div><div class="dash-value" id="dash-total">0</div></div>
-          <div class="dash-card border-warning"><div class="dash-title">Pendentes</div><div class="dash-value" id="dash-pendentes">0</div></div>
-          <div class="dash-card border-success"><div class="dash-title">Confirmadas / Fim</div><div class="dash-value" id="dash-concluidas">0</div></div>
-          <div class="dash-card border-danger"><div class="dash-title">Canceladas / Rej.</div><div class="dash-value" id="dash-canceladas">0</div></div>
-          <div id="card-falta-ciencia" class="dash-card border-info hidden"><div class="dash-title">Falta Ciência</div><div class="dash-value" id="dash-ciencia">0</div></div>
+          <div id="dash-card-todos" class="dash-card border-primary" onclick="filtrarPorStatus('todos')"><div class="dash-title">Total de Viagens</div><div class="dash-value" id="dash-total">0</div></div>
+          <div id="dash-card-pendentes" class="dash-card border-warning" onclick="filtrarPorStatus('pendentes')"><div class="dash-title">Pendentes</div><div class="dash-value" id="dash-pendentes">0</div></div>
+          <div id="dash-card-concluidas" class="dash-card border-success" onclick="filtrarPorStatus('concluidas')"><div class="dash-title">Confirmadas / Fim</div><div class="dash-value" id="dash-concluidas">0</div></div>
+          <div id="dash-card-canceladas" class="dash-card border-danger" onclick="filtrarPorStatus('canceladas')"><div class="dash-title">Canceladas / Rej.</div><div class="dash-value" id="dash-canceladas">0</div></div>
+          <div id="card-falta-ciencia" class="dash-card border-info hidden" onclick="filtrarPorStatus('ciencia')"><div class="dash-title">Falta Ciência</div><div class="dash-value" id="dash-ciencia">0</div></div>
         </div>
+
+        <h4 id="filtro-ativo-titulo" class="text-lg font-semibold my-4 text-gray-700 dark:text-gray-300 hidden" style="text-align: center;"></h4>
 
         <div class="table-responsive-container"><table class="table-custom"><thead class="table-header-custom"><tr><th style="padding:12px;">Status</th><th style="padding:12px;">Saída Prevista</th><th style="padding:12px;">Chegada Prevista</th><th style="padding:12px;">Solicitante</th><th style="padding:12px;">Motivo</th><th style="padding:12px;">Roteiro</th><th style="padding:12px; text-align:center;">Ações</th></tr></thead><tbody id="tb-corpo"></tbody></table></div>
         
@@ -1632,6 +1642,7 @@
         mostrarHistoricoCompleto: false,
         paginaAtual: 1,
         registrosPorPagina: 10, // ⚡ OTIMIZAÇÃO: Reduzido de 20 para 10 para melhorar a performance de renderização da tabela.
+        filtroStatusAtual: 'todos',
         viagemRecemCriada: null, // Guarda a viagem recém-criada para evitar race conditions
       };
       window.AppState = AppState; // Expor para depuração no console
@@ -1640,6 +1651,12 @@
       const DB_PATHS = { VIAGENS: 'viagens', FOLGAS: 'folgas', UNIDADES: 'unidades', EQUIPE: 'equipe', MOTORISTA: 'motorista' };
       const STATUS = { PENDENTE: 'Pendente', CIENTE: 'Ciente', CONFIRMADO: 'Confirmado', EM_DESLOCAMENTO: 'Em Deslocamento', FINALIZADO: 'Finalizado', REJEITADO: 'Rejeitado', CANCELADO: 'Cancelado' };
 
+      /*
+       * NOTA DE FUNCIONALIDADE: Filtro de Status da Agenda
+       * A função `filtrarPorStatus` atualiza o estado `AppState.filtroStatusAtual`.
+       * A função `atualizarTabelaGlobal` lê esse estado e aplica o filtro correspondente
+       * antes de renderizar a tabela, tornando os cards de resumo interativos.
+       */
       /*
        * NOTA SOBRE DADOS LEGADOS: O objeto `CONTATOS` abaixo é mantido como um "fallback" (plano B).
        * A função `carregarDadosDaUnidade` primeiro tenta carregar a equipe do Firebase.
@@ -2924,13 +2941,19 @@
       }
 
       // ⚡ OTIMIZAÇÃO: Debounce para evitar múltiplas requisições ao mudar filtros
-      let debounceTimerFiltro = null;
-      window.atualizarEscutaViagensDebounced = function() {
-        clearTimeout(debounceTimerFiltro);
-        debounceTimerFiltro = setTimeout(() => {
-          atualizarEscutaViagens();
-        }, 300); // Esperar 300ms após última mudança
-      };
+      // Cria uma versão com "debounce" de uma função, que aguarda um tempo para ser executada,
+      // evitando múltiplas chamadas em um curto período (ex: cliques rápidos no filtro).
+      function debounce(func, delayMs = 300) {
+        let timeoutId = null;
+        return function(...args) {
+          clearTimeout(timeoutId);
+          timeoutId = setTimeout(() => {
+            func.apply(this, args);
+          }, delayMs);
+        };
+      }
+      // Aplica o debounce na função que atualiza a escuta de viagens.
+      window.atualizarEscutaViagensDebounced = debounce(atualizarEscutaViagens, 300);
 
       function iniciarEscutaBanco() {
         console.log('Iniciando escuta - Regional:', AppState.regionalID);
@@ -3260,6 +3283,12 @@
         atualizarTabelaGlobal();
       };
 
+      window.filtrarPorStatus = (status) => {
+        AppState.filtroStatusAtual = status;
+        AppState.paginaAtual = 1; // Reseta a paginação ao mudar de filtro
+        atualizarTabelaGlobal();
+      };
+
       window.toggleDiariasPanel = () => {
         const panel = document.getElementById('diarias-historico-panel');
         const btn = document.getElementById('btn-toggle-diarias-panel');
@@ -3280,62 +3309,84 @@
         const viagensParaExibir = AppState.viagens;
 
         tb.innerHTML = ""; // Limpa a tabela de uma vez
-        
+
+        // 1. Processar viagens e calcular estatísticas
         let total = 0, pendentes = 0, concluidas = 0, canceladas = 0, faltaCiencia = 0;
-        let viagensFiltradasParaTabela = [];
-
-        if (viagensParaExibir.length === 0) {
-            const selectMes = document.getElementById('filtro-mes');
-            const mesSelecionado = selectMes.selectedIndex >= 0 ? selectMes.options[selectMes.selectedIndex].text : '';
-            const anoSelecionado = document.getElementById('filtro-ano').value || '';
-            tb.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 20px; font-style: italic;">Nenhuma viagem encontrada para ${mesSelecionado} de ${anoSelecionado}.</td></tr>`;
-            document.getElementById('dash-total').innerText = '0';
-            document.getElementById('dash-pendentes').innerText = '0';
-            document.getElementById('dash-concluidas').innerText = '0';
-            document.getElementById('dash-canceladas').innerText = '0';
-            document.getElementById('dash-ciencia').innerText = '0';
-            document.getElementById('paginacao-controles').classList.add('hidden');
-            return;
-        }
-
-        [...viagensParaExibir]
-            .sort((a, b) => new Date(b.saida) - new Date(a.saida))
-            .forEach(v => {
-                let status = v.status || STATUS.PENDENTE;
-                const agora = new Date();
-                const chegada = new Date(v.chegada);
-                if ((status === STATUS.CONFIRMADO || status === STATUS.EM_DESLOCAMENTO) && chegada < agora) {
-                    status = STATUS.FINALIZADO;
+        const viagensProcessadas = viagensParaExibir.map(v => {
+            let status = v.status || STATUS.PENDENTE;
+            const agora = new Date();
+            const chegada = new Date(v.chegada);
+            if ((status === STATUS.CONFIRMADO || status === STATUS.EM_DESLOCAMENTO) && chegada < agora) {
+                status = STATUS.FINALIZADO;
                 // Somente administradores ou motoristas disparam a atualização no banco para evitar múltiplas gravações simultâneas
                 if (AppState.user.podeTudo || AppState.user.isMotorista) {                    
                     update(getRegionalRef(DB_PATHS.VIAGENS, v.id), { status: STATUS.FINALIZADO });
                 }
-                }
+            }
+            v.statusCalculado = status;
 
-                v.statusCalculado = status;
-
-                // Contabiliza para o Dashboard
-                total++;
-                if (status === STATUS.PENDENTE || status === STATUS.CIENTE) pendentes++;
-                else if (status === STATUS.CONFIRMADO || status === STATUS.FINALIZADO || status === STATUS.EM_DESLOCAMENTO) concluidas++;
-                else if (status === STATUS.CANCELADO || status === STATUS.REJEITADO) canceladas++;
-                
-                if (!v.cienciaAdmin && status !== STATUS.CIENTE && status !== STATUS.CANCELADO && status !== STATUS.REJEITADO) faltaCiencia++;
-
-                // Ocultar registros finalizados, cancelados e rejeitados caso o botão de mostrar histórico não esteja ativo
-                if ((status === STATUS.FINALIZADO || status === STATUS.CANCELADO || status === STATUS.REJEITADO) && !AppState.mostrarHistoricoCompleto) {
-                    return;
-                }
-
-                viagensFiltradasParaTabela.push(v);
-            });
+            // Contabiliza para o Dashboard
+            total++;
+            if (status === STATUS.PENDENTE || status === STATUS.CIENTE) pendentes++;
+            else if (status === STATUS.CONFIRMADO || status === STATUS.FINALIZADO || status === STATUS.EM_DESLOCAMENTO) concluidas++;
+            else if (status === STATUS.CANCELADO || status === STATUS.REJEITADO) canceladas++;
             
+            if (!v.cienciaAdmin && status !== STATUS.CIENTE && status !== STATUS.CANCELADO && status !== STATUS.REJEITADO) faltaCiencia++;
+            
+            return v;
+        });
+
+        // 2. Atualizar DOM do Dashboard
         document.getElementById('dash-total').innerText = total;
         document.getElementById('dash-pendentes').innerText = pendentes;
         document.getElementById('dash-concluidas').innerText = concluidas;
         document.getElementById('dash-canceladas').innerText = canceladas;
         document.getElementById('dash-ciencia').innerText = faltaCiencia;
 
+        // 3. Aplicar filtro de status
+        let viagensFiltradas;
+        const filtro = AppState.filtroStatusAtual;
+        if (filtro === 'todos') {
+            viagensFiltradas = viagensProcessadas;
+        } else if (filtro === 'pendentes') {
+            viagensFiltradas = viagensProcessadas.filter(v => v.statusCalculado === STATUS.PENDENTE || v.statusCalculado === STATUS.CIENTE);
+        } else if (filtro === 'concluidas') {
+            viagensFiltradas = viagensProcessadas.filter(v => [STATUS.CONFIRMADO, STATUS.FINALIZADO, STATUS.EM_DESLOCAMENTO].includes(v.statusCalculado));
+        } else if (filtro === 'canceladas') {
+            viagensFiltradas = viagensProcessadas.filter(v => [STATUS.CANCELADO, STATUS.REJEITADO].includes(v.statusCalculado));
+        } else if (filtro === 'ciencia') {
+            viagensFiltradas = viagensProcessadas.filter(v => !v.cienciaAdmin && ![STATUS.CIENTE, STATUS.CANCELADO, STATUS.REJEITADO].includes(v.statusCalculado));
+        } else {
+            viagensFiltradas = viagensProcessadas; // Fallback
+        }
+
+        // 4. Aplicar filtro de "Mostrar Histórico"
+        const viagensFiltradasParaTabela = AppState.mostrarHistoricoCompleto 
+            ? viagensFiltradas 
+            : viagensFiltradas.filter(v => ![STATUS.FINALIZADO, STATUS.CANCELADO, STATUS.REJEITADO].includes(v.statusCalculado));
+
+        // 5. Ordenar a lista final para exibição
+        viagensFiltradasParaTabela.sort((a, b) => new Date(b.saida) - new Date(a.saida));
+
+        // 6. Atualizar UI de filtro (título e card ativo)
+        const filtroTitulos = {
+            todos: 'Exibindo: Todas as Viagens',
+            pendentes: 'Exibindo: Viagens Pendentes',
+            concluidas: 'Exibindo: Viagens Confirmadas / Finalizadas',
+            canceladas: 'Exibindo: Viagens Canceladas / Rejeitadas',
+            ciencia: 'Exibindo: Viagens Aguardando Ciência'
+        };
+        const tituloEl = document.getElementById('filtro-ativo-titulo');
+        tituloEl.textContent = filtroTitulos[filtro];
+        tituloEl.classList.remove('hidden');
+
+        document.querySelectorAll('.dash-card').forEach(card => card.classList.remove('active'));
+        const activeCard = document.getElementById(`dash-card-${filtro}`) || (filtro === 'ciencia' && document.getElementById('card-falta-ciencia'));
+        if (activeCard) {
+            activeCard.classList.add('active');
+        }
+
+        // 7. Lógica de Paginação
         const totalPaginas = Math.ceil(viagensFiltradasParaTabela.length / AppState.registrosPorPagina) || 1;
         if (AppState.paginaAtual > totalPaginas) AppState.paginaAtual = totalPaginas;
         if (AppState.paginaAtual < 1) AppState.paginaAtual = 1;
@@ -3357,10 +3408,18 @@
         const startIndex = (AppState.paginaAtual - 1) * AppState.registrosPorPagina;
         const viagensPaginadas = viagensFiltradasParaTabela.slice(startIndex, startIndex + AppState.registrosPorPagina);
 
+        // 8. Renderizar a tabela
         const fragment = document.createDocumentFragment();
 
         if (viagensPaginadas.length === 0) {
-            tb.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 20px; font-style: italic;">Nenhuma viagem para exibir nesta visualização.</td></tr>`;
+            if (viagensParaExibir.length === 0) { // Se a lista original já estava vazia
+                const selectMes = document.getElementById('filtro-mes');
+                const mesSelecionado = selectMes.selectedIndex >= 0 ? selectMes.options[selectMes.selectedIndex].text : '';
+                const anoSelecionado = document.getElementById('filtro-ano').value || '';
+                tb.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 20px; font-style: italic;">Nenhuma viagem encontrada para ${mesSelecionado} de ${anoSelecionado}.</td></tr>`;
+            } else { // Se a lista foi esvaziada pelo filtro
+                tb.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 20px; font-style: italic;">Nenhuma viagem encontrada para este status.</td></tr>`;
+            }
             return;
         }
 
