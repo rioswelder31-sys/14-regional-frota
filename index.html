@@ -1078,14 +1078,7 @@
       </div>
 
       <!-- NOVO: Painel de Histórico de Solicitações de Diárias -->
-      <div id="diarias-historico-panel" class="content-section hidden">
-        <h3 style="color: var(--primary);">🗓️ Histórico de Solicitações de Diárias</h3>
-        <div class="section-controls">
-          <p style="margin: 0; font-size: 0.9em; color: #666;">Registros de todas as diárias solicitadas através do sistema.</p>
-          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <button style="background: #17a2b8; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="imprimirHistoricoDiarias()">🖨️ Imprimir</button>
-            <button style="background: #6f42c1; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="exportarDiariasCSV()">📥 Exportar CSV</button>
-      <div id="diarias-historico-panel" class="folga-accordion neutral-accordion hidden">
+      <div id="diarias-historico-panel" class="content-section folga-accordion neutral-accordion hidden">
         <button class="folga-accordion-header" onclick="toggleFolgaPanel(this)" aria-expanded="false" aria-controls="diarias-historico-content">
             <span>🗓️ Histórico de Solicitações de Diárias</span>
             <span class="folga-accordion-icon">▼</span>
@@ -1099,24 +1092,6 @@
             </div>
           </div>
           <div class="table-responsive-container">
-              <table class="table-custom">
-                  <thead class="table-header-custom">
-                      <tr>
-                          <th style="padding:12px;">Data Solicitação</th>
-                          <th style="padding:12px;">Viagem (Solicitante)</th>
-                          <th style="padding:12px;">Processo SEI / Motorista</th>
-                          <th style="padding:12px; text-align:center;">Qtd.</th>
-                          <th style="padding:12px;">Valor Unitário</th>
-                          <th style="padding:12px;">Valor Total</th>
-                          <th style="padding:12px;">Status</th>
-                          <th style="padding:12px; text-align:center;">Ações</th>
-                      </tr>
-                  </thead>
-                  <tbody id="tb-corpo-diarias"></tbody>
-              </table>
-          </div>
-        </div>
-        <div class="table-responsive-container">
             <table class="table-custom">
                 <thead class="table-header-custom">
                     <tr>
