@@ -236,9 +236,36 @@
       .password-container { position: relative; width: 100%; margin-bottom: 10px; }
       .toggle-password { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #666; font-size: 1.3em; }
 
-      .folga-box { background-color: var(--blocked-bg); border: 1px solid var(--blocked); color: var(--blocked); padding: 15px; border-radius: 5px; margin-bottom: 20px; }
-      .folga-box input, .folga-box button { background: #ffffff; color: #333333; border: 1px solid #ccc; }
-      .folga-box input:focus, .folga-box button:focus { outline: none; box-shadow: 0 0 0 3px rgba(0, 156, 59, 0.15); }
+      /* Painel Recolhível de Indisponibilidade */
+      .folga-accordion {
+        border-radius: 5px;
+        overflow: hidden;
+        margin-bottom: 20px;
+        border: 1px solid var(--blocked);
+        background-color: var(--blocked-bg);
+      }
+      .folga-accordion-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        padding: 12px 15px;
+        background-color: transparent;
+        color: var(--blocked);
+        font-weight: bold;
+        cursor: pointer;
+        border: none;
+        text-align: left;
+        font-size: 1em;
+      }
+      .folga-accordion-header.active .folga-accordion-icon { transform: rotate(180deg); }
+      .folga-accordion-icon { transition: transform 0.3s ease; font-size: 0.8em; }
+      .folga-accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; padding: 0 15px; }
+      .folga-accordion-content.open { padding: 15px; border-top: 1px dashed var(--blocked); }
+      .folga-accordion-content input, .folga-accordion-content select { background: #ffffff; color: #333333; border: 1px solid #ccc; }
+      .folga-accordion-content input:focus, .folga-accordion-content select:focus { outline: none; box-shadow: 0 0 0 3px rgba(0, 156, 59, 0.15); }
+      html[data-theme="dark"] .folga-accordion-content input, html[data-theme="dark"] .folga-accordion-content select { background: #1A202C; color: #E2E8F0; border-color: #4A5568; }
+
       .roteiro-box { border: 1px solid #ccc; background: #fdfdfd; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
       .roteiro-controls { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 10px; }
       .roteiro-lista { width: 100%; border-collapse: collapse; font-size: 0.95em; margin-top: 10px; }
@@ -872,22 +899,23 @@
         </div>
       </div>
 
-      <div class="folga-box">
-        <h4>🛑 Motorista indisponível</h4>
-        <div style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; align-items: center;">
-          <label for="filtro-mes-folga" style="font-weight: 600; margin-bottom: 0;">Mês:</label>
-          <select id="filtro-mes-folga" onchange="renderFolgas()" style="padding: 6px; border-radius: 4px; border: 1px solid #ccc;"></select>
-          <label for="filtro-ano-folga" style="font-weight: 600; margin-bottom: 0;">Ano:</label>
-          <select id="filtro-ano-folga" onchange="renderFolgas()" style="padding: 6px; border-radius: 4px; border: 1px solid #ccc;"></select>
-        </div>
-        <div id="lista-folgas-visual"></div>
-        <div id="painel-add-folga" class="hidden" style="margin-top: 15px; border-top: 1px dashed #bbb; padding-top: 10px;">
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <input type="hidden" id="folga-id" />
-                <input type="datetime-local" id="folga-inicio" aria-label="Data e hora de início do bloqueio" style="flex:1"><input type="datetime-local" id="folga-fim" aria-label="Data e hora de fim do bloqueio" style="flex:1">
-                <input type="text" id="folga-motivo" aria-label="Motivo do bloqueio" placeholder="Motivo" style="flex:2">
-                <button id="btn-salvar-folga" style="background:white; color:black; width: auto; border:1px solid #ccc;" onclick="salvarFolga()">Bloquear</button>
-                <button id="btn-cancelar-folga" class="hidden" style="background:#f8d7da; color:#721c24; width: auto; border:1px solid #f5c6cb;" onclick="limparFormFolga()">Cancelar</button>
+      <div class="folga-accordion">
+        <button class="folga-accordion-header" onclick="toggleFolgaPanel(this)" aria-expanded="false" aria-controls="folga-content">
+            <span id="folga-header-summary">🟢 Motorista Disponível</span>
+            <span class="folga-accordion-icon">▼</span>
+        </button>
+        <div id="folga-content" class="folga-accordion-content">
+            <div style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; align-items: center;">
+                <label for="filtro-mes-folga" style="font-weight: 600; margin-bottom: 0;">Mês:</label>
+                <select id="filtro-mes-folga" onchange="renderFolgas()" style="padding: 6px; border-radius: 4px;"></select>
+                <label for="filtro-ano-folga" style="font-weight: 600; margin-bottom: 0;">Ano:</label>
+                <select id="filtro-ano-folga" onchange="renderFolgas()" style="padding: 6px; border-radius: 4px;"></select>
+            </div>
+            <div id="lista-folgas-visual"></div>
+            <div id="painel-add-folga" class="hidden" style="margin-top: 15px; border-top: 1px solid #bbb; padding-top: 10px;">
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <input type="hidden" id="folga-id" /><input type="datetime-local" id="folga-inicio" aria-label="Data e hora de início do bloqueio" style="flex:1" /><input type="datetime-local" id="folga-fim" aria-label="Data e hora de fim do bloqueio" style="flex:1" /><input type="text" id="folga-motivo" aria-label="Motivo do bloqueio" placeholder="Motivo" style="flex:2" /><button id="btn-salvar-folga" style="background:white; color:black; width: auto; border:1px solid #ccc;" onclick="salvarFolga()">Bloquear</button><button id="btn-cancelar-folga" class="hidden" style="background:#f8d7da; color:#721c24; width: auto; border:1px solid #f5c6cb;" onclick="limparFormFolga()">Cancelar</button>
+                </div>
             </div>
         </div>
       </div>
@@ -1637,6 +1665,7 @@
         viagens: [],
         folgas: [],
         dadosWppTemp: "",
+        folgaPanelAutoOpened: false,
         unidade: { motorista: {}, equipe: [], administradores: [] },
         viagensIniciaisCarregadas: false,
         mostrarHistoricoCompleto: false,
@@ -3289,6 +3318,20 @@
         atualizarTabelaGlobal();
       };
 
+      window.toggleFolgaPanel = (headerElement) => {
+        headerElement.classList.toggle('active');
+        const content = headerElement.nextElementSibling;
+        content.classList.toggle('open');
+        
+        headerElement.setAttribute('aria-expanded', headerElement.classList.contains('active'));
+
+        if (content.style.maxHeight) {
+            content.style.maxHeight = null;
+        } else {
+            content.style.maxHeight = content.scrollHeight + "px";
+        }
+      };
+
       window.toggleDiariasPanel = () => {
         const panel = document.getElementById('diarias-historico-panel');
         const btn = document.getElementById('btn-toggle-diarias-panel');
@@ -3896,8 +3939,12 @@
           alert('Erro ao excluir bloqueio: ' + (error.message || 'Sem permissão.'));
         });
       };
-      window.renderFolgas = () => { 
+      window.renderFolgas = () => {
         const container = document.getElementById('lista-folgas-visual'); 
+        const summaryEl = document.getElementById('folga-header-summary');
+        const headerEl = document.querySelector('.folga-accordion-header');
+        const contentEl = document.querySelector('.folga-accordion-content');
+        
         container.innerHTML = ""; 
         const fragment = document.createDocumentFragment();
         
@@ -3905,46 +3952,60 @@
         const anoFiltro = parseInt(document.getElementById('filtro-ano-folga').value, 10);
         const dataInicioMes = new Date(anoFiltro, mesFiltro, 1).getTime();
         const dataFimMes = new Date(anoFiltro, mesFiltro + 1, 0, 23, 59, 59, 999).getTime();
-
+        
         const folgasFiltradas = AppState.folgas.filter(f => {
             const iniF = parseFolgaDate(f.inicio, false).getTime();
             const fimF = parseFolgaDate(f.fim, true).getTime();
             return iniF <= dataFimMes && fimF >= dataInicioMes;
         }).sort((a, b) => parseFolgaDate(a.inicio, false) - parseFolgaDate(b.inicio, false));
-
+        
         if (folgasFiltradas.length === 0) {
             container.innerHTML = "<div style='font-style: italic; opacity: 0.8; margin-top: 10px;'>Nenhum bloqueio registrado para este mês.</div>";
-            return;
+        } else {
+            folgasFiltradas.forEach(f => { 
+                const div = document.createElement('div');
+                div.style.marginBottom = '5px';
+                const strong = document.createElement('strong');
+                strong.textContent = `🚫 ${parseFolgaDate(f.inicio, false).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })} a ${parseFolgaDate(f.fim, true).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}`;
+                div.appendChild(strong);
+                div.appendChild(document.createTextNode(`: ${f.motivo} `));
+                if (AppState.user.podeTudo || AppState.user.isMotorista) {
+                    const btnEdit = document.createElement('button');
+                    btnEdit.style.cssText = "background:none; color:inherit; width:auto; border:none; cursor:pointer; margin-right: 5px;";
+                    btnEdit.textContent = '✏️';
+                    btnEdit.title = "Editar bloqueio";
+                    btnEdit.setAttribute('aria-label', 'Editar bloqueio');
+                    btnEdit.onclick = () => prepararEdicaoFolga(f.id);
+                    div.appendChild(btnEdit);
+                    const button = document.createElement('button');
+                    button.style.cssText = "background:none; color:red; width:auto; border:none; cursor:pointer;";
+                    button.textContent = '🗑️';
+                    button.title = "Excluir bloqueio";
+                    button.setAttribute('aria-label', 'Excluir bloqueio');
+                    button.onclick = () => deletarFolga(f.id);
+                    div.appendChild(button);
+                }
+                fragment.appendChild(div);
+            }); 
+            container.appendChild(fragment);
         }
-
-        folgasFiltradas.forEach(f => { 
-          const div = document.createElement('div');
-          div.className = 'folga-item';
-
-          const strong = document.createElement('strong');
-          strong.textContent = `🚫 ${parseFolgaDate(f.inicio, false).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })} a ${parseFolgaDate(f.fim, true).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}`;
-          div.appendChild(strong);
-          div.appendChild(document.createTextNode(`: ${f.motivo} `));
-          if (AppState.user.podeTudo || AppState.user.isMotorista) {
-            const btnEdit = document.createElement('button');
-            btnEdit.style.cssText = "background:none; color:inherit; width:auto; border:none; cursor:pointer; margin-right: 5px;";
-            btnEdit.textContent = '✏️';
-            btnEdit.title = "Editar bloqueio";
-            btnEdit.setAttribute('aria-label', 'Editar bloqueio');
-            btnEdit.onclick = () => prepararEdicaoFolga(f.id);
-            div.appendChild(btnEdit);
-
-            const button = document.createElement('button');
-            button.style.cssText = "background:none; color:red; width:auto; border:none; cursor:pointer;";
-            button.textContent = '🗑️';
-            button.title = "Excluir bloqueio";
-            button.setAttribute('aria-label', 'Excluir bloqueio');
-            button.onclick = () => deletarFolga(f.id);
-            div.appendChild(button);
-          }
-          fragment.appendChild(div);
-        }); 
-        container.appendChild(fragment);
+        
+        const agora = new Date().getTime();
+        const bloqueiosAtivosHoje = AppState.folgas.some(f => {
+            const iniF = parseFolgaDate(f.inicio, false).getTime();
+            const fimF = parseFolgaDate(f.fim, true).getTime();
+            return agora >= iniF && agora <= fimF;
+        });
+        summaryEl.textContent = folgasFiltradas.length > 0 ? `🔴 Motorista Indisponível (${folgasFiltradas.length} bloqueio${folgasFiltradas.length > 1 ? 's' : ''} neste mês)` : '🟢 Motorista Disponível';
+        
+        if (bloqueiosAtivosHoje && !AppState.folgaPanelAutoOpened) {
+            if (!headerEl.classList.contains('active')) toggleFolgaPanel(headerEl);
+            AppState.folgaPanelAutoOpened = true;
+        }
+        
+        if (contentEl.style.maxHeight) {
+            contentEl.style.maxHeight = contentEl.scrollHeight + "px";
+        }
       };
 
       window.toggleMotivoVisibilidade = (el) => {
