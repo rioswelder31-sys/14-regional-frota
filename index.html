@@ -215,6 +215,8 @@
       
       .driver-badge { background: #e8f0fe; padding: 12px 15px; border-radius: 4px; margin-bottom: 20px; border-left: 5px solid var(--primary); font-size: 0.95em; display: flex; justify-content: space-between; align-items: center; }
       
+      .protected-info { filter: blur(5px); transition: filter 0.3s ease; cursor: help; }
+      .protected-info:hover, .protected-info:active { filter: blur(0); }
       .protected-info { filter: blur(5px); transition: filter 0.3s ease; cursor: help; border-radius: 3px; }
       .protected-info:hover, .protected-info:active, .protected-info:focus { filter: blur(0); }
 
@@ -265,25 +267,6 @@
       html[data-theme="dark"] .folga-accordion-content input, html[data-theme="dark"] .folga-accordion-content select { background: #1A202C; color: #E2E8F0; border-color: #4A5568; }
 
       .roteiro-box { border: 1px solid #ccc; background: #fdfdfd; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
-
-      /* Estilos para o novo painel recolhível de diárias */
-      .neutral-accordion {
-        margin-top: 25px;
-        border: 1px solid var(--border-color);
-        background-color: white;
-      }
-      .neutral-accordion .folga-accordion-header {
-        color: var(--primary);
-        font-size: 1.2rem;
-      }
-      .neutral-accordion .folga-accordion-content.open {
-        border-top: 1px solid var(--border-color);
-      }
-      html[data-theme="dark"] .neutral-accordion {
-        border-color: #4A5568;
-        background-color: #2D3748;
-      }
-
       .roteiro-controls { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 10px; }
       .roteiro-lista { width: 100%; border-collapse: collapse; font-size: 0.95em; margin-top: 10px; }
       .roteiro-lista td { padding: 6px 10px; border: 1px solid var(--border-color); }
@@ -1076,36 +1059,31 @@
       </div>
 
       <!-- NOVO: Painel de Histórico de Solicitações de Diárias -->
-      <div id="diarias-historico-panel" class="folga-accordion neutral-accordion hidden">
-        <button class="folga-accordion-header" onclick="toggleFolgaPanel(this)" aria-expanded="false" aria-controls="diarias-historico-content">
-            <span>🗓️ Histórico de Solicitações de Diárias</span>
-            <span class="folga-accordion-icon">▼</span>
-        </button>
-        <div id="diarias-historico-content" class="folga-accordion-content">
-          <div class="section-controls">
-            <p style="margin: 0; font-size: 0.9em; color: #666;">Registros de todas as diárias solicitadas através do sistema.</p>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-              <button style="background: #17a2b8; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="imprimirHistoricoDiarias()">🖨️ Imprimir</button>
-              <button style="background: #6f42c1; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="exportarDiariasCSV()">📥 Exportar CSV</button>
-            </div>
+      <div id="diarias-historico-panel" class="content-section hidden">
+        <h3 style="color: var(--primary);">🗓️ Histórico de Solicitações de Diárias</h3>
+        <div class="section-controls">
+          <p style="margin: 0; font-size: 0.9em; color: #666;">Registros de todas as diárias solicitadas através do sistema.</p>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button style="background: #17a2b8; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="imprimirHistoricoDiarias()">🖨️ Imprimir</button>
+            <button style="background: #6f42c1; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="exportarDiariasCSV()">📥 Exportar CSV</button>
           </div>
-          <div class="table-responsive-container">
-              <table class="table-custom">
-                  <thead class="table-header-custom">
-                      <tr>
-                          <th style="padding:12px;">Data Solicitação</th>
-                          <th style="padding:12px;">Viagem (Solicitante)</th>
-                          <th style="padding:12px;">Processo SEI / Motorista</th>
-                          <th style="padding:12px; text-align:center;">Qtd.</th>
-                          <th style="padding:12px;">Valor Unitário</th>
-                          <th style="padding:12px;">Valor Total</th>
-                          <th style="padding:12px;">Status</th>
-                          <th style="padding:12px; text-align:center;">Ações</th>
-                      </tr>
-                  </thead>
-                  <tbody id="tb-corpo-diarias"></tbody>
-              </table>
-          </div>
+        </div>
+        <div class="table-responsive-container">
+            <table class="table-custom">
+                <thead class="table-header-custom">
+                    <tr>
+                        <th style="padding:12px;">Data Solicitação</th>
+                        <th style="padding:12px;">Viagem (Solicitante)</th>
+                        <th style="padding:12px;">Processo SEI / Motorista</th>
+                        <th style="padding:12px; text-align:center;">Qtd.</th>
+                        <th style="padding:12px;">Valor Unitário</th>
+                        <th style="padding:12px;">Valor Total</th>
+                        <th style="padding:12px;">Status</th>
+                        <th style="padding:12px; text-align:center;">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tb-corpo-diarias"></tbody>
+            </table>
         </div>
       </div>
     </div>
@@ -1132,7 +1110,7 @@
         <p><strong>ACESSIBILIDADE 🔊:</strong> Os controles de ajuda (❓) e leitura automática por foco (⌨️🔊) estão localizados no painel superior. Ative a leitura por foco clicando no botão ou usando o atalho <strong>Ctrl+Alt+A</strong>. Uma vez ativa, o sistema lê em voz alta o conteúdo dos campos conforme você navega com a tecla TAB.</p>
 
         <h4>⚙️ GESTÃO DA UNIDADE E EQUIPE (ADMINISTRADORES)</h4>
-        <p><strong>CONFIGURAÇÕES E MEMBROS:</strong> Administradores têm acesso ao botão [⚙️ Gestão da Unidade]. Nele é possível: definir o <strong>valor de referência da diária (R$)</strong>, limpar o cache de distâncias, editar dados da equipe, definir o tipo de vínculo (Servidor, Defensor) e conceder a permissão de "Atuar como Motorista" a qualquer membro.</p>
+        <p><strong>CONFIGURAÇÕES E MEMBROS:</strong> Administradores e motoristas têm acesso ao botão [⚙️ Gestão da Unidade]. Nele é possível: definir o <strong>valor de referência da diária (R$)</strong>, limpar o cache de distâncias, editar dados da equipe, definir o tipo de vínculo (Servidor, Defensor) e conceder a permissão de "Atuar como Motorista" a qualquer membro.</p>
         <p><strong>MOTORISTA TITULAR:</strong> Dentro de "Meu Perfil", há uma seção administrativa dedicada para alterar o Motorista Oficial que recebe os alertas primários via WhatsApp na Regional.</p>
 
         <h4>📝 FLUXO DE AGENDAMENTO COM APROVAÇÃO DO ADMIN</h4>
@@ -1145,8 +1123,9 @@
         <p><strong>TRANSPARÊNCIA NAS DATAS:</strong> Se o horário ou data de uma viagem for editado após a criação, a data original continuará visível (riscada) logo abaixo da nova data.</p>
     
         <h4>🔄 SISTEMA DE REENVIO (ANTIPERDA)</h4>
-        <p><strong>PARA O MOTORISTA:</strong> Se a viagem estiver 🟡 Pendente ou 👁️ Ciente, o solicitante ou admin pode usar o botão azul [🔄 Reenviar] para enviar um novo aviso de revisão para o WhatsApp do motorista.</p>
-        <p><strong>PARA O SOLICITANTE:</strong> Se a viagem estiver 🟢 Confirmada, o motorista ou admin pode clicar no botão verde [🔄 Reenviar Confirmação] para mandar os dados da viagem novamente para o WhatsApp do solicitante.</p>
+        <p><strong>STATUS PENDENTE:</strong> Se a viagem estiver 🟡 Pendente, o admin pode usar [🔄 Reenviar] para enviar novo aviso de revisão.</p>
+        <p><strong>STATUS CIENTE:</strong> Se a viagem estiver 👁️ Ciente, pode reenviar a notificação para o motorista revisar novamente.</p>
+        <p><strong>PARA SOLICITANTE:</strong> Se a viagem estiver 🟢 Confirmada, o motorista/admin pode clicar em [🔄 Reenviar Confirmação] para mandar os dados de saída e rota direto para o Zap do servidor.</p>
     
         <h4>🛡️ REGRAS DE SEGURANÇA (ALGORITMO)</h4>
         <p><strong>BUFFER DE 5 MINUTOS:</strong> O sistema impede agendamentos "colados". É necessário um intervalo mínimo de 5 minutos entre o fim de uma viagem e o início da próxima para o mesmo veículo.</p>
@@ -1170,7 +1149,7 @@
 
         <h4>📊 GESTÃO E EXPORTAÇÃO</h4>
         <p><strong>VISUALIZAÇÃO LIMPA:</strong> Viagens finalizadas, canceladas ou rejeitadas ficam ocultas por padrão. Clique em [📂 Mostrar Histórico Completo] para exibi-las.</p>
-        <p><strong>PAGINAÇÃO:</strong> A tabela exibe até 10 agendamentos por página, melhorando a velocidade do sistema. Use os botões [Anterior/Próximo] no rodapé para navegar.</p>
+        <p><strong>PAGINAÇÃO:</strong> A tabela exibe até 20 agendamentos por página, melhorando a velocidade do sistema. Use os botões [Anterior/Próximo] no rodapé para navegar.</p>
         <p><strong>FILTROS:</strong> Seleção dinâmica por Mês e Ano. O sistema também exibe o dia da semana abreviado nas datas (ex: Seg, Qui).</p>
         <p><strong>IMPRESSÃO & EXPORTAÇÃO:</strong> Gere cópias limpas em PDF para murais ou exporte o histórico para Excel (CSV). A impressão respeita a opção de ocultar/mostrar o histórico completo.</p>
 
@@ -1178,7 +1157,7 @@
         
         <div class="accordion">
           <div class="accordion-item">
-            <button class="accordion-question" onclick="toggleAccordion(this)">Minhas viagens antigas sumiram. Onde estão?</button>
+            <button class="accordion-question" onclick="toggleAccordion(this)">Minhas viagens sumiram depois que aconteceram. Onde estão?</button>
             <div class="accordion-answer">
               <p><strong>R:</strong> Elas ficam ocultas automaticamente para manter sua tabela limpa e focada nas viagens futuras. Para visualizá-las, basta clicar no botão cinza <strong>[📂 Mostrar Histórico]</strong> localizado logo acima da tabela. Lembre-se também de usar os botões de <strong>Página Anterior/Próximo</strong> no rodapé da tabela caso haja muitas viagens!</p>
             </div>
@@ -1226,15 +1205,15 @@
             </div>
           </div>
           <div class="accordion-item">
-            <button class="accordion-question" onclick="toggleAccordion(this)">Salvei a viagem, o motorista já foi notificado?</button>
+            <button class="accordion-question" onclick="toggleAccordion(this)">Salvei a viagem, o motorista já está sabendo?</button>
             <div class="accordion-answer">
               <p><strong>R:</strong> Sim! O MOTORISTA recebe a notificação direto no WhatsApp assim que a viagem é criada. O administrador pode dar ciência na agenda apenas para controle interno, sem gerar novas mensagens. O motorista confirma ou rejeita a viagem, e você recebe a resposta diretamente dele.</p>
             </div>
           </div>
           <div class="accordion-item">
-            <button class="accordion-question" onclick="toggleAccordion(this)">Como reenviar uma notificação de viagem?</button>
+            <button class="accordion-question" onclick="toggleAccordion(this)">Como reenviar uma viagem para o administrador?</button>
             <div class="accordion-answer">
-              <p><strong>R:</strong> Na tabela "Agenda de Viagens", localize sua solicitação e clique no botão azul [🔄 Reenviar]. Isso enviará uma nova notificação para o <strong>motorista</strong> revisar a viagem. Se a viagem já estiver confirmada, o motorista/admin também pode usar o botão verde [🔄 Reenviar Confirmação] para notificar o <strong>solicitante</strong> novamente.</p>
+              <p><strong>R:</strong> Na tabela "Agenda de Viagens", localize sua solicitação e clique no botão [🔄 Reenviar]. Se estiver "Pendente", reenvia para o administrador revisar. Se estiver "Ciente", reenvia para o motorista. O sistema gerará uma nova notificação no WhatsApp.</p>
             </div>
           </div>
           <div class="accordion-item">
@@ -1531,13 +1510,7 @@
         const toast = document.createElement('div');
         toast.className = `toast toast-${tipo}`;
         let icone = tipo === 'success' ? '✅' : tipo === 'error' ? '❌' : 'ℹ️';
-        const spanIcon = document.createElement('span');
-        spanIcon.style.fontSize = '1.2em';
-        spanIcon.textContent = icone;
-        const spanMsg = document.createElement('span');
-        spanMsg.textContent = msg;
-        toast.appendChild(spanIcon);
-        toast.appendChild(spanMsg);
+        toast.innerHTML = `<span style="font-size: 1.2em;">${icone}</span><span>${msg}</span>`;
         container.appendChild(toast);
         
         requestAnimationFrame(() => { setTimeout(() => toast.classList.add('show'), 10); });
@@ -2637,8 +2610,12 @@
 
           AppState.user.email = user.email.toLowerCase();
           AppState.user.uid = user.uid;
-          // Permissões serão calculadas definitivamente após carregar dados da unidade
-          AppState.user.podeTudo = false;
+          const isWelder = AppState.user.email === "welder.rios@defensoria.ba.def.br";
+          const isEsther = AppState.user.email === "esther.bobbio@defensoria.ba.def.br";
+          const isSilvana = AppState.user.email === "silvana.cardoso@defensoria.ba.def.br";
+          
+          // Inicializa como falso - será atualizado após carregar dados da unidade
+          AppState.user.podeTudo = isWelder || (isEsther && AppState.regionalID === 'EUNAPOLIS') || (isSilvana && AppState.regionalID === 'PORTO SEGURO');          
 
           document.querySelectorAll('[id$="-screen"]').forEach(c => c.classList.add('hidden'));
           document.getElementById('app-screen').classList.remove('hidden');
@@ -2764,12 +2741,9 @@
         const pad = (n) => n.toString().padStart(2, '0');
         document.getElementById('saida').value = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
 
-        // Adiciona listeners para o painel de diárias (apenas uma vez para evitar acumulação)
-        if (!window._diariasListenersAdded) {
-          document.getElementById('saida').addEventListener('change', updateDiariasPanel);
-          document.getElementById('chegada').addEventListener('change', updateDiariasPanel);
-          window._diariasListenersAdded = true;
-        }
+        // Adiciona listeners para o painel de diárias
+        document.getElementById('saida').addEventListener('change', updateDiariasPanel);
+        document.getElementById('chegada').addEventListener('change', updateDiariasPanel);
         updateDiariasPanel(); // Chamada inicial
 
         // Atualiza o valor de referência da diária no painel
@@ -2780,10 +2754,9 @@
         document.getElementById('tel-motorista').innerText = AppState.unidade.motorista.tel ? `📱 ${AppState.unidade.motorista.tel}` : '';
 
         const ufo = document.getElementById('uf-origem'); const ufd = document.getElementById('uf-destino');
+        ufo.innerHTML = ""; ufd.innerHTML = "";
         const estados = ["AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT","PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO"];
-        let estadosHtml = '';
-        estados.forEach(uf => { estadosHtml += `<option value="${uf}" ${uf==='BA'?'selected':''}>${uf}</option>`; });
-        ufo.innerHTML = estadosHtml; ufd.innerHTML = estadosHtml;
+        estados.forEach(uf => { ufo.innerHTML += `<option value="${uf}" ${uf==='BA'?'selected':''}>${uf}</option>`; ufd.innerHTML += `<option value="${uf}" ${uf==='BA'?'selected':''}>${uf}</option>`; });
         carregarCidades('origem'); carregarCidades('destino');
       }
 
@@ -2792,9 +2765,7 @@
         const dl = document.getElementById(`list-${t}`); dl.innerHTML = "";
         const caps = {"AC":"RIO BRANCO","AL":"MACEIÓ","AM":"MANAUS","AP":"MACAPÁ","CE":"FORTALEZA","DF":"BRASÍLIA","ES":"VITÓRIA","GO":"GOIÂNIA","MA":"SÃO LUÍS","MG":"BELO HORIZONTE","MS":"CAMPO GRANDE","MT":"CUIABÁ","PA":"BELÉM","PB":"JOÃO PESSOA","PE":"RECIFE","PI":"TERESINA","PR":"CURITIBA","RJ":"RIO DE JANEIRO","RN":"NATAL","RO":"PORTO VELHO","RR":"BOA VISTA","RS":"PORTO ALEGRE","SC":"FLORIANÓPOLIS","SE":"ARACAJU","SP":"SÃO PAULO","TO":"PALMAS"};
         let cidades = (uf === 'BA' ? cidadesBA : (uf === 'ES' ? ["VITÓRIA", "VILA VELHA", "SERRA", "LINHARES", "SÃO MATEUS", "CARIACICA"] : [caps[uf] || ""]));
-        let cidadesHtml = '';
-        cidades.forEach(c => { cidadesHtml += `<option value="${c}">`; });
-        dl.innerHTML = cidadesHtml;
+        cidades.forEach(c => dl.innerHTML += `<option value="${c}">`);
         
         // Preenche a cidade de origem padrão para cada regional, se o campo estiver vazio.
         if(t === 'origem' && uf === 'BA' && !document.getElementById(`cidade-origem`).value) {
@@ -2928,21 +2899,21 @@
         const mesAtual = hoje.getMonth();
 
         const meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
-        let mesesHtml = '';
+        filtroMes.innerHTML = '';
+        if (filtroMesFolga) filtroMesFolga.innerHTML = '';
         meses.forEach((mes, index) => {
-            mesesHtml += `<option value="${index}" ${index === mesAtual ? 'selected' : ''}>${mes}</option>`;
+            filtroMes.innerHTML += `<option value="${index}" ${index === mesAtual ? 'selected' : ''}>${mes}</option>`;
+            if (filtroMesFolga) filtroMesFolga.innerHTML += `<option value="${index}" ${index === mesAtual ? 'selected' : ''}>${mes}</option>`;
         });
-        filtroMes.innerHTML = mesesHtml;
-        if (filtroMesFolga) filtroMesFolga.innerHTML = mesesHtml;
 
+        filtroAno.innerHTML = '';
+        if (filtroAnoFolga) filtroAnoFolga.innerHTML = '';
         // O ano a ser selecionado por padrão. Se o ano atual for menor que 2025, seleciona 2025.
         const anoPadrao = anoAtual < 2025 ? 2025 : anoAtual;
-        let anosHtml = '';
         for (let i = 2030; i >= 2025; i--) { // Loop de 2030 a 2025
-            anosHtml += `<option value="${i}" ${i === anoPadrao ? 'selected' : ''}>${i}</option>`;
+            filtroAno.innerHTML += `<option value="${i}" ${i === anoPadrao ? 'selected' : ''}>${i}</option>`;
+            if (filtroAnoFolga) filtroAnoFolga.innerHTML += `<option value="${i}" ${i === anoPadrao ? 'selected' : ''}>${i}</option>`;
         }
-        filtroAno.innerHTML = anosHtml;
-        if (filtroAnoFolga) filtroAnoFolga.innerHTML = anosHtml;
       }
 
       window.atualizarEscutaViagens = () => {
@@ -3047,6 +3018,15 @@
           const iniN = new Date(novaSaida).getTime();
           const fimN = new Date(novaChegada).getTime();
           
+          console.log('🔍 DEBUG CONFLITO:', {
+            novaSaida,
+            novaChegada,
+            iniN: new Date(iniN),
+            fimN: new Date(fimN),
+            ignorarId,
+            totalViagensAChecar: (viagensBuscadas || AppState.viagens).length
+          });
+          
           for(let f of AppState.folgas) {
               const iniF = parseFolgaDate(f.inicio, false).getTime();
               const fimF = parseFolgaDate(f.fim, true).getTime();
@@ -3061,15 +3041,29 @@
               const statusRejeitado = v.status === 'Rejeitado' || v.status === 'rejeitado' || v.status === STATUS.REJEITADO;
               const statusCancelado = v.status === 'Cancelado' || v.status === 'cancelado' || v.status === STATUS.CANCELADO;
               
-              if(statusRejeitado || statusCancelado) continue;
+              if(statusRejeitado || statusCancelado) {
+                console.log(`⏭️ Pulando viagem ${v.id} com status ${v.status}`);
+                continue;
+              }
               
               const iniE = new Date(v.saida).getTime();
               const fimE = new Date(v.chegada).getTime();
               
+              console.log(`📅 Comparando com viagem ${v.id}:`, {
+                status: v.status,
+                saida: v.saida,
+                chegada: v.chegada,
+                iniE: new Date(iniE),
+                fimE: new Date(fimE),
+                temSobreposicao: (iniN < (fimE + buffer) && fimN > (iniE - buffer))
+              });
+              
               if (iniN < (fimE + buffer) && fimN > (iniE - buffer)) {
+                console.log('⚠️ CONFLITO DETECTADO!', {novaViagem: {iniN: new Date(iniN), fimN: new Date(fimN)}, viagemExistente: {iniE: new Date(iniE), fimE: new Date(fimE)}});
                 return { tipo: 'viagem', solicitante: getNomeSolicitante(v) || 'Desconhecido' };
               }
           }
+          console.log('✅ Sem conflitos detectados');
           return null;
       }
 
@@ -3153,9 +3147,16 @@
             const startStr = `${dataInicioBusca.getFullYear()}-${pad(dataInicioBusca.getMonth() + 1)}-${pad(dataInicioBusca.getDate())}T00:00`;
             const endStr = `${dataFimBusca.getFullYear()}-${pad(dataFimBusca.getMonth() + 1)}-${pad(dataFimBusca.getDate())}T23:59`;
             
+            console.log('🚀 INICIANDO VALIDAÇÃO:', {startStr, endStr, saida});
+            
             const viagensQuery = query(getRegionalRef(DB_PATHS.VIAGENS), orderByChild('saida'), startAt(startStr), endAt(endStr));
             const snapshot = await get(viagensQuery);
             const viagensBanco = snapshot.val() ? Object.keys(snapshot.val()).map(k => ({...snapshot.val()[k], id: k})) : [];
+
+            console.log('📊 VIAGENS CARREGADAS DO BANCO:', {
+              total: viagensBanco.length,
+              viagens: viagensBanco.map(v => ({id: v.id, status: v.status, saida: v.saida, solicitante: v.solicitanteNome}))
+            });
 
             // ⚠️ NÃO USAR AppState.viagens pois pode estar filtrado por mês/ano da tabela
             // Usar APENAS as viagens do banco de dados com a busca de ±7 dias
@@ -3181,8 +3182,8 @@
         if(id) {
           const viagemAtual = AppState.viagens.find(v => v.id === id);
           dados.status = viagemAtual ? viagemAtual.status : STATUS.PENDENTE;
-          dados.saidaOriginal = viagemAtual?.saidaOriginal || viagemAtual?.saida || saida;
-          dados.chegadaOriginal = viagemAtual?.chegadaOriginal || viagemAtual?.chegada || chegada;
+          dados.saidaOriginal = viagemAtual.saidaOriginal || viagemAtual.saida;
+          dados.chegadaOriginal = viagemAtual.chegadaOriginal || viagemAtual.chegada;
         } else {
           dados.status = STATUS.PENDENTE;
           dados.saidaOriginal = saida;
@@ -3529,8 +3530,11 @@
 
                 // Célula Motivo
                 const tdMotivo = tr.insertCell();
+                tdMotivo.style.cssText = 'font-size:0.9em; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;';
                 tdMotivo.style.cssText = 'font-size:0.9em; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;';
                 tdMotivo.textContent = v.motivo || '';
+                tdMotivo.title = v.motivo || ''; // Exibe o motivo completo no hover
+                tdMotivo.title = 'Clique para ver o motivo completo';
                 tdMotivo.title = 'Clique ou pressione Enter para ver o motivo completo';
                 
                 // Melhoria de Acessibilidade: Tornar o motivo expansível pelo teclado
@@ -3993,14 +3997,23 @@
         }
         
         const agora = new Date().getTime();
-        const bloqueiosAtivosHoje = AppState.folgas.some(f => {
+        const bloqueioAtivoHoje = AppState.folgas.find(f => {
             const iniF = parseFolgaDate(f.inicio, false).getTime();
             const fimF = parseFolgaDate(f.fim, true).getTime();
             return agora >= iniF && agora <= fimF;
         });
-        summaryEl.textContent = folgasFiltradas.length > 0 ? `🔴 Motorista Indisponível (${folgasFiltradas.length} bloqueio${folgasFiltradas.length > 1 ? 's' : ''} neste mês)` : '🟢 Motorista Disponível';
         
-        if (bloqueiosAtivosHoje && !AppState.folgaPanelAutoOpened) {
+        if (bloqueioAtivoHoje) {
+            summaryEl.textContent = `🔴 Motorista Indisponível (Hoje: ${bloqueioAtivoHoje.motivo})`;
+        } else {
+            if (folgasFiltradas.length > 0) {
+                summaryEl.textContent = `🟢 Motorista Disponível (${folgasFiltradas.length} bloqueio${folgasFiltradas.length > 1 ? 's' : ''} agendado${folgasFiltradas.length > 1 ? 's' : ''} para este mês)`;
+            } else {
+                summaryEl.textContent = '🟢 Motorista Disponível';
+            }
+        }
+        
+        if (bloqueioAtivoHoje && !AppState.folgaPanelAutoOpened) {
             if (!headerEl.classList.contains('active')) toggleFolgaPanel(headerEl);
             AppState.folgaPanelAutoOpened = true;
         }
