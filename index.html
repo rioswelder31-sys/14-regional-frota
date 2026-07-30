@@ -3550,15 +3550,22 @@
       window.toggleDiariasPanel = () => {
         const panel = document.getElementById('diarias-historico-panel');
         const btn = document.getElementById('btn-toggle-diarias-panel');
-        const isHidden = panel.classList.toggle('hidden');
+        const isNowHidden = panel.classList.toggle('hidden');
 
-        if (isHidden) {
+        if (isNowHidden) {
             btn.innerHTML = '🗓️ Ver Histórico de Diárias';
             btn.style.background = '#34495e'; // Cor original
         } else {
             btn.innerHTML = '🗓️ Ocultar Histórico de Diárias';
             btn.style.background = '#16a085'; // Cor de "ativo"
-            panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+            // Expande o conteúdo se não estiver aberto, para garantir visibilidade
+            const header = panel.querySelector('.folga-accordion-header');
+            if (header && !header.classList.contains('active')) {
+                toggleFolgaPanel(header); // A função toggleFolgaPanel já faz o scroll
+            } else {
+                panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         }
       };
 
