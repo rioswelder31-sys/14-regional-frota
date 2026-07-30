@@ -8,13 +8,119 @@
     <link rel="manifest" href="manifest.json" />
     <meta id="theme-color-meta" name="theme-color" content="#009c3b" />
     <link rel="apple-touch-icon" href="logo-dpe-192.png" />
-    <script>
-      // Configura o Tailwind CSS para usar o atributo 'data-theme' para o modo escuro,
-      // garantindo que os prefixos 'dark:' funcionem corretamente com a nossa lógica de tema.
-      tailwind.config = { darkMode: ['attr', 'data-theme'] }
-    </script>
-    <script src="https://cdn.tailwindcss.com"></script>
     <style type="text/css">
+      /* ===== CLASSES UTILITÁRIAS (substituem TailwindCSS CDN) ===== */
+      .hidden { display: none !important; }
+      .block { display: block; }
+      .inline-block { display: inline-block; }
+      .flex { display: flex; }
+      .grid { display: grid; }
+      .relative { position: relative; }
+      .overflow-hidden { overflow: hidden; }
+      .flex-col { flex-direction: column; }
+      .flex-1 { flex: 1 1 0%; }
+      .flex-wrap { flex-wrap: wrap; }
+      .items-center { align-items: center; }
+      .justify-center { justify-content: center; }
+      .justify-between { justify-content: space-between; }
+      .text-center { text-align: center; }
+      .text-left { text-align: left; }
+      .font-bold { font-weight: 700; }
+      .font-semibold { font-weight: 600; }
+      .font-mono { font-family: ui-monospace, SFMono-Regular, monospace; }
+      .text-xs { font-size: 0.75rem; line-height: 1rem; }
+      .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+      .text-base { font-size: 1rem; line-height: 1.5rem; }
+      .text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+      .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+      .text-2xl { font-size: 1.5rem; line-height: 2rem; }
+      .text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
+      .text-5xl { font-size: 3rem; line-height: 1; }
+      .text-6xl { font-size: 3.75rem; line-height: 1; }
+      .text-\[11px\] { font-size: 11px; }
+      .w-full { width: 100%; }
+      .w-24 { width: 6rem; }
+      .h-1 { height: 0.25rem; }
+      .h-24 { height: 6rem; }
+      .max-w-5xl { max-width: 64rem; }
+      .min-h-screen { min-height: 100vh; }
+      .object-contain { object-fit: contain; }
+      .p-1 { padding: 0.25rem; }
+      .p-2 { padding: 0.5rem; }
+      .p-8 { padding: 2rem; }
+      .px-4 { padding-left: 1rem; padding-right: 1rem; }
+      .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+      .py-20 { padding-top: 5rem; padding-bottom: 5rem; }
+      .mb-2 { margin-bottom: 0.5rem; }
+      .mb-3 { margin-bottom: 0.75rem; }
+      .mb-4 { margin-bottom: 1rem; }
+      .mb-6 { margin-bottom: 1.5rem; }
+      .mb-8 { margin-bottom: 2rem; }
+      .mb-12 { margin-bottom: 3rem; }
+      .mt-1 { margin-top: 0.25rem; }
+      .mt-4 { margin-top: 1rem; }
+      .mt-6 { margin-top: 1.5rem; }
+      .mt-16 { margin-top: 4rem; }
+      .mx-auto { margin-left: auto; margin-right: auto; }
+      .my-4 { margin-top: 1rem; margin-bottom: 1rem; }
+      .gap-1 { gap: 0.25rem; }
+      .gap-8 { gap: 2rem; }
+      .border { border-width: 1px; border-style: solid; }
+      .border-t { border-top-width: 1px; border-top-style: solid; }
+      .border-r { border-right-width: 1px; border-right-style: solid; }
+      .border-l-4 { border-left-width: 4px; border-left-style: solid; }
+      .rounded { border-radius: 0.25rem; }
+      .rounded-lg { border-radius: 0.5rem; }
+      .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1); }
+      .transform { transform: translateZ(0); }
+      .transition-all { transition: all 0.15s ease; }
+      .duration-300 { transition-duration: 300ms; }
+      .opacity-70 { opacity: 0.7; }
+      .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      /* Cores */
+      .text-gray-500 { color: #6b7280; }
+      .text-gray-600 { color: #4b5563; }
+      .text-gray-700 { color: #374151; }
+      .text-gray-900 { color: #111827; }
+      .text-green-600 { color: #16a34a; }
+      .text-green-700 { color: #15803d; }
+      .text-blue-500 { color: #3b82f6; }
+      .text-blue-700 { color: #1d4ed8; }
+      .bg-white { background-color: #fff; }
+      .bg-gray-50 { background-color: #f9fafb; }
+      .bg-gray-100 { background-color: #f3f4f6; }
+      .bg-green-600 { background-color: #16a34a; }
+      .border-gray-100 { border-color: #f3f4f6; }
+      .border-gray-200 { border-color: #e5e7eb; }
+      .border-green-600 { border-color: #16a34a; }
+      .border-green-700 { border-color: #15803d; }
+      .bg-gradient-to-b { background-image: linear-gradient(to bottom, var(--tw-gradient-from), var(--tw-gradient-to)); }
+      .from-gray-100 { --tw-gradient-from: #f3f4f6; --tw-gradient-to: #f3f4f6; }
+      .to-gray-50 { --tw-gradient-to: #f9fafb; }
+      /* Valores arbitrários */
+      .bg-\[\#e9e9e9\] { background-color: #e9e9e9; }
+      .bg-\[\#cdcdcd\] { background-color: #cdcdcd; }
+      .border-\[\#b5b5b5\] { border-color: #b5b5b5; }
+      /* Dark mode via data-theme */
+      html[data-theme="dark"] .dark\:bg-\[\#232d3d\] { background-color: #232d3d; }
+      html[data-theme="dark"] .dark\:bg-\[\#1a202c\] { background-color: #1a202c; }
+      html[data-theme="dark"] .dark\:bg-\[\#2d3748\] { background-color: #2d3748; }
+      html[data-theme="dark"] .dark\:bg-gray-800 { background-color: #1f2937; }
+      html[data-theme="dark"] .dark\:text-gray-300 { color: #d1d5db; }
+      html[data-theme="dark"] .dark\:text-gray-400 { color: #9ca3af; }
+      html[data-theme="dark"] .dark\:text-green-300 { color: #86efac; }
+      html[data-theme="dark"] .dark\:text-blue-300 { color: #93c5fd; }
+      html[data-theme="dark"] .dark\:text-blue-400 { color: #60a5fa; }
+      html[data-theme="dark"] .dark\:border-gray-700 { border-color: #374151; }
+      html[data-theme="dark"] .dark\:hover\:text-blue-300:hover { color: #93c5fd; }
+      .hover\:text-blue-700:hover { color: #1d4ed8; }
+      /* Responsive */
+      @media (min-width: 768px) { .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .md\:h-28 { height: 7rem; } }
+      @media (min-width: 1024px) { .lg\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+      /* Animação fade-in-up */
+      @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+      .animate-fade-in-up { animation: fadeInUp 0.6s ease-out; }
       :root { --primary: #009c3b; --secondary: #f8f9fa; --success: #28a745; --whatsapp: #25d366; --danger: #dc3545; --warning: #ffc107; --dark-text: #333; --blocked: #721c24; --blocked-bg: #f8d7da; --border-color: #dee2e6; --table-hover: #f1f5f9; --table-header: #007b2e; }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html { height: 100%; width: 100%; margin: 0; padding: 0; }
@@ -760,6 +866,80 @@
         .main-form { padding: 15px; }
         .driver-badge { flex-direction: column; align-items: flex-start; gap: 8px; }
         button:not([class*="btn"]) { padding: 10px 8px; font-size: 0.85em; }
+      }
+
+      /* ===== RESPONSIVIDADE MOBILE: Tabela em Cards ===== */
+      @media (max-width: 768px) {
+        /* Tabela principal: layout de cards em mobile */
+        .table-custom thead.table-header-custom { display: none; }
+        .table-custom tbody tr {
+          display: block;
+          border: 1px solid var(--border-color);
+          border-radius: 8px;
+          padding: 12px 15px;
+          margin-bottom: 12px;
+          background: white;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        }
+        html[data-theme="dark"] .table-custom tbody tr {
+          background: #2D3748;
+        }
+        .table-custom td {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          padding: 6px 0;
+          border: none;
+          border-bottom: 1px solid #eee;
+          font-size: 0.95em;
+        }
+        html[data-theme="dark"] .table-custom td {
+          border-bottom-color: #4A5568;
+        }
+        .table-custom td:last-child {
+          border-bottom: none;
+          justify-content: flex-start;
+          flex-wrap: wrap;
+          gap: 6px;
+          padding-top: 10px;
+        }
+        .table-custom td::before {
+          content: attr(data-label);
+          font-weight: 700;
+          color: var(--primary);
+          margin-right: 10px;
+          flex-shrink: 0;
+          font-size: 0.85em;
+          text-transform: uppercase;
+        }
+        .table-custom td[style*="text-overflow"] {
+          white-space: normal !important;
+          max-width: none !important;
+          overflow: visible !important;
+        }
+        
+        /* Painel de Diárias: empilhar para 3 colunas em mobile */
+        .panel-diarias-header { grid-template-columns: 1fr !important; text-align: center; }
+        .panel-diarias-subfields { grid-template-columns: repeat(3, 1fr) !important; }
+        .panel-diarias-inputs { grid-template-columns: repeat(3, 1fr) !important; }
+        
+        /* Botões da Agenda: empilhar verticalmente */
+        .section-controls { flex-direction: column; align-items: stretch; }
+        .section-controls > div { width: 100%; }
+        .section-controls button { min-width: auto !important; width: 100%; }
+        
+        /* Folga: campos empilhados */
+        #painel-add-folga > div { flex-direction: column !important; }
+        #painel-add-folga input, #painel-add-folga button { flex: none !important; width: 100% !important; }
+      }
+
+      @media (max-width: 480px) {
+        /* Roteiro: empilhar origem/destino */
+        .roteiro-controls > div:first-child { grid-template-columns: 1fr !important; }
+        
+        /* Painel de diárias: coluna única com sub-grid de 3 */
+        .panel-diarias .grid { grid-template-columns: 1fr !important; }
+        .panel-diarias .grid.grid-cols-3 { grid-template-columns: repeat(3, 1fr) !important; }
       }
     </style>
   </head>
@@ -2560,7 +2740,7 @@
                 };
               }
               carregados.motorista = true;
-              configurarUI();
+              configurarUIDebounced();
               checarConclusao();
             }, { onlyOnce: false });
 
@@ -2580,7 +2760,7 @@
                 equipeAntigaArray.forEach(m => { if (!nomesFirebase.has(m.nome)) AppState.unidade.equipe.push(m); });
 
                 carregados.equipe = true;
-                configurarUI();
+                configurarUIDebounced();
                 if (AppState.viagensIniciaisCarregadas) atualizarTabelaGlobal();
                 if (document.getElementById('unit-settings-modal') && !document.getElementById('unit-settings-modal').classList.contains('hidden')) {
                     renderTeamList();
@@ -2592,7 +2772,7 @@
             onValue(getRegionalRef('config'), (snap) => {
               AppState.unidade.config = snap.val() || {};
               carregados.config = true;
-              configurarUI();
+              configurarUIDebounced();
               checarConclusao();
             });
 
@@ -2633,12 +2813,8 @@
 
           AppState.user.email = user.email.toLowerCase();
           AppState.user.uid = user.uid;
-          const isWelder = AppState.user.email === "welder.rios@defensoria.ba.def.br";
-          const isEsther = AppState.user.email === "esther.bobbio@defensoria.ba.def.br";
-          const isSilvana = AppState.user.email === "silvana.cardoso@defensoria.ba.def.br";
-          
-          // Inicializa como falso - será atualizado após carregar dados da unidade
-          AppState.user.podeTudo = isWelder || (isEsther && AppState.regionalID === 'EUNAPOLIS') || (isSilvana && AppState.regionalID === 'PORTO SEGURO');          
+          // Permissões serão calculadas definitivamente após carregar dados da unidade
+          AppState.user.podeTudo = false;
 
           document.querySelectorAll('[id$="-screen"]').forEach(c => c.classList.add('hidden'));
           document.getElementById('app-screen').classList.remove('hidden');
@@ -2747,6 +2923,13 @@
         }
       }
 
+      // ⚡ OTIMIZAÇÃO: Debounce para evitar múltiplas chamadas consecutivas
+      let _configurarUITimer = null;
+      function configurarUIDebounced() {
+        clearTimeout(_configurarUITimer);
+        _configurarUITimer = setTimeout(configurarUI, 100);
+      }
+
       function configurarUI() {
         const dlS = document.getElementById('lista-solicitantes'); 
         dlS.innerHTML = "";
@@ -2764,9 +2947,12 @@
         const pad = (n) => n.toString().padStart(2, '0');
         document.getElementById('saida').value = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
 
-        // Adiciona listeners para o painel de diárias
-        document.getElementById('saida').addEventListener('change', updateDiariasPanel);
-        document.getElementById('chegada').addEventListener('change', updateDiariasPanel);
+        // Adiciona listeners para o painel de diárias (apenas uma vez para evitar acumulação)
+        if (!window._diariasListenersAdded) {
+          document.getElementById('saida').addEventListener('change', updateDiariasPanel);
+          document.getElementById('chegada').addEventListener('change', updateDiariasPanel);
+          window._diariasListenersAdded = true;
+        }
         updateDiariasPanel(); // Chamada inicial
 
         // Atualiza o valor de referência da diária no painel
@@ -3384,16 +3570,14 @@
 
         // 1. Processar viagens e calcular estatísticas
         let total = 0, pendentes = 0, concluidas = 0, canceladas = 0, faltaCiencia = 0;
+        const viagensParaAtualizar = {};
+        const agora = new Date();
         const viagensProcessadas = viagensParaExibir.map(v => {
             let status = v.status || STATUS.PENDENTE;
-            const agora = new Date();
             const chegada = new Date(v.chegada);
             if ((status === STATUS.CONFIRMADO || status === STATUS.EM_DESLOCAMENTO) && chegada < agora) {
                 status = STATUS.FINALIZADO;
-                // Somente administradores ou motoristas disparam a atualização no banco para evitar múltiplas gravações simultâneas
-                if (AppState.user.podeTudo || AppState.user.isMotorista) {                    
-                    update(getRegionalRef(DB_PATHS.VIAGENS, v.id), { status: STATUS.FINALIZADO });
-                }
+                viagensParaAtualizar[v.id] = true;
             }
             v.statusCalculado = status;
 
@@ -3407,6 +3591,14 @@
             
             return v;
         });
+
+        // ⚡ OTIMIZAÇÃO: Batch update — atualiza todas as viagens expiradas em um único write
+        const idsParaFinalizar = Object.keys(viagensParaAtualizar);
+        if (idsParaFinalizar.length > 0 && (AppState.user.podeTudo || AppState.user.isMotorista)) {
+            const updates = {};
+            idsParaFinalizar.forEach(id => { updates[`${DB_PATHS.VIAGENS}/${id}/status`] = STATUS.FINALIZADO; });
+            update(getRegionalRef(), updates).catch(err => console.error('Erro ao finalizar viagens:', err));
+        }
 
         // 2. Atualizar DOM do Dashboard
         document.getElementById('dash-total').innerText = total;
@@ -3507,6 +3699,7 @@
 
                 // Célula Status
                 const tdStatus = tr.insertCell();
+                tdStatus.setAttribute('data-label', 'Status');
                 tdStatus.style.cssText = 'text-align:center; white-space:nowrap;';
                 const statusBadge = document.createElement('span');
                 statusBadge.className = `status-badge ${badgeCor}`;
@@ -3523,6 +3716,7 @@
 
                 // Célula Saída
                 const tdSaida = tr.insertCell();
+                tdSaida.setAttribute('data-label', 'Saída');
                 tdSaida.textContent = formataDataComDiaDaSemana(v.saida);
                 if (v.saidaOriginal && new Date(v.saida).getTime() !== new Date(v.saidaOriginal).getTime()) {
                     tdSaida.appendChild(document.createElement('br'));
@@ -3535,6 +3729,7 @@
 
                 // Célula Retorno
                 const tdRetorno = tr.insertCell();
+                tdRetorno.setAttribute('data-label', 'Chegada');
                 tdRetorno.textContent = formataDataComDiaDaSemana(v.chegada);
                 if (v.chegadaOriginal && new Date(v.chegada).getTime() !== new Date(v.chegadaOriginal).getTime()) {
                     tdRetorno.appendChild(document.createElement('br'));
@@ -3547,17 +3742,16 @@
 
                 // Célula Solicitante (usando textContent para segurança)
                 const tdSolicitante = tr.insertCell();
+                tdSolicitante.setAttribute('data-label', 'Solicitante');
                 const strongSolicitante = document.createElement('strong');
                 strongSolicitante.textContent = nomeParaExibir || 'N/D';
                 tdSolicitante.appendChild(strongSolicitante);
 
                 // Célula Motivo
                 const tdMotivo = tr.insertCell();
-                tdMotivo.style.cssText = 'font-size:0.9em; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;';
+                tdMotivo.setAttribute('data-label', 'Motivo');
                 tdMotivo.style.cssText = 'font-size:0.9em; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;';
                 tdMotivo.textContent = v.motivo || '';
-                tdMotivo.title = v.motivo || ''; // Exibe o motivo completo no hover
-                tdMotivo.title = 'Clique para ver o motivo completo';
                 tdMotivo.title = 'Clique ou pressione Enter para ver o motivo completo';
                 
                 // Melhoria de Acessibilidade: Tornar o motivo expansível pelo teclado
@@ -3575,6 +3769,7 @@
 
                 // Célula Roteiro
                 const tdRoteiro = tr.insertCell();
+                tdRoteiro.setAttribute('data-label', 'Roteiro');
                 tdRoteiro.style.cssText = 'font-size:0.9em;';
                 if (v.roteiroArray && v.roteiroArray.length > 0) {
                     const cidades = [];
@@ -3591,8 +3786,9 @@
                     tdRoteiro.textContent = v.trajetoExibicao || '';
                 }
 
-                // Célula Ações (innerHTML é seguro aqui pois createActionButtons não usa dados do usuário na estrutura HTML)
+                // Célula Ações
                 const tdAcoes = tr.insertCell();
+                tdAcoes.setAttribute('data-label', 'Ações');
                 tdAcoes.style.cssText = 'text-align:center; white-space:nowrap;';
                 tdAcoes.innerHTML = createActionButtons(v, status);
 
