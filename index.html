@@ -4992,7 +4992,6 @@
         printWindow.document.write('<html><head><title>Imprimindo Histórico de Diárias...</title></head><body><h1>Carregando dados das viagens...</h1><p>Por favor, aguarde.</p></body></html>');
 
         // --- Busca os dados das viagens que faltam (lógica de renderTabelaDiarias) ---
-        const sortedDiarias = [...AppState.diariasSolicitadas].sort((a, b) => new Date(b.dataSolicitacao) - new Date(a.dataSolicitacao));
         const sortedDiarias = diariasFiltradas.sort((a, b) => new Date(b.dataSolicitacao) - new Date(a.dataSolicitacao));
         const viagensMap = new Map(AppState.viagens.map(v => [v.id, v]));
         if (AppState.viagemRecemCriada) {
