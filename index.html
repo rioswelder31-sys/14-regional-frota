@@ -1099,7 +1099,7 @@
       </div>
 
       <div class="folga-accordion">
-        <button class="folga-accordion-header" onclick="toggleFolgaPanel(this)" aria-expanded="false" aria-controls="folga-content">
+        <button class="folga-accordion-header" aria-expanded="false" aria-controls="folga-content">
             <span id="folga-header-summary">🟢 Motorista Disponível</span>
             <span class="folga-accordion-icon">▼</span>
         </button>
@@ -1259,7 +1259,7 @@
 
       <!-- NOVO: Painel de Histórico de Solicitações de Diárias -->
       <div id="diarias-historico-panel" class="content-section folga-accordion neutral-accordion hidden">
-        <button class="folga-accordion-header" onclick="toggleFolgaPanel(this)" aria-expanded="false" aria-controls="diarias-historico-content">
+        <button class="folga-accordion-header" aria-expanded="false" aria-controls="diarias-historico-content">
             <span>🗓️ Histórico de Solicitações de Diárias</span>
             <span class="folga-accordion-icon">▼</span>
         </button>
@@ -3526,46 +3526,52 @@
         AppState.paginaAtual = 1; // Reseta a paginação ao mudar de filtro
         atualizarTabelaGlobal();
       };
+      
+      // --- Componente de Accordion Reutilizável ---
+      const toggleAccordion = (headerElement, options = { scroll: true }) => {
+          const content = headerElement.nextElementSibling;
+          if (!content) return;
 
-      window.toggleFolgaPanel = (headerElement) => {
-        headerElement.classList.toggle('active');
-        const content = headerElement.nextElementSibling;
-        const panel = headerElement.closest('.folga-accordion'); // Pega o painel pai
-        content.classList.toggle('open');
-        
-        headerElement.setAttribute('aria-expanded', headerElement.classList.contains('active'));
+          const isOpen = headerElement.classList.toggle('active');
+          content.classList.toggle('open', isOpen);
+          headerElement.setAttribute('aria-expanded', isOpen);
 
-        if (content.style.maxHeight) {
-            content.style.maxHeight = null;
-            // Se o painel está sendo fechado, não precisamos rolar
-        } else {
-            content.style.maxHeight = content.scrollHeight + "px";
-            // Se o painel está sendo aberto, rola para ele ficar visível
-            if (panel) {
-                panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-        }
+          if (isOpen) {
+              content.style.maxHeight = content.scrollHeight + "px";
+              if (options.scroll) {
+                  const panel = headerElement.closest('.folga-accordion');
+                  if (panel) {
+                      // Um pequeno delay para garantir que o painel está visível antes de rolar
+                      setTimeout(() => {
+                          panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }, 100);
+                  }
+              }
+          } else {
+              content.style.maxHeight = null;
+          }
       };
-
+      
       window.toggleDiariasPanel = () => {
         const panel = document.getElementById('diarias-historico-panel');
         const btn = document.getElementById('btn-toggle-diarias-panel');
         const isNowHidden = panel.classList.toggle('hidden');
 
         if (isNowHidden) {
-            btn.innerHTML = '🗓️ Ver Histórico de Diárias';
-            btn.style.background = '#34495e'; // Cor original
+          btn.innerHTML = '🗓️ Ver Histórico de Diárias';
+          btn.style.background = '#34495e'; // Cor original
         } else {
-            btn.innerHTML = '🗓️ Ocultar Histórico de Diárias';
-            btn.style.background = '#16a085'; // Cor de "ativo"
-            
-            // Expande o conteúdo se não estiver aberto, para garantir visibilidade
-            const header = panel.querySelector('.folga-accordion-header');
-            if (header && !header.classList.contains('active')) {
-                toggleFolgaPanel(header); // A função toggleFolgaPanel já faz o scroll
-            } else {
-                panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
+          btn.innerHTML = '🗓️ Ocultar Histórico de Diárias';
+          btn.style.background = '#16a085'; // Cor de "ativo"
+          
+          const header = panel.querySelector('.folga-accordion-header');
+          const isAccordionOpen = header && header.classList.contains('active');
+
+          if (header && !isAccordionOpen) {
+            toggleAccordion(header); // A nova função já lida com o scroll
+          } else if (panel) {
+            panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
         }
       };
 
@@ -5125,6 +5131,14 @@
         link.setAttribute('download', `historico-diarias-${new Date().toISOString().split('T')[0]}.csv`);
         link.click();
       };
+
+      // Função para inicializar todos os accordions na página
+      const initAccordions = () => {
+        document.querySelectorAll('.folga-accordion-header').forEach(header => {
+          header.addEventListener('click', () => toggleAccordion(header));
+        });
+      };
+      initAccordions(); // Inicializa os accordions
     </script>
     <script>
       if ('serviceWorker' in navigator) {
