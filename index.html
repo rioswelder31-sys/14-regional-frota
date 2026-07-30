@@ -1270,8 +1270,10 @@
             <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
               <label for="filtro-mes-diarias" style="font-weight: 600; margin-bottom: 0;">Mês:</label>
               <select id="filtro-mes-diarias" onchange="renderTabelaDiarias()" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></select>
+              <select id="filtro-mes-diarias" onchange="renderTabelaDiariasDebounced()" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></select>
               <label for="filtro-ano-diarias" style="font-weight: 600; margin-bottom: 0;">Ano:</label>
               <select id="filtro-ano-diarias" onchange="renderTabelaDiarias()" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></select>
+              <select id="filtro-ano-diarias" onchange="renderTabelaDiariasDebounced()" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></select>
             </div>
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
               <button style="background: #17a2b8; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;" onclick="imprimirHistoricoDiarias()">🖨️ Imprimir</button>
@@ -4305,6 +4307,8 @@
               renderTabelaDiarias();
           });
       }
+
+      window.renderTabelaDiariasDebounced = debounce(renderTabelaDiarias, 100); // 100ms debounce
 
       window.alterarStatusDiaria = (diariaId, novoStatus) => {
           if (!confirm(`Deseja alterar o status desta solicitação para "${novoStatus}"?`)) {
