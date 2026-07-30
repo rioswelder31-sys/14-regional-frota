@@ -4835,8 +4835,6 @@
           tbody.innerHTML = '';
           const fragment = document.createDocumentFragment();
 
-          if (AppState.diariasSolicitadas.length === 0) {
-              tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 20px; font-style: italic;">Nenhuma solicitação de diária encontrada.</td></tr>';
           const diariasFiltradas = AppState.diariasSolicitadas.filter(diaria => {
               const dataSolicitacao = new Date(diaria.dataSolicitacao);
               return dataSolicitacao.getMonth() === mesFiltro && dataSolicitacao.getFullYear() === anoFiltro;
@@ -4847,7 +4845,6 @@
               return;
           }
 
-          AppState.diariasSolicitadas
           diariasFiltradas
               .sort((a, b) => new Date(b.dataSolicitacao) - new Date(a.dataSolicitacao))
               .forEach(diaria => {
@@ -4967,8 +4964,6 @@
       };
 
       window.imprimirHistoricoDiarias = async () => {
-        if (!AppState.diariasSolicitadas || AppState.diariasSolicitadas.length === 0) {
-          alert('Nenhum registro de diária para imprimir!');
         const mesFiltro = parseInt(document.getElementById('filtro-mes-diarias')?.value, 10);
         const anoFiltro = parseInt(document.getElementById('filtro-ano-diarias')?.value, 10);
 
@@ -5155,8 +5150,6 @@
       };
 
       window.exportarDiariasCSV = () => {
-        if (!AppState.diariasSolicitadas || AppState.diariasSolicitadas.length === 0) {
-          alert('Nenhum registro de diária para exportar!');
         const mesFiltro = parseInt(document.getElementById('filtro-mes-diarias')?.value, 10);
         const anoFiltro = parseInt(document.getElementById('filtro-ano-diarias')?.value, 10);
 
@@ -5170,7 +5163,6 @@
           return;
         }
         let csv = 'Data Solicitação,Viagem (Solicitante),Motorista,Qtd. Diárias,Valor Unitário,Valor Total,Status\n';
-        AppState.diariasSolicitadas
         diariasFiltradas
           .sort((a, b) => new Date(b.dataSolicitacao) - new Date(a.dataSolicitacao))
           .forEach(diaria => {
