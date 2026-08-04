@@ -1217,7 +1217,7 @@
             <div class="p-1"><button type="button" class="btn-calcular-diaria" onclick="calcularDiariasManual()">Calcular Diária</button></div>
           </div>
           <div class="diarias-action-row">
-            <button type="button" class="btn-imprimir-diaria" onclick="imprimirSolicitacaoDiaria()">🖨️ Imprimir Solicitação de Diária</button>
+            <button type="button" class="btn-imprimir-diaria" onclick="imprimirSolicitacaoDiaria()" title="Permite imprimir o formulário mesmo sem salvar a viagem, desde que o roteiro e os campos obrigatórios estejam preenchidos.">🖨️ Imprimir Solicitação de Diária</button>
           </div>
         </div>
       </div>
@@ -2269,6 +2269,11 @@
       };
 
       window.calcularDiariasManual = async () => {
+        if (!verificarCamposObrigatoriosViagem()) {
+          showToast("Preencha todos os campos obrigatórios e o roteiro para calcular a diária.", "info");
+          return;
+        }
+
         const saidaStr = document.getElementById('saida').value;
         const chegadaStr = document.getElementById('chegada').value;
         if (!saidaStr || !chegadaStr) {
@@ -3322,12 +3327,28 @@
         AppState.roteiroAtual = [];
         AppState.viagemRecemCriada = null; // Limpa a viagem temporária
         renderRoteiro();
+        updateDistanciaTotal();
+        document.getElementById('diaria-qtd').value = '';
+        document.getElementById('diaria-total-val').innerText = 'R$ 0,00';
+        document.getElementById('diaria-tempo-total').textContent = '0h 0m';
         document.getElementById("btn-whatsapp-manual").classList.add("hidden");
         const btnSave = document.getElementById("btn-save");
         btnSave.classList.remove("hidden");
         btnSave.disabled = false;
         btnSave.innerText = '✅ Salvar Solicitação';
         document.getElementById('form-title').innerText = '📝 Nova Solicitação de Agendamento';
+      }
+
+      function verificarCamposObrigatoriosViagem() {
+        const solicitanteNome = document.getElementById("solicitante").value;
+        const saida = document.getElementById("saida").value;
+        const chegada = document.getElementById("chegada").value;
+        const motivo = document.getElementById("motivo").value.trim();
+
+        if (!solicitanteNome || !saida || !chegada || !motivo) return false;
+        if (AppState.roteiroAtual.length === 0) return false;
+        if (new Date(chegada) < new Date(saida)) return false;
+        return true;
       }
 
       window.abrirNovaSolicitacao = () => {
@@ -3469,19 +3490,9 @@
               alert("Telefone do motorista não encontrado. Verifique as configurações.");
             }
 
-            // Mantém o formulário em modo de edição para permitir a impressão da diária
-            document.getElementById('edit-id').value = newRef.key;
-            document.getElementById('form-title').innerText = '📝 Solicitação Salva (Pronta para Diária)';
-            btnSave.innerText = '✅ Salvar Alterações';
-            btnSave.disabled = false;
-            
-            const diariasPanel = document.getElementById('diarias-panel');
-            if (diariasPanel && !diariasPanel.classList.contains('hidden')) {
-                diariasPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                showToast("Viagem salva! Calcule e imprima a diária abaixo.", "success");
-            } else {
-                showToast("Viagem salva com sucesso!", "success");
-            }
+            // Após envio ao motorista, limpa o formulário para nova solicitação
+            resetForm();
+            showToast("Viagem enviada! O formulário foi limpo para uma nova solicitação.", "success");
           }
         } catch (error) {
             console.error(error);
@@ -4359,30 +4370,41 @@
         const tempoTotal = document.getElementById('diaria-tempo-total')?.textContent || '0h 0m';
 
         const viagemId = document.getElementById('edit-id').value;
-        if (!viagemId) {
-            return showToast("A viagem precisa ser salva antes de solicitar a diária.", "info");
-        }
-        let viagemAtual = AppState.viagens.find(v => v.id === viagemId);
-
-        // Fallback: Se a viagem não for encontrada na lista principal (devido a race condition do listener),
-        // verifica se ela é a que acabou de ser criada e está no estado temporário.
-        if (!viagemAtual && AppState.viagemRecemCriada && AppState.viagemRecemCriada.id === viagemId) {
-            viagemAtual = AppState.viagemRecemCriada;
-        }
-
-        if (!viagemAtual) {
-            return showToast("Dados da viagem não encontrados. Isso pode ocorrer por um atraso na sincronização. Tente novamente em alguns segundos.", "error");
+        if (!verificarCamposObrigatoriosViagem()) {
+            return showToast("Preencha todos os campos obrigatórios e o roteiro para imprimir a diária.", "info");
         }
         if (!qtdDiarias || parseFloat(qtdDiarias.replace(',', '.')) <= 0) {
             return showToast("Calcule a diária antes de solicitar. A quantidade deve ser maior que zero.", "info");
         }
 
-        if (!confirm("Isso irá registrar a solicitação de diária no sistema e abrir a janela de impressão. Deseja continuar?")) {
+        let viagemAtual = null;
+        if (viagemId) {
+            viagemAtual = AppState.viagens.find(v => v.id === viagemId);
+
+            // Fallback: Se a viagem não for encontrada na lista principal (devido a race condition do listener),
+            // verifica se ela é a que acabou de ser criada e está no estado temporário.
+            if (!viagemAtual && AppState.viagemRecemCriada && AppState.viagemRecemCriada.id === viagemId) {
+                viagemAtual = AppState.viagemRecemCriada;
+            }
+        }
+
+        if (!viagemAtual) {
+            viagemAtual = {
+                solicitanteNome: document.getElementById('solicitante').value,
+                saida: saidaStr,
+                chegada: chegadaStr,
+                trajetoExibicao: AppState.roteiroAtual.map(t => `🔹 ${t.origem} → ${t.destino}`).join("\n"),
+                roteiroArray: AppState.roteiroAtual
+            };
+        }
+
+        if (!confirm("Isso irá abrir a janela de impressão do formulário de diária. Deseja continuar?")) {
             return;
         }
 
-        // --- Lógica para salvar no Firebase ---
-        const dadosDiaria = {
+        // --- Lógica para salvar no Firebase, apenas quando a viagem já estiver salva ---
+        if (viagemId) {
+          const dadosDiaria = {
             viagemId: viagemId,
             viagemSolicitanteNome: viagemAtual.solicitanteNome,
             motoristaNome: AppState.unidade?.motorista?.nome || 'N/D',
@@ -4395,11 +4417,12 @@
             valorTotal: parseFloat(valorTotal.replace('R$', '').replace('.', '').replace(',', '.').trim()),
             status: 'Solicitada',
             solicitadoPor: AppState.user.email
-        };
+          };
 
-        await set(getRegionalRef('diarias_solicitadas', viagemId), dadosDiaria).catch(error => {
+          await set(getRegionalRef('diarias_solicitadas', viagemId), dadosDiaria).catch(error => {
             showToast("Falha ao registrar a solicitação de diária no banco de dados.", "error");
-        });
+          });
+        }
 
         const motoristaNome = AppState.unidade?.motorista?.nome || AppState.unidade?.motoristaTitular?.nome || 'N/D';
         const funcaoBeneficiario = 'MOTORISTA';
