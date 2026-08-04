@@ -1202,6 +1202,10 @@
             <div class="p-2 border-r border-[#b5b5b5] text-left text-[11px] dark:text-gray-300">R$ <span id="diaria-ref-val">404,00</span></div>
             <div class="p-2 font-bold text-green-700 dark:text-green-300 text-sm" id="diaria-txt-dist">0 km</div>
           </div>
+          <div class="grid grid-cols-2 bg-white dark:bg-[#1a202c] items-center text-center">
+            <div class="p-2 border-r border-[#b5b5b5] text-left text-[11px] dark:text-gray-300">Tempo Total de Deslocamento</div>
+            <div class="p-2 font-bold text-blue-700 dark:text-blue-300 text-sm" id="diaria-tempo-total">0h 0m</div>
+          </div>
           <div class="grid grid-cols-3 bg-[#cdcdcd] dark:bg-[#1a202c] border-t border-[#b5b5b5] font-bold text-center">
             <div class="p-2 border-r border-[#b5b5b5]">Quantidade de Diárias</div>
             <div class="p-2 border-r border-[#b5b5b5]">Valor Total</div>
@@ -2927,6 +2931,23 @@
           document.getElementById('diaria-chegada-hora').value = '';
           document.getElementById('diaria-chegada-semana').value = '';
         }
+
+        const tempoTotal = calcularTempoTotalDeslocamento(saidaStr, chegadaStr);
+        document.getElementById('diaria-tempo-total').textContent = tempoTotal;
+      }
+
+      function calcularTempoTotalDeslocamento(saidaStr, chegadaStr) {
+        if (!saidaStr || !chegadaStr) return '0h 0m';
+        const dataSaida = new Date(saidaStr);
+        const dataChegada = new Date(chegadaStr);
+        if (isNaN(dataSaida.getTime()) || isNaN(dataChegada.getTime())) return '0h 0m';
+
+        let diferencaMinutos = Math.round((dataChegada.getTime() - dataSaida.getTime()) / 60000);
+        if (diferencaMinutos <= 0) return '0h 0m';
+
+        const horas = Math.floor(diferencaMinutos / 60);
+        const minutos = diferencaMinutos % 60;
+        return `${horas}h ${minutos}m`;
       }
 
       // ⚡ OTIMIZAÇÃO: Debounce para evitar múltiplas chamadas consecutivas
@@ -4335,6 +4356,7 @@
         const chegadaHora = document.getElementById('diaria-chegada-hora').value || '';
         const chegadaSemana = document.getElementById('diaria-chegada-semana').value || '';
         const distanciaTotal = document.getElementById('diaria-txt-dist').textContent || '0 km';
+        const tempoTotal = document.getElementById('diaria-tempo-total')?.textContent || '0h 0m';
 
         const viagemId = document.getElementById('edit-id').value;
         if (!viagemId) {
@@ -4552,6 +4574,10 @@
                     <tr>
                       <td colspan="3" style="text-align: right; font-weight: bold; background: #e9f5eb;">Distância Total:</td>
                       <td style="text-align: center; font-weight: bold; background: #e9f5eb;">${escapeHtml(distanciaTotal)}</td>
+                    </tr>
+                    <tr>
+                      <td colspan="3" style="text-align: right; font-weight: bold; background: #e9f5eb;">Tempo Total de Deslocamento:</td>
+                      <td style="text-align: center; font-weight: bold; background: #e9f5eb;">${escapeHtml(tempoTotal)}</td>
                     </tr>
                   </tfoot>
                 </table>
