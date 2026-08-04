@@ -3612,7 +3612,8 @@
           const isAccordionOpen = header && header.classList.contains('active');
 
           if (header && !isAccordionOpen) {
-            toggleAccordion(header); // A nova função já lida com o scroll
+            // Aguarda o painel tornar-se visível para calcular corretamente a altura do conteúdo.
+            setTimeout(() => toggleAccordion(header), 50);
           } else if (panel) {
             panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }
