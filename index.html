@@ -4904,12 +4904,24 @@
           const anoFiltro = parseInt(document.getElementById('filtro-ano-diarias')?.value, 10);
           if (isNaN(mesFiltro) || isNaN(anoFiltro)) return;
 
-          tbody.innerHTML = '';
+          tbody.innerHTML = ''; // Limpa a tabela
           const fragment = document.createDocumentFragment();
 
+          // Define o início e o fim do mês/ano selecionado no filtro
+          const inicioMesFiltro = new Date(anoFiltro, mesFiltro, 1);
+          const fimMesFiltro = new Date(anoFiltro, mesFiltro + 1, 0, 23, 59, 59);
+
           const diariasFiltradas = AppState.diariasSolicitadas.filter(diaria => {
-              const dataSolicitacao = new Date(diaria.dataSolicitacao);
-              return dataSolicitacao.getMonth() === mesFiltro && dataSolicitacao.getFullYear() === anoFiltro;
+              // Garante que as datas da viagem existem antes de criar objetos Date
+              if (!diaria.viagemSaida || !diaria.viagemChegada) return false;
+
+              const dataViagemSaida = new Date(diaria.viagemSaida);
+              const dataViagemChegada = new Date(diaria.viagemChegada);
+
+              // Lógica de sobreposição: a viagem deve ser exibida se qualquer parte dela
+              // ocorrer dentro do mês selecionado no filtro.
+              // (Início da Viagem <= Fim do Mês) E (Fim da Viagem >= Início do Mês)
+              return dataViagemSaida.getTime() <= fimMesFiltro.getTime() && dataViagemChegada.getTime() >= inicioMesFiltro.getTime();
           });
 
           if (diariasFiltradas.length === 0) {
@@ -4917,11 +4929,9 @@
               return;
           }
 
-          diariasFiltradas
-              .sort((a, b) => new Date(b.dataSolicitacao) - new Date(a.dataSolicitacao))
-              .forEach(diaria => {
+          diariasFiltradas // Ordena pela data de saída da viagem, da mais recente para a mais antiga
+              .sort((a, b) => new Date(b.viagemSaida) - new Date(a.viagemSaida)).forEach(diaria => {
                   const tr = document.createElement('tr');
-
                   // --- LÓGICA PARA COLORIR LINHA DE VIAGEM FINALIZADA ---
                   // Procura a viagem correspondente na lista de viagens já carregada.
                   const viagem = AppState.viagens.find(v => v.id === diaria.viagemId);
