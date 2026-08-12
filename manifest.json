@@ -18,11 +18,6 @@
       "src": "logo-dpe-512.png",
       "sizes": "512x512",
       "type": "image/png"
-    },
-    {
-      "src": "logo-dpe.png",
-      "type": "image/png",
-      "purpose": "any"
     }
   ]
 }
