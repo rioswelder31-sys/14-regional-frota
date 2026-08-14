@@ -5310,6 +5310,7 @@
         box-shadow: 0 2px 5px rgba(0,0,0,0.2); 
         align-items: center;
         gap: 6px;
+        width: max-content; /* Garante que não estique */
       }
       #btnVoltarTopo:hover {
         background-color: #f1f1f1; 
@@ -5325,7 +5326,7 @@
       window.addEventListener('scroll', function() {
         const btn = document.getElementById("btnVoltarTopo");
         if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
-          btn.style.display = "flex";
+          btn.style.display = "inline-flex";
         } else {
           btn.style.display = "none";
         }
