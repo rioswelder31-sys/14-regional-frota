@@ -5350,6 +5350,10 @@
             background: #005a2b;
             color: white;
           }
+          .bdv-btn-clear {
+            background: #dc3545;
+            color: white;
+          }
           .bdv-header-title {
             text-align: center;
             border: 2px solid #000;
@@ -5453,6 +5457,7 @@
           <button class="bdv-btn bdv-btn-tab bdv-tab-active" id="bdv-tab-btn-estadual" onclick="switchBDVTab('estadual')">BDV Viagem Estadual</button>
           <button class="bdv-btn bdv-btn-tab" id="bdv-tab-btn-local" onclick="switchBDVTab('local')">BDV Demandas Locais + Checklist</button>
           <button class="bdv-btn bdv-btn-print" onclick="imprimirBDV()">🖨️ Imprimir PDF</button>
+          <button class="bdv-btn bdv-btn-clear" onclick="limparBDV()">🧹 Limpar</button>
         </div>
 
         <!-- ======================================================== -->
@@ -5807,7 +5812,23 @@
         printWindow.document.write('</body></html>');
         printWindow.document.close();
         printWindow.focus();
-        setTimeout(() => { printWindow.print(); }, 300);
+        setTimeout(() => { 
+          printWindow.print();
+          // Limpa automaticamente após a impressão
+          limparBDV();
+        }, 300);
+      };
+
+      window.limparBDV = () => {
+        const modal = document.getElementById('bdv-modal-content');
+        if (!modal) return;
+        modal.querySelectorAll('input[type="text"]').forEach(input => { input.value = ''; });
+        modal.querySelectorAll('textarea').forEach(ta => { ta.value = ''; });
+        modal.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.checked = false; });
+        modal.querySelectorAll('select').forEach(sel => { sel.selectedIndex = 0; });
+        if (typeof showToast === 'function') {
+          showToast('BDV limpo com sucesso!', 'success');
+        }
       };
     </script>
 
