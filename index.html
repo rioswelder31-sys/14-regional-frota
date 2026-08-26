@@ -5434,6 +5434,32 @@
           html[data-theme="dark"] table.bdv-table input[type="text"] { color: #E2E8F0; }
           html[data-theme="dark"] .bdv-signature-box { border-color: #718096; color: #E2E8F0; }
 
+          /* Mobile responsiveness for BDV */
+          @media (max-width: 768px) {
+            .bdv-form-grid {
+              display: flex;
+              flex-direction: column;
+            }
+            .bdv-tab-local-container {
+              flex-direction: column !important;
+            }
+            table.bdv-table {
+              display: block;
+              overflow-x: auto;
+              white-space: nowrap;
+            }
+            .bdv-actions {
+              flex-direction: column;
+            }
+            .bdv-actions .bdv-btn {
+              width: 100% !important;
+            }
+            #bdv-modal-content {
+              padding: 15px;
+              padding-top: 40px;
+            }
+          }
+
           @media print {
             body > *:not(#bdv-print-area) { display: none !important; }
             #bdv-print-area {
@@ -5602,7 +5628,7 @@
             </div>
           </div>
 
-          <div style="display: flex; gap: 10px;">
+          <div class="bdv-tab-local-container" style="display: flex; gap: 10px;">
             
             <!-- Roteiro de Viagens Locais -->
             <div style="flex: 2;">
