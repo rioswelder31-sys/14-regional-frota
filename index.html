@@ -417,7 +417,7 @@
       .btn-wpp-notif { background: var(--whatsapp); color: white; animation: pulse-wpp 2s infinite; font-size: 1.1em; padding: 15px; }
 
       /* Help Modal */
-      #help-modal, #profile-modal, #unit-settings-modal {
+      #help-modal, #profile-modal, #unit-settings-modal, #bdv-modal {
         position: fixed;
         top: 0;
         left: 0;
@@ -548,7 +548,8 @@
       html[data-theme="dark"] .card-hover,
       html[data-theme="dark"] #profile-modal-content, 
       html[data-theme="dark"] #unit-settings-modal-content,
-      html[data-theme="dark"] #help-modal-content {
+      html[data-theme="dark"] #help-modal-content,
+      html[data-theme="dark"] #bdv-modal-content {
         background: #2D3748;
         color: var(--dark-text);
         border-color: #4A5568;
@@ -711,8 +712,8 @@
       html[data-theme="dark"] .accordion-question:hover { background-color: #4A5568; }
       html[data-theme="dark"] .accordion-answer { background-color: #1A202C; }
       html[data-theme="dark"] #help-modal-content strong { color: var(--dark-text); }
-      html[data-theme="dark"] #profile-modal-close, html[data-theme="dark"] #help-modal-close, html[data-theme="dark"] #unit-settings-modal-close { color: #A0AEC0; }
-      html[data-theme="dark"] #profile-modal-close:hover, html[data-theme="dark"] #help-modal-close:hover, html[data-theme="dark"] #unit-settings-modal-close:hover { color: var(--dark-text); }
+      html[data-theme="dark"] #profile-modal-close, html[data-theme="dark"] #help-modal-close, html[data-theme="dark"] #unit-settings-modal-close, html[data-theme="dark"] #bdv-modal-close { color: #A0AEC0; }
+      html[data-theme="dark"] #profile-modal-close:hover, html[data-theme="dark"] #help-modal-close:hover, html[data-theme="dark"] #unit-settings-modal-close:hover, html[data-theme="dark"] #bdv-modal-close:hover { color: var(--dark-text); }
 
       /* Dashboard de Resumo */
       .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 120px), 1fr)); gap: 15px; margin-bottom: 20px; animation: fadeInUp 0.5s ease-out; }
@@ -1094,6 +1095,7 @@
           <button id="unit-settings-btn" class="btn-outline hidden" style="width: auto; padding: 8px 12px; margin-bottom: 0; font-weight: bold;" onclick="toggleUnitSettingsModal(true)">⚙️ Gestão da Unidade</button>
           <button id="profile-btn" class="btn-outline" style="width: auto; padding: 8px 12px; margin-bottom: 0; font-weight: bold;" onclick="toggleProfileModal(true)">Meu Perfil</button>
           <button class="btn-primary" style="width: auto; padding: 8px 15px; margin-bottom: 0; background: var(--success); border: none;" onclick="abrirNovaSolicitacao()">➕ Nova Solicitação</button>
+          <button class="btn-primary" style="width: auto; padding: 8px 15px; margin-bottom: 0; background: #005a2b; border: none;" onclick="toggleBDVModal(true)">📋 BDV</button>
           <button class="btn-primary" style="width: auto; padding: 8px 15px; margin-bottom: 0; background: var(--danger); border: none;" onclick="fazerLogout()">Sair</button>
         </div>
       </div>
@@ -5291,6 +5293,520 @@
         });
       }
     </script>
+
+    <!-- ======================================================== -->
+    <!-- MODAL BDV - BOLETIM DIÁRIO DE VEÍCULO                    -->
+    <!-- ======================================================== -->
+    <div id="bdv-modal" class="hidden" onclick="if (event.target === this) toggleBDVModal(false)">
+      <div id="bdv-modal-content">
+        <button id="bdv-modal-close" aria-label="Fechar Boletim Diário de Veículo" onclick="toggleBDVModal(false)" style="background:none; border:none;">×</button>
+        
+        <style>
+          #bdv-modal-content {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            max-width: min(95vw, 1100px);
+            width: 100%;
+            max-height: 92vh;
+            overflow-y: auto;
+            position: relative;
+            animation: fadeInUp 0.4s ease-out;
+          }
+          #bdv-modal-close {
+            position: absolute; top: 10px; right: 15px; font-size: 2.5rem; font-weight: bold; color: #888; cursor: pointer; line-height: 1; z-index: 10;
+          }
+          #bdv-modal-close:hover { color: #333; }
+
+          /* BDV Scoped Styles */
+          .bdv-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+          }
+          .bdv-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.9rem;
+          }
+          .bdv-btn-tab {
+            background: #6c757d;
+            color: white;
+          }
+          .bdv-btn-tab.bdv-tab-active {
+            background: #005a2b;
+            color: white;
+          }
+          .bdv-btn-print {
+            background: #005a2b;
+            color: white;
+          }
+          .bdv-header-title {
+            text-align: center;
+            border: 2px solid #000;
+            padding: 8px;
+            font-weight: bold;
+            font-size: 15px;
+            margin-bottom: 12px;
+            background-color: #f0f0f0;
+            text-transform: uppercase;
+          }
+          .bdv-form-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 6px;
+            margin-bottom: 12px;
+          }
+          .bdv-field {
+            display: flex;
+            flex-direction: column;
+          }
+          .bdv-field label {
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+          }
+          .bdv-field input, .bdv-field select, .bdv-field textarea {
+            border: 1px solid #000;
+            padding: 4px;
+            font-size: 11px;
+            outline: none;
+            background: #fff;
+          }
+          table.bdv-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 12px;
+          }
+          table.bdv-table th, table.bdv-table td {
+            border: 1px solid #000;
+            padding: 4px;
+            font-size: 10px;
+            text-align: center;
+          }
+          table.bdv-table th {
+            background: #f0f0f0;
+            font-weight: bold;
+            text-transform: uppercase;
+          }
+          table.bdv-table input[type="text"], table.bdv-table select {
+            width: 100%;
+            border: none;
+            font-size: 10px;
+            text-align: center;
+            background: transparent;
+          }
+          table.bdv-table input[type="checkbox"] {
+            margin: 0;
+          }
+          .bdv-signature-box {
+            border-top: 1px solid #000;
+            margin-top: 30px;
+            text-align: center;
+            font-size: 10px;
+            padding-top: 4px;
+            font-weight: bold;
+          }
+          .bdv-tab-content { display: none; }
+          .bdv-tab-content.bdv-active { display: block; }
+
+          /* Dark mode adaptations for BDV */
+          html[data-theme="dark"] .bdv-header-title { background-color: #4A5568; color: #E2E8F0; border-color: #718096; }
+          html[data-theme="dark"] .bdv-field input,
+          html[data-theme="dark"] .bdv-field select,
+          html[data-theme="dark"] .bdv-field textarea { background: #2D3748; color: #E2E8F0; border-color: #718096; }
+          html[data-theme="dark"] table.bdv-table th { background: #4A5568; color: #E2E8F0; }
+          html[data-theme="dark"] table.bdv-table td { border-color: #718096; color: #E2E8F0; }
+          html[data-theme="dark"] table.bdv-table input[type="text"] { color: #E2E8F0; }
+          html[data-theme="dark"] .bdv-signature-box { border-color: #718096; color: #E2E8F0; }
+
+          @media print {
+            body > *:not(#bdv-print-area) { display: none !important; }
+            #bdv-print-area {
+              display: block !important;
+              position: static !important;
+              background: white !important;
+              color: #000 !important;
+              width: 100% !important;
+              padding: 0 !important;
+            }
+            #bdv-print-area .bdv-actions { display: none !important; }
+            #bdv-print-area .bdv-tab-content { display: none !important; }
+            #bdv-print-area .bdv-tab-content.bdv-active { display: block !important; }
+            #bdv-print-area input, #bdv-print-area select, #bdv-print-area textarea { border: none !important; color: #000 !important; background: transparent !important; }
+            @page { size: landscape; margin: 0.8cm; }
+          }
+        </style>
+
+        <!-- Ações do BDV -->
+        <div class="bdv-actions">
+          <button class="bdv-btn bdv-btn-tab bdv-tab-active" id="bdv-tab-btn-estadual" onclick="switchBDVTab('estadual')">BDV Viagem Estadual</button>
+          <button class="bdv-btn bdv-btn-tab" id="bdv-tab-btn-local" onclick="switchBDVTab('local')">BDV Demandas Locais + Checklist</button>
+          <button class="bdv-btn bdv-btn-print" onclick="imprimirBDV()">🖨️ Imprimir PDF</button>
+        </div>
+
+        <!-- ======================================================== -->
+        <!-- MODELO 1: BOLETIM DIÁRIO - VIAGEM ESTADUAL               -->
+        <!-- ======================================================== -->
+        <div id="bdv-tab-estadual" class="bdv-tab-content bdv-active">
+          <div class="bdv-header-title">
+            DEFENSORIA PÚBLICA DO ESTADO DA BAHIA<br>
+            BOLETIM DIÁRIO DE VEÍCULO / VIAGENS
+          </div>
+
+          <!-- Cabeçalho -->
+          <div class="bdv-form-grid">
+            <div class="bdv-field" style="grid-column: span 5;">
+              <label>Condutor</label>
+              <input type="text">
+            </div>
+            <div class="bdv-field" style="grid-column: span 3;">
+              <label>Matrícula</label>
+              <input type="text">
+            </div>
+            <div class="bdv-field" style="grid-column: span 2;">
+              <label>Veículo Placa</label>
+              <input type="text">
+            </div>
+            <div class="bdv-field" style="grid-column: span 2;">
+              <label>Mês/Ano</label>
+              <input type="text">
+            </div>
+            <div class="bdv-field" style="grid-column: span 6;">
+              <label>Marca/Modelo</label>
+              <input type="text">
+            </div>
+            <div class="bdv-field" style="grid-column: span 3;">
+              <label>Combustível de Saída</label>
+              <input type="text">
+            </div>
+            <div class="bdv-field" style="grid-column: span 3;">
+              <label>Combustível de Chegada</label>
+              <input type="text">
+            </div>
+          </div>
+
+          <!-- Tabela de Registros de Deslocamento -->
+          <table class="bdv-table">
+            <thead>
+              <tr>
+                <th colspan="4">Origem</th>
+                <th colspan="4">Destino</th>
+                <th rowspan="2">Passageiro</th>
+                <th rowspan="2" style="width: 15%;">Assinatura do Passageiro</th>
+              </tr>
+              <tr>
+                <th>Data</th>
+                <th>Hora</th>
+                <th>Hodômetro Inicial</th>
+                <th>Local</th>
+                <th>Data</th>
+                <th>Hora</th>
+                <th>Hodômetro Final</th>
+                <th>Local</th>
+              </tr>
+            </thead>
+            <tbody id="bdv-estadual-tbody">
+            </tbody>
+          </table>
+
+          <!-- Abastecimento e Consumo -->
+          <table class="bdv-table">
+            <thead>
+              <tr>
+                <th>KM Percorrida</th>
+                <th>Média de Consumo</th>
+                <th>Abastecimento em Litros</th>
+                <th>Valor (R$)</th>
+                <th>Abastecimento em (Local)</th>
+                <th style="width: 20%;">Data e Assinatura</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Outras Ocorrências -->
+          <div class="bdv-field" style="margin-bottom: 12px;">
+            <label>Outras Ocorrências:</label>
+            <textarea rows="2" style="border: 1px solid #000; width: 100%;"></textarea>
+          </div>
+
+          <!-- Quadro Final de Saída / Chegada e Assinaturas -->
+          <table class="bdv-table">
+            <tbody>
+              <tr>
+                <td style="text-align: left; width: 50%;">Data e Horário Saída do Condutor: ____/____/____ às ____:____ h</td>
+                <td style="text-align: left; width: 50%;">Data e Horário Saída do Passageiro: ____/____/____ às ____:____ h</td>
+              </tr>
+              <tr>
+                <td style="text-align: left;">Data e Horário Chegada do Condutor: ____/____/____ às ____:____ h</td>
+                <td style="text-align: left;">Data e Horário Chegada do Passageiro: ____/____/____ às ____:____ h</td>
+              </tr>
+              <tr>
+                <td style="height: 45px; vertical-align: bottom;">
+                  <div class="bdv-signature-box">ASSINATURA CONDUTOR</div>
+                </td>
+                <td style="height: 45px; vertical-align: bottom;">
+                  <div class="bdv-signature-box">NOME DO PASSAGEIRO / ASSINATURA</div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- ======================================================== -->
+        <!-- MODELO 2: BOLETIM DIÁRIO - DEMANDAS LOCAIS + CHECKLIST   -->
+        <!-- ======================================================== -->
+        <div id="bdv-tab-local" class="bdv-tab-content">
+          <div class="bdv-header-title">
+            DEFENSORIA PÚBLICA DO ESTADO DA BAHIA<br>
+            BOLETIM DIÁRIO DE VEÍCULO / DEMANDAS LOCAIS
+          </div>
+
+          <div class="bdv-form-grid">
+            <div class="bdv-field" style="grid-column: span 6;">
+              <label>Motorista</label>
+              <input type="text">
+            </div>
+            <div class="bdv-field" style="grid-column: span 3;">
+              <label>Placa</label>
+              <input type="text">
+            </div>
+            <div class="bdv-field" style="grid-column: span 3;">
+              <label>Data</label>
+              <input type="text">
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 10px;">
+            
+            <!-- Roteiro de Viagens Locais -->
+            <div style="flex: 2;">
+              <table class="bdv-table">
+                <thead>
+                  <tr>
+                    <th colspan="2">Partida</th>
+                    <th colspan="2">Roteiro</th>
+                    <th colspan="2">Chegada</th>
+                    <th rowspan="2">Unidade Solicitante</th>
+                  </tr>
+                  <tr>
+                    <th>Horário</th>
+                    <th>Hodômetro</th>
+                    <th>Origem</th>
+                    <th>Destino</th>
+                    <th>Horário</th>
+                    <th>Hodômetro</th>
+                  </tr>
+                </thead>
+                <tbody id="bdv-local-tbody">
+                </tbody>
+              </table>
+
+              <div class="bdv-field" style="margin-top: 5px;">
+                <label>Observação:</label>
+                <textarea rows="2" style="border: 1px solid #000; width: 100%;"></textarea>
+              </div>
+
+              <div style="margin-top: 25px; width: 70%;">
+                <div class="bdv-signature-box">ASSINATURA DO MOTORISTA</div>
+              </div>
+            </div>
+
+            <!-- Checklist Rápido Lateral -->
+            <div style="flex: 1;">
+              <table class="bdv-table">
+                <thead>
+                  <tr>
+                    <th colspan="4">Check List Rápido</th>
+                  </tr>
+                  <tr>
+                    <th>Itens</th>
+                    <th style="width: 30px;">Bom</th>
+                    <th style="width: 30px;">Regul</th>
+                    <th style="width: 30px;">Ruim</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td style="text-align: left;">Água</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+                  <tr><td style="text-align: left;">Bancos</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+                  <tr><td style="text-align: left;">Chaparia</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+                  <tr><td style="text-align: left;">Luzes</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+                  <tr><td style="text-align: left;">Mala</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+                  <tr><td style="text-align: left;">Óleo</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+                  <tr><td style="text-align: left;">Pintura</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+                  <tr><td style="text-align: left;">Pneus</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+                  <tr><td style="text-align: left;">Portas</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+                  <tr><td style="text-align: left;">Tapetes</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+                  <tr><td style="text-align: left;">Vidros</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+                  <tr>
+                    <td colspan="4" style="text-align: left; padding: 4px;">
+                      <strong>Observações Checklist:</strong>
+                      <textarea rows="3" style="border: 1px solid #000; width: 100%; margin-top: 4px;"></textarea>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <script>
+      /* ===== BDV - Boletim Diário de Veículo ===== */
+      (function() {
+        // Gerar linhas dinamicamente (evita document.write)
+        const estadualTbody = document.getElementById('bdv-estadual-tbody');
+        if (estadualTbody) {
+          for (let i = 0; i < 6; i++) {
+            const tr = document.createElement('tr');
+            for (let j = 0; j < 9; j++) {
+              const td = document.createElement('td');
+              const input = document.createElement('input');
+              input.type = 'text';
+              td.appendChild(input);
+              tr.appendChild(td);
+            }
+            const tdSig = document.createElement('td');
+            tr.appendChild(tdSig);
+            estadualTbody.appendChild(tr);
+          }
+        }
+
+        const localTbody = document.getElementById('bdv-local-tbody');
+        if (localTbody) {
+          for (let i = 0; i < 8; i++) {
+            const tr = document.createElement('tr');
+            for (let j = 0; j < 7; j++) {
+              const td = document.createElement('td');
+              const input = document.createElement('input');
+              input.type = 'text';
+              td.appendChild(input);
+              tr.appendChild(td);
+            }
+            localTbody.appendChild(tr);
+          }
+        }
+      })();
+
+      window.toggleBDVModal = (show) => {
+        const modal = document.getElementById('bdv-modal');
+        if (show) {
+          modal.classList.remove('hidden');
+          modal.style.display = 'flex';
+        } else {
+          modal.classList.add('hidden');
+          modal.style.display = '';
+        }
+      };
+
+      window.switchBDVTab = (tipo) => {
+        document.querySelectorAll('.bdv-tab-content').forEach(el => el.classList.remove('bdv-active'));
+        document.querySelectorAll('.bdv-btn-tab').forEach(el => el.classList.remove('bdv-tab-active'));
+        if (tipo === 'estadual') {
+          document.getElementById('bdv-tab-estadual').classList.add('bdv-active');
+          document.getElementById('bdv-tab-btn-estadual').classList.add('bdv-tab-active');
+        } else {
+          document.getElementById('bdv-tab-local').classList.add('bdv-active');
+          document.getElementById('bdv-tab-btn-local').classList.add('bdv-tab-active');
+        }
+      };
+
+      window.imprimirBDV = () => {
+        const modalContent = document.getElementById('bdv-modal-content');
+        const printWindow = window.open('', '', 'height=900,width=1100');
+        if (!printWindow) {
+          alert('Popup foi bloqueado. Por favor, permita popups para imprimir.');
+          return;
+        }
+        printWindow.document.write(`
+          <html><head>
+          <meta charset="UTF-8">
+          <title>BDV - Boletim Diário de Veículo</title>
+          <style>
+            * { box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; }
+            body { background-color: #fff; margin: 0; padding: 15px; }
+            .bdv-actions { display: none !important; }
+            #bdv-modal-close { display: none !important; }
+            .bdv-header-title {
+              text-align: center; border: 2px solid #000; padding: 8px;
+              font-weight: bold; font-size: 15px; margin-bottom: 12px;
+              background-color: #f0f0f0; text-transform: uppercase;
+            }
+            .bdv-form-grid {
+              display: grid; grid-template-columns: repeat(12, 1fr);
+              gap: 6px; margin-bottom: 12px;
+            }
+            .bdv-field { display: flex; flex-direction: column; }
+            .bdv-field label { font-size: 10px; font-weight: bold; text-transform: uppercase; margin-bottom: 2px; }
+            .bdv-field input, .bdv-field select, .bdv-field textarea {
+              border: 1px solid #000; padding: 4px; font-size: 11px; outline: none;
+            }
+            table.bdv-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+            table.bdv-table th, table.bdv-table td {
+              border: 1px solid #000; padding: 4px; font-size: 10px; text-align: center;
+            }
+            table.bdv-table th { background: #f0f0f0; font-weight: bold; text-transform: uppercase; }
+            table.bdv-table input[type="text"], table.bdv-table select {
+              width: 100%; border: none; font-size: 10px; text-align: center; background: transparent;
+            }
+            .bdv-signature-box {
+              border-top: 1px solid #000; margin-top: 30px; text-align: center;
+              font-size: 10px; padding-top: 4px; font-weight: bold;
+            }
+            .bdv-tab-content { display: none; }
+            .bdv-tab-content.bdv-active { display: block; }
+            @media print {
+              body { padding: 0; }
+              input, select, textarea { border: none !important; }
+              @page { size: landscape; margin: 0.8cm; }
+            }
+          </style>
+          </head><body>
+        `);
+        
+        // Clone only the active tab content
+        const activeTab = modalContent.querySelector('.bdv-tab-content.bdv-active');
+        if (activeTab) {
+          const clone = activeTab.cloneNode(true);
+          // Copy input values
+          const origInputs = activeTab.querySelectorAll('input, textarea, select');
+          const cloneInputs = clone.querySelectorAll('input, textarea, select');
+          origInputs.forEach((orig, i) => {
+            if (orig.type === 'checkbox') {
+              cloneInputs[i].checked = orig.checked;
+            } else {
+              cloneInputs[i].value = orig.value;
+            }
+          });
+          clone.classList.add('bdv-active');
+          printWindow.document.write(clone.outerHTML);
+        }
+        
+        printWindow.document.write('</body></html>');
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => { printWindow.print(); }, 300);
+      };
+    </script>
+
     <style>
       #btnVoltarTopo {
         display: none; 
