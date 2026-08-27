@@ -5493,6 +5493,10 @@
           .bdv-local-table th:nth-child(4), .bdv-local-table td:nth-child(4) { width: 21%; }
           .bdv-local-table th:nth-child(7), .bdv-local-table td:nth-child(7) { width: 23%; }
           .bdv-local-table input[type="text"] { min-width: 0; padding: 3px 2px; }
+          .bdv-mascara::placeholder { color: transparent; }
+          .bdv-final-datahora { display: inline-flex; align-items: center; gap: 3px; flex-wrap: wrap; }
+          .bdv-final-datahora input { width: 86px; }
+          .bdv-final-datahora input.bdv-horario { width: 52px; }
           .bdv-signature-box {
             border-top: 1px solid #000;
             margin-top: 30px;
@@ -5688,12 +5692,12 @@
           <table class="bdv-table">
             <tbody>
               <tr>
-                <td style="text-align: left; width: 50%;">Data e Horário Saída do Condutor: ____/____/____ às ____:____ h</td>
-                <td style="text-align: left; width: 50%;">Data e Horário Saída do Passageiro: ____/____/____ às ____:____ h</td>
+                <td style="text-align: left; width: 50%;">Data e Horário Saída do Condutor: <span class="bdv-final-datahora"><input type="text" class="bdv-data bdv-mascara" inputmode="numeric" maxlength="10" aria-label="Data de saída do condutor"><span>às</span><input type="text" class="bdv-horario bdv-mascara" inputmode="numeric" maxlength="5" aria-label="Horário de saída do condutor"><span>h</span></span></td>
+                <td style="text-align: left; width: 50%;">Data e Horário Saída do Passageiro: <span class="bdv-final-datahora"><input type="text" class="bdv-data bdv-mascara" inputmode="numeric" maxlength="10" aria-label="Data de saída do passageiro"><span>às</span><input type="text" class="bdv-horario bdv-mascara" inputmode="numeric" maxlength="5" aria-label="Horário de saída do passageiro"><span>h</span></span></td>
               </tr>
               <tr>
-                <td style="text-align: left;">Data e Horário Chegada do Condutor: ____/____/____ às ____:____ h</td>
-                <td style="text-align: left;">Data e Horário Chegada do Passageiro: ____/____/____ às ____:____ h</td>
+                <td style="text-align: left;">Data e Horário Chegada do Condutor: <span class="bdv-final-datahora"><input type="text" class="bdv-data bdv-mascara" inputmode="numeric" maxlength="10" aria-label="Data de chegada do condutor"><span>às</span><input type="text" class="bdv-horario bdv-mascara" inputmode="numeric" maxlength="5" aria-label="Horário de chegada do condutor"><span>h</span></span></td>
+                <td style="text-align: left;">Data e Horário Chegada do Passageiro: <span class="bdv-final-datahora"><input type="text" class="bdv-data bdv-mascara" inputmode="numeric" maxlength="10" aria-label="Data de chegada do passageiro"><span>às</span><input type="text" class="bdv-horario bdv-mascara" inputmode="numeric" maxlength="5" aria-label="Horário de chegada do passageiro"><span>h</span></span></td>
               </tr>
               <tr>
                 <td style="height: 45px; vertical-align: bottom;">
@@ -5727,7 +5731,7 @@
             </div>
             <div class="bdv-field" style="grid-column: span 3;">
               <label>Data</label>
-              <input type="text" class="bdv-data" inputmode="numeric" maxlength="10" placeholder="dd/mm/aaaa">
+              <input type="text" class="bdv-data bdv-mascara" inputmode="numeric" maxlength="10">
             </div>
           </div>
 
@@ -5831,16 +5835,14 @@
               const input = document.createElement('input');
               input.type = 'text';
               if (j === 0 || j === 4) {
-                input.className = 'bdv-data';
+                input.className = 'bdv-data bdv-mascara';
                 input.inputMode = 'numeric';
                 input.maxLength = 10;
-                input.placeholder = 'dd/mm/aaaa';
                 aplicarMascara(input, 'data');
               } else if (j === 1 || j === 5) {
-                input.className = 'bdv-horario';
+                input.className = 'bdv-horario bdv-mascara';
                 input.inputMode = 'numeric';
                 input.maxLength = 5;
-                input.placeholder = 'hh:mm';
                 aplicarMascara(input, 'hora');
               }
               td.appendChild(input);
@@ -5861,10 +5863,9 @@
               const input = document.createElement('input');
               input.type = 'text';
               if (j === 0 || j === 4) {
-                input.className = 'bdv-horario';
+                input.className = 'bdv-horario bdv-mascara';
                 input.inputMode = 'numeric';
                 input.maxLength = 5;
-                input.placeholder = 'hh:mm';
                 aplicarMascara(input, 'hora');
               }
               td.appendChild(input);
@@ -5874,7 +5875,8 @@
           }
         }
 
-        document.querySelectorAll('.bdv-data').forEach(input => aplicarMascara(input, 'data'));
+        document.querySelectorAll('#bdv-tab-estadual > .bdv-form-grid .bdv-data').forEach(input => aplicarMascara(input, 'data'));
+        document.querySelectorAll('#bdv-tab-estadual > table:last-of-type .bdv-data, #bdv-tab-estadual > table:last-of-type .bdv-horario').forEach(input => aplicarMascara(input, input.classList.contains('bdv-data') ? 'data' : 'hora'));
       })();
 
       window.toggleBDVModal = (show) => {
