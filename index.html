@@ -5514,6 +5514,33 @@
             font: inherit;
             text-align: center;
           }
+          .bdv-local-a4-layout {
+            display: flex;
+            gap: 12px;
+            align-items: stretch;
+          }
+          .bdv-local-a4-layout > .bdv-local-trips {
+            flex: 2.3;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+          }
+          .bdv-local-a4-layout > .bdv-local-checklist {
+            flex: 1.1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+          }
+          .bdv-local-a4-layout > .bdv-local-trips .bdv-local-table {
+            min-width: 0;
+          }
+          .bdv-local-a4-layout > .bdv-local-trips > div:last-child,
+          .bdv-local-a4-layout > .bdv-local-checklist > .bdv-field {
+            margin-top: auto !important;
+          }
+          .bdv-local-a4-layout > .bdv-local-trips > div:last-child {
+            padding-top: 10px;
+          }
           .bdv-mascara::placeholder { color: transparent; }
           .bdv-final-datahora { display: inline-flex; align-items: center; gap: 3px; flex-wrap: wrap; }
           .bdv-final-datahora input { width: 86px; }
@@ -5773,20 +5800,20 @@
             </div>
           </div>
 
-          <div class="bdv-tab-local-container" style="display: flex; gap: 10px;">
+          <div class="bdv-tab-local-container bdv-local-a4-layout">
             
             <!-- Roteiro de Viagens Locais -->
-            <div style="flex: 2;">
-              <table class="bdv-table bdv-local-table">
+            <div class="bdv-local-trips">
+              <table class="bdv-table bdv-local-table" style="margin-bottom: 6px;">
                 <colgroup>
                   <col class="col-horario"><col class="col-hodometro"><col class="col-origem"><col class="col-destino"><col class="col-horario"><col class="col-hodometro"><col class="col-unidade">
                 </colgroup>
                 <thead>
                   <tr>
-                    <th colspan="2" style="width: 21%;">Partida</th>
-                    <th colspan="2">Roteiro</th>
-                    <th colspan="2" style="width: 21%;">Chegada</th>
-                    <th rowspan="2" style="width: 23%;">Unidade Solicitante</th>
+                    <th colspan="2" style="width: 22%;">Partida</th>
+                    <th colspan="2" style="width: 44%;">Roteiro</th>
+                    <th colspan="2" style="width: 22%;">Chegada</th>
+                    <th rowspan="2" style="width: 12%;">Unidade Solicitante</th>
                   </tr>
                   <tr>
                     <th>Horário</th>
@@ -5801,28 +5828,28 @@
                 </tbody>
               </table>
 
-              <div class="bdv-field" style="margin-top: 5px;">
+              <div class="bdv-field" style="margin-top: 4px; margin-bottom: 8px;">
                 <label>Observação:</label>
                 <textarea rows="2" style="border: 1px solid #000; width: 100%;"></textarea>
               </div>
 
-              <div style="margin-top: 25px; width: 70%;">
+              <div style="margin-top: auto; padding-top: 10px; width: 75%; margin-left: auto; margin-right: auto;">
                 <div class="bdv-signature-box">ASSINATURA DO MOTORISTA</div>
               </div>
             </div>
 
             <!-- Checklist Rápido Lateral -->
-            <div style="flex: 1;">
-              <table class="bdv-table">
+            <div class="bdv-local-checklist">
+              <table class="bdv-table" style="margin-bottom: 6px;">
                 <thead>
                   <tr>
                     <th colspan="4">Check List Rápido</th>
                   </tr>
                   <tr>
-                    <th>Itens</th>
-                    <th style="width: 30px;">Bom</th>
-                    <th style="width: 30px;">Regul</th>
-                    <th style="width: 30px;">Ruim</th>
+                    <th style="text-align: left; padding-left: 6px;">Itens</th>
+                    <th style="width: 32px; font-size: 9px;">Bom</th>
+                    <th style="width: 32px; font-size: 9px;">Regul</th>
+                    <th style="width: 32px; font-size: 9px;">Ruim</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -5838,9 +5865,9 @@
                   <tr><td style="text-align: left;">Tapetes</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
                   <tr><td style="text-align: left;">Vidros</td><td><input type="checkbox"></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
                   <tr>
-                    <td colspan="4" style="text-align: left; padding: 4px;">
+                    <td colspan="4" style="text-align: left; padding: 4px 6px;">
                       <strong>Observações Checklist:</strong>
-                      <textarea rows="3" style="border: 1px solid #000; width: 100%; margin-top: 4px;"></textarea>
+                      <textarea rows="2" style="border: 1px solid #000; width: 100%; margin-top: 4px; resize: none;"></textarea>
                     </td>
                   </tr>
                 </tbody>
@@ -5965,31 +5992,32 @@
           <title>BDV - Boletim Diário de Veículo</title>
           <style>
             * { box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; }
-            body { background-color: #fff; margin: 0; padding: 15px; }
+            body { background-color: #fff; margin: 0; padding: 0; width: 100%; min-height: 190mm; }
             .bdv-actions { display: none !important; }
             #bdv-modal-close { display: none !important; }
             .bdv-header-title {
               text-align: center; border: 2px solid #000; padding: 8px;
-              font-weight: bold; font-size: 15px; margin-bottom: 12px;
+              font-weight: bold; font-size: 15px; margin-bottom: 8px;
               background-color: #f0f0f0; text-transform: uppercase;
             }
             .bdv-form-grid {
               display: grid; grid-template-columns: repeat(12, 1fr);
-              gap: 6px; margin-bottom: 12px;
+              gap: 8px; margin-bottom: 10px;
             }
             .bdv-field { display: flex; flex-direction: column; }
-            .bdv-field label { font-size: 10px; font-weight: bold; text-transform: uppercase; margin-bottom: 2px; }
+            .bdv-field label { font-size: 11px; font-weight: bold; text-transform: uppercase; margin-bottom: 2px; }
             .bdv-field input, .bdv-field select, .bdv-field textarea {
-              border: 1px solid #000; padding: 4px; font-size: 11px; outline: none;
+              border: 1px solid #000; padding: 6px 4px; font-size: 12px; outline: none; min-height: 24px;
             }
-            table.bdv-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+            table.bdv-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
             table.bdv-table th, table.bdv-table td {
-              border: 1px solid #000; padding: 4px; font-size: 10px; text-align: center;
+              border: 1px solid #000; padding: 6px 4px; font-size: 11px; text-align: center;
             }
-            table.bdv-table th { background: #f0f0f0; font-weight: bold; text-transform: uppercase; }
+            table.bdv-table th { background: #f0f0f0; font-weight: bold; font-size: 11px; text-transform: uppercase; }
             table.bdv-table input[type="text"], table.bdv-table select {
-              width: 100%; border: none; font-size: 10px; text-align: center; background: transparent;
+              width: 100%; border: none; font-size: 12px; min-height: 22px; text-align: center; background: transparent;
             }
+            table.bdv-table input[type="checkbox"] { width: 14px !important; height: 14px !important; margin: 0 auto; display: block; }
             .bdv-signature-box {
               border-top: 1px solid #000; margin-top: 30px; text-align: center;
               font-size: 10px; padding-top: 4px; font-weight: bold;
@@ -6008,12 +6036,17 @@
             .bdv-local-table col.col-destino { width: 20%; }
             .bdv-local-table col.col-unidade { width: 23%; }
             .bdv-local-table textarea.bdv-rota-campo { width: 100%; min-height: 18px; padding: 2px; border: 0; resize: none; overflow-wrap: anywhere; white-space: pre-wrap; overflow: hidden; font: inherit; text-align: center; }
+            .bdv-local-a4-layout { display: flex !important; flex-direction: row !important; gap: 12px !important; width: 100% !important; align-items: stretch; }
+            .bdv-local-a4-layout > .bdv-local-trips { flex: 2.3; min-width: 0; }
+            .bdv-local-a4-layout > .bdv-local-checklist { flex: 1.1; min-width: 0; }
+            .bdv-local-a4-layout .bdv-local-table td, .bdv-local-a4-layout .bdv-local-table th { padding: 3px 2px; }
+            .bdv-local-a4-layout .bdv-local-table tbody tr { height: 24px; }
             .bdv-tab-content { display: none; }
-            .bdv-tab-content.bdv-active { display: block; }
+            .bdv-tab-content.bdv-active { display: block; width: 100%; min-height: 190mm; }
             @media print {
               body { padding: 0; }
               input, select, textarea { border: none !important; }
-              @page { size: landscape; margin: 0.8cm; }
+              @page { size: A4 landscape; margin: 8mm 10mm; }
             }
           </style>
           </head><body>
