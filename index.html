@@ -773,7 +773,7 @@
       html[data-theme="dark"] .panel-diarias .p-1 {
         color: #E2E8F0 !important;
       }
-      html[data-theme="dark"] .panel-diarias .border-[#b5b5b5] {
+      html[data-theme="dark"] .panel-diarias .border-\[\#b5b5b5\] {
         border-color: #4A5568 !important;
       }
       html[data-theme="dark"] .panel-diarias .bg-white {
@@ -5486,14 +5486,34 @@
             table-layout: fixed;
             min-width: 760px;
           }
+          .bdv-local-table col.col-horario { width: 8%; }
+          .bdv-local-table col.col-hodometro { width: 13%; }
+          .bdv-local-table col.col-origem { width: 15%; }
+          .bdv-local-table col.col-destino { width: 20%; }
+          .bdv-local-table col.col-unidade { width: 23%; }
           .bdv-local-table th:nth-child(1), .bdv-local-table td:nth-child(1),
-          .bdv-local-table th:nth-child(5), .bdv-local-table td:nth-child(5) { width: 9%; min-width: 0; }
+          .bdv-local-table th:nth-child(5), .bdv-local-table td:nth-child(5) { min-width: 0; }
           .bdv-local-table th:nth-child(2), .bdv-local-table td:nth-child(2),
-          .bdv-local-table th:nth-child(6), .bdv-local-table td:nth-child(6) { width: 10%; min-width: 0; }
-          .bdv-local-table th:nth-child(3), .bdv-local-table td:nth-child(3) { width: 15%; min-width: 0; }
-          .bdv-local-table th:nth-child(4), .bdv-local-table td:nth-child(4) { width: 24%; min-width: 0; }
-          .bdv-local-table th:nth-child(7), .bdv-local-table td:nth-child(7) { width: 23%; min-width: 0; }
+          .bdv-local-table th:nth-child(6), .bdv-local-table td:nth-child(6),
+          .bdv-local-table th:nth-child(3), .bdv-local-table td:nth-child(3),
+          .bdv-local-table th:nth-child(4), .bdv-local-table td:nth-child(4),
+          .bdv-local-table th:nth-child(7), .bdv-local-table td:nth-child(7) { min-width: 0; }
           .bdv-local-table input[type="text"] { min-width: 0; padding: 3px 2px; }
+          .bdv-local-table textarea.bdv-rota-campo {
+            display: block;
+            width: 100%;
+            min-width: 0;
+            min-height: 18px;
+            height: 18px;
+            padding: 2px;
+            border: 0;
+            resize: none;
+            overflow-wrap: anywhere;
+            white-space: pre-wrap;
+            overflow: hidden;
+            font: inherit;
+            text-align: center;
+          }
           .bdv-mascara::placeholder { color: transparent; }
           .bdv-final-datahora { display: inline-flex; align-items: center; gap: 3px; flex-wrap: wrap; }
           .bdv-final-datahora input { width: 86px; }
@@ -5744,6 +5764,9 @@
             <!-- Roteiro de Viagens Locais -->
             <div style="flex: 2;">
               <table class="bdv-table bdv-local-table">
+                <colgroup>
+                  <col class="col-horario"><col class="col-hodometro"><col class="col-origem"><col class="col-destino"><col class="col-horario"><col class="col-hodometro"><col class="col-unidade">
+                </colgroup>
                 <thead>
                   <tr>
                     <th colspan="2" style="width: 21%;">Partida</th>
@@ -5829,6 +5852,11 @@
           });
         };
 
+        const ajustarAlturaRota = (campo) => {
+          campo.style.height = '18px';
+          campo.style.height = `${Math.max(18, campo.scrollHeight)}px`;
+        };
+
         // Gerar linhas dinamicamente (evita document.write)
         const estadualTbody = document.getElementById('bdv-estadual-tbody');
         if (estadualTbody) {
@@ -5864,13 +5892,17 @@
             const tr = document.createElement('tr');
             for (let j = 0; j < 7; j++) {
               const td = document.createElement('td');
-              const input = document.createElement('input');
+              const input = (j === 2 || j === 3) ? document.createElement('textarea') : document.createElement('input');
               input.type = 'text';
               if (j === 0 || j === 4) {
                 input.className = 'bdv-horario bdv-mascara';
                 input.inputMode = 'numeric';
                 input.maxLength = 5;
                 aplicarMascara(input, 'hora');
+              } else if (j === 2 || j === 3) {
+                input.className = 'bdv-rota-campo';
+                input.rows = 1;
+                input.addEventListener('input', () => ajustarAlturaRota(input));
               }
               td.appendChild(input);
               tr.appendChild(td);
@@ -5950,12 +5982,18 @@
             }
             .bdv-local-table { table-layout: fixed; min-width: 760px; }
             .bdv-local-table th:nth-child(1), .bdv-local-table td:nth-child(1),
-            .bdv-local-table th:nth-child(5), .bdv-local-table td:nth-child(5) { width: 9%; min-width: 0; }
+            .bdv-local-table th:nth-child(5), .bdv-local-table td:nth-child(5) { min-width: 0; }
             .bdv-local-table th:nth-child(2), .bdv-local-table td:nth-child(2),
-            .bdv-local-table th:nth-child(6), .bdv-local-table td:nth-child(6) { width: 10%; min-width: 0; }
-            .bdv-local-table th:nth-child(3), .bdv-local-table td:nth-child(3) { width: 15%; min-width: 0; }
-            .bdv-local-table th:nth-child(4), .bdv-local-table td:nth-child(4) { width: 24%; min-width: 0; }
-            .bdv-local-table th:nth-child(7), .bdv-local-table td:nth-child(7) { width: 23%; min-width: 0; }
+            .bdv-local-table th:nth-child(6), .bdv-local-table td:nth-child(6),
+            .bdv-local-table th:nth-child(3), .bdv-local-table td:nth-child(3),
+            .bdv-local-table th:nth-child(4), .bdv-local-table td:nth-child(4),
+            .bdv-local-table th:nth-child(7), .bdv-local-table td:nth-child(7) { min-width: 0; }
+            .bdv-local-table col.col-horario { width: 8%; }
+            .bdv-local-table col.col-hodometro { width: 13%; }
+            .bdv-local-table col.col-origem { width: 15%; }
+            .bdv-local-table col.col-destino { width: 20%; }
+            .bdv-local-table col.col-unidade { width: 23%; }
+            .bdv-local-table textarea.bdv-rota-campo { width: 100%; min-height: 18px; padding: 2px; border: 0; resize: none; overflow-wrap: anywhere; white-space: pre-wrap; overflow: hidden; font: inherit; text-align: center; }
             .bdv-tab-content { display: none; }
             .bdv-tab-content.bdv-active { display: block; }
             @media print {
