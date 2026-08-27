@@ -5482,6 +5482,17 @@
           table.bdv-table input[type="checkbox"] {
             margin: 0;
           }
+          .bdv-local-table {
+            table-layout: fixed;
+          }
+          .bdv-local-table th:nth-child(1), .bdv-local-table td:nth-child(1),
+          .bdv-local-table th:nth-child(5), .bdv-local-table td:nth-child(5) { width: 10%; }
+          .bdv-local-table th:nth-child(2), .bdv-local-table td:nth-child(2),
+          .bdv-local-table th:nth-child(6), .bdv-local-table td:nth-child(6) { width: 11%; }
+          .bdv-local-table th:nth-child(3), .bdv-local-table td:nth-child(3) { width: 14%; }
+          .bdv-local-table th:nth-child(4), .bdv-local-table td:nth-child(4) { width: 21%; }
+          .bdv-local-table th:nth-child(7), .bdv-local-table td:nth-child(7) { width: 23%; }
+          .bdv-local-table input[type="text"] { min-width: 0; padding: 3px 2px; }
           .bdv-signature-box {
             border-top: 1px solid #000;
             margin-top: 30px;
@@ -5716,7 +5727,7 @@
             </div>
             <div class="bdv-field" style="grid-column: span 3;">
               <label>Data</label>
-              <input type="text">
+              <input type="text" class="bdv-data" inputmode="numeric" maxlength="10" placeholder="dd/mm/aaaa">
             </div>
           </div>
 
@@ -5724,13 +5735,13 @@
             
             <!-- Roteiro de Viagens Locais -->
             <div style="flex: 2;">
-              <table class="bdv-table">
+              <table class="bdv-table bdv-local-table">
                 <thead>
                   <tr>
-                    <th colspan="2">Partida</th>
+                    <th colspan="2" style="width: 21%;">Partida</th>
                     <th colspan="2">Roteiro</th>
-                    <th colspan="2">Chegada</th>
-                    <th rowspan="2">Unidade Solicitante</th>
+                    <th colspan="2" style="width: 21%;">Chegada</th>
+                    <th rowspan="2" style="width: 23%;">Unidade Solicitante</th>
                   </tr>
                   <tr>
                     <th>Horário</th>
@@ -5799,6 +5810,17 @@
     <script>
       /* ===== BDV - Boletim Diário de Veículo ===== */
       (function() {
+        const aplicarMascara = (input, tipo) => {
+          input.addEventListener('input', () => {
+            const numeros = input.value.replace(/\D/g, '').slice(0, tipo === 'data' ? 8 : 4);
+            if (tipo === 'data') {
+              input.value = numeros.replace(/(\d{2})(\d)/, '$1/$2').replace(/(\d{2}\/\d{2})(\d)/, '$1/$2');
+            } else {
+              input.value = numeros.replace(/(\d{2})(\d)/, '$1:$2');
+            }
+          });
+        };
+
         // Gerar linhas dinamicamente (evita document.write)
         const estadualTbody = document.getElementById('bdv-estadual-tbody');
         if (estadualTbody) {
@@ -5808,6 +5830,19 @@
               const td = document.createElement('td');
               const input = document.createElement('input');
               input.type = 'text';
+              if (j === 0 || j === 4) {
+                input.className = 'bdv-data';
+                input.inputMode = 'numeric';
+                input.maxLength = 10;
+                input.placeholder = 'dd/mm/aaaa';
+                aplicarMascara(input, 'data');
+              } else if (j === 1 || j === 5) {
+                input.className = 'bdv-horario';
+                input.inputMode = 'numeric';
+                input.maxLength = 5;
+                input.placeholder = 'hh:mm';
+                aplicarMascara(input, 'hora');
+              }
               td.appendChild(input);
               tr.appendChild(td);
             }
@@ -5825,12 +5860,21 @@
               const td = document.createElement('td');
               const input = document.createElement('input');
               input.type = 'text';
+              if (j === 0 || j === 4) {
+                input.className = 'bdv-horario';
+                input.inputMode = 'numeric';
+                input.maxLength = 5;
+                input.placeholder = 'hh:mm';
+                aplicarMascara(input, 'hora');
+              }
               td.appendChild(input);
               tr.appendChild(td);
             }
             localTbody.appendChild(tr);
           }
         }
+
+        document.querySelectorAll('.bdv-data').forEach(input => aplicarMascara(input, 'data'));
       })();
 
       window.toggleBDVModal = (show) => {
@@ -5898,6 +5942,14 @@
               border-top: 1px solid #000; margin-top: 30px; text-align: center;
               font-size: 10px; padding-top: 4px; font-weight: bold;
             }
+            .bdv-local-table { table-layout: fixed; }
+            .bdv-local-table th:nth-child(1), .bdv-local-table td:nth-child(1),
+            .bdv-local-table th:nth-child(5), .bdv-local-table td:nth-child(5) { width: 10%; }
+            .bdv-local-table th:nth-child(2), .bdv-local-table td:nth-child(2),
+            .bdv-local-table th:nth-child(6), .bdv-local-table td:nth-child(6) { width: 11%; }
+            .bdv-local-table th:nth-child(3), .bdv-local-table td:nth-child(3) { width: 14%; }
+            .bdv-local-table th:nth-child(4), .bdv-local-table td:nth-child(4) { width: 21%; }
+            .bdv-local-table th:nth-child(7), .bdv-local-table td:nth-child(7) { width: 23%; }
             .bdv-tab-content { display: none; }
             .bdv-tab-content.bdv-active { display: block; }
             @media print {
