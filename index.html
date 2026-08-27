@@ -1323,6 +1323,17 @@
         <p><strong>SITE OFICIAL:</strong> O logo da Defensoria no cabeçalho é clicável e direciona rapidamente para o portal da DPE-BA.</p>
         <p><strong>ACESSIBILIDADE 🔊:</strong> Os controles de ajuda (❓) e leitura automática por foco (⌨️🔊) estão localizados no painel superior. Ative a leitura por foco clicando no botão ou usando o atalho <strong>Ctrl+Alt+A</strong>. Uma vez ativa, o sistema lê em voz alta o conteúdo dos campos conforme você navega com a tecla TAB.</p>
 
+        <h4>📋 BDV (BOLETIM DIÁRIO DE VEÍCULO)</h4>
+        <p><strong>ACESSO:</strong> O BDV é aberto pelo botão [📋 BDV] no painel superior. O botão [➕ Nova Solicitação] foi removido da barra; o formulário de agendamento continua disponível na tela principal.</p>
+        <p><strong>MODELOS:</strong> Use [BDV Viagem Estadual] para viagens entre cidades e [BDV Demandas Locais + Checklist] para demandas locais. O modelo local exibe a tabela de viagens à esquerda e o checklist do veículo à direita.</p>
+        <p><strong>PREENCHIMENTO:</strong> Os campos de data e horário são editáveis. A data recebe automaticamente as barras (<strong>26082026</strong> → <strong>26/08/2026</strong>) e o horário recebe os dois-pontos (<strong>0615</strong> → <strong>06:15</strong>). No modelo local, origem e destino permitem quebra de linha e aumentam verticalmente para manter o texto visível.</p>
+        <p><strong>IMPRESSÃO A4:</strong> Clique em [🖨️ Imprimir PDF]. O BDV é preparado em folha A4 paisagem, com o conteúdo expandido para aproveitar a área útil. O modelo estadual possui 12 linhas de registros; o modelo local também possui 12 linhas e mantém o checklist ao lado.</p>
+        <p><strong>CHECKLIST:</strong> No modelo de Demandas Locais, marque uma opção por item entre Bom, Regul e Ruim e registre observações no campo correspondente.</p>
+
+        <h4>✅ ACEITE ELETRÔNICO DE CONCLUSÃO</h4>
+        <p><strong>COMO ACEITAR:</strong> Após o motorista iniciar o deslocamento, o solicitante verá o botão [✅ Aceite] na agenda. Abra-o pelo celular, confira a viagem, marque a confirmação e clique em [✅ Registrar aceite e gerar BDV].</p>
+        <p><strong>VALIDAÇÃO:</strong> O aceite finaliza a viagem e gera o BDV vinculado ao registro. O sistema grava usuário, data e hora, rota e um hash SHA-256 de validação. Um segundo aceite para a mesma viagem é bloqueado.</p>
+
         <h4>⚙️ GESTÃO DA UNIDADE E EQUIPE (ADMINISTRADORES)</h4>
         <p><strong>CONFIGURAÇÕES E MEMBROS:</strong> Administradores e motoristas têm acesso ao botão [⚙️ Gestão da Unidade]. Nele é possível: definir o <strong>valor de referência da diária (R$)</strong>, limpar o cache de distâncias, editar dados da equipe, definir o tipo de vínculo (Servidor, Defensor) e conceder a permissão de "Atuar como Motorista" a qualquer membro.</p>
         <p><strong>MOTORISTA TITULAR:</strong> Dentro de "Meu Perfil", há uma seção administrativa dedicada para alterar o Motorista Oficial que recebe os alertas primários via WhatsApp na Regional.</p>
@@ -1352,7 +1363,7 @@
         <h4>💰 CÁLCULO E SOLICITAÇÃO DE DIÁRIAS (ADMIN/MOTORISTA)</h4>
         <p><strong>PAINEL DE CÁLCULO:</strong> Visível para Administradores e Motoristas, este painel aparece abaixo do formulário de agendamento. Ele utiliza as datas de Saída e Chegada, junto com a distância total do roteiro, para calcular as diárias.</p>
         <p><strong>REGRAS DE CÁLCULO:</strong> O sistema calcula automaticamente com base nas seguintes regras: 1 diária por pernoite; +0.5 diária se a duração exceder o número de pernoites em mais de 6h; e 0.5 diária para viagens "bate-volta" com mais de 6h de duração e 80km de distância.</p>
-        <p><strong>IMPRESSÃO:</strong> Após o cálculo, clique em [🖨️ Imprimir Solicitação de Diária] para gerar um formulário oficial pronto para ser assinado e encaminhado ao setor responsável.</p>
+        <p><strong>IMPRESSÃO:</strong> Após o cálculo, clique em [🖨️ Imprimir Solicitação de Diária] para gerar um formulário oficial pronto para ser assinado e encaminhado ao setor responsável. Para o Boletim Diário de Veículo, use o botão [📋 BDV] e depois [🖨️ Imprimir PDF].</p>
     
         <h4>🗓️ HISTÓRICO DE DIÁRIAS E PROCESSO SEI</h4>
         <p><strong>REGISTRO AUTOMÁTICO:</strong> Após clicar em [🖨️ Imprimir Solicitação de Diária], a solicitação é automaticamente salva no painel "Histórico de Solicitações de Diárias", visível para Administradores e Motoristas.</p>
@@ -1380,6 +1391,24 @@
             <button class="accordion-question" onclick="toggleAccordion(this)">Como faço uma viagem com várias paradas?</button>
             <div class="accordion-answer">
               <p><strong>R:</strong> O sistema é baseado em trechos. Selecione a primeira Origem e o primeiro Destino e clique em [Add]. Em seguida, o destino atual vira a nova origem; escolha o próximo destino e clique em [Add] novamente. Repita até concluir o roteiro.</p>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-question" onclick="toggleAccordion(this)">Onde encontro o BDV?</button>
+            <div class="accordion-answer">
+              <p><strong>R:</strong> Clique no botão [📋 BDV] no painel superior. A antiga aba [➕ Nova Solicitação] foi retirada desse painel; o formulário de agendamento continua disponível na tela principal.</p>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-question" onclick="toggleAccordion(this)">Como preencher e imprimir o BDV?</button>
+            <div class="accordion-answer">
+              <p><strong>R:</strong> Escolha [BDV Viagem Estadual] ou [BDV Demandas Locais + Checklist]. Preencha os campos diretamente. Datas e horários recebem barras e dois-pontos automaticamente. No modelo local, origem e destino quebram linha quando necessário. Clique em [🖨️ Imprimir PDF] para gerar o documento em A4 paisagem.</p>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-question" onclick="toggleAccordion(this)">Como registrar o Aceite de Conclusão?</button>
+            <div class="accordion-answer">
+              <p><strong>R:</strong> Quando a viagem estiver em deslocamento, o solicitante deve clicar em [✅ Aceite] na agenda, conferir os dados, marcar a confirmação e clicar em [✅ Registrar aceite e gerar BDV]. O sistema finaliza a viagem e grava data, hora e hash SHA-256 de validação.</p>
             </div>
           </div>
           <div class="accordion-item">
