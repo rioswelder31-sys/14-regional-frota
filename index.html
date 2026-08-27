@@ -5518,6 +5518,8 @@
           .bdv-final-datahora { display: inline-flex; align-items: center; gap: 3px; flex-wrap: wrap; }
           .bdv-final-datahora input { width: 86px; }
           .bdv-final-datahora input.bdv-horario { width: 52px; }
+          #bdv-tab-estadual > table:last-of-type input.bdv-data { width: 86px; display: inline-block; }
+          #bdv-tab-estadual > table:last-of-type input.bdv-horario { width: 52px; display: inline-block; }
           .bdv-signature-box {
             border-top: 1px solid #000;
             margin-top: 30px;
@@ -5717,18 +5719,18 @@
             <tbody>
               <tr>
                 <td style="text-align: left; width: 50%; padding: 4px 8px; font-size: 10px; white-space: nowrap;">
-                  <strong>Saída Condutor:</strong> ____/____/____ às ____:____ h
+                  <strong>Saída Condutor:</strong> <input type="text" class="bdv-data bdv-mascara" inputmode="numeric" maxlength="10" aria-label="Data de saída do condutor"> às <input type="text" class="bdv-horario bdv-mascara" inputmode="numeric" maxlength="5" aria-label="Horário de saída do condutor"> h
                 </td>
                 <td style="text-align: left; width: 50%; padding: 4px 8px; font-size: 10px; white-space: nowrap;">
-                  <strong>Saída Passageiro:</strong> ____/____/____ às ____:____ h
+                  <strong>Saída Passageiro:</strong> <input type="text" class="bdv-data bdv-mascara" inputmode="numeric" maxlength="10" aria-label="Data de saída do passageiro"> às <input type="text" class="bdv-horario bdv-mascara" inputmode="numeric" maxlength="5" aria-label="Horário de saída do passageiro"> h
                 </td>
               </tr>
               <tr>
                 <td style="text-align: left; width: 50%; padding: 4px 8px; font-size: 10px; white-space: nowrap;">
-                  <strong>Chegada Condutor:</strong> ____/____/____ às ____:____ h
+                  <strong>Chegada Condutor:</strong> <input type="text" class="bdv-data bdv-mascara" inputmode="numeric" maxlength="10" aria-label="Data de chegada do condutor"> às <input type="text" class="bdv-horario bdv-mascara" inputmode="numeric" maxlength="5" aria-label="Horário de chegada do condutor"> h
                 </td>
                 <td style="text-align: left; width: 50%; padding: 4px 8px; font-size: 10px; white-space: nowrap;">
-                  <strong>Chegada Passageiro:</strong> ____/____/____ às ____:____ h
+                  <strong>Chegada Passageiro:</strong> <input type="text" class="bdv-data bdv-mascara" inputmode="numeric" maxlength="10" aria-label="Data de chegada do passageiro"> às <input type="text" class="bdv-horario bdv-mascara" inputmode="numeric" maxlength="5" aria-label="Horário de chegada do passageiro"> h
                 </td>
               </tr>
               <tr>
