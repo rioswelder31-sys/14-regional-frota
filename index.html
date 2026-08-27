@@ -5484,7 +5484,8 @@
           }
           .bdv-local-table {
             table-layout: fixed;
-            min-width: 760px;
+            width: 100%;
+            min-width: 0;
           }
           .bdv-local-table col.col-horario { width: 7%; }
           .bdv-local-table col.col-hodometro { width: 9%; }
@@ -5514,6 +5515,8 @@
             font: inherit;
             text-align: center;
           }
+          .bdv-estadual-table tbody tr { height: 28px; }
+          .bdv-estadual-table tbody td { height: 28px; }
           .bdv-local-a4-layout {
             display: flex;
             gap: 12px;
@@ -5688,7 +5691,7 @@
           </div>
 
           <!-- Tabela de Registros de Deslocamento -->
-          <table class="bdv-table">
+          <table class="bdv-table bdv-estadual-table">
             <thead>
               <tr>
                 <th colspan="4">Origem</th>
@@ -5901,7 +5904,7 @@
         // Gerar linhas dinamicamente (evita document.write)
         const estadualTbody = document.getElementById('bdv-estadual-tbody');
         if (estadualTbody) {
-          for (let i = 0; i < 6; i++) {
+            for (let i = 0; i < 12; i++) {
             const tr = document.createElement('tr');
             for (let j = 0; j < 9; j++) {
               const td = document.createElement('td');
@@ -5929,7 +5932,7 @@
 
         const localTbody = document.getElementById('bdv-local-tbody');
         if (localTbody) {
-          for (let i = 0; i < 8; i++) {
+            for (let i = 0; i < 12; i++) {
             const tr = document.createElement('tr');
             for (let j = 0; j < 7; j++) {
               const td = document.createElement('td');
@@ -6022,7 +6025,7 @@
               border-top: 1px solid #000; margin-top: 30px; text-align: center;
               font-size: 10px; padding-top: 4px; font-weight: bold;
             }
-            .bdv-local-table { table-layout: fixed; min-width: 760px; }
+            .bdv-local-table { table-layout: fixed; width: 100%; min-width: 0; }
             .bdv-local-table th:nth-child(1), .bdv-local-table td:nth-child(1),
             .bdv-local-table th:nth-child(5), .bdv-local-table td:nth-child(5) { min-width: 0; }
             .bdv-local-table th:nth-child(2), .bdv-local-table td:nth-child(2),
@@ -6036,6 +6039,8 @@
             .bdv-local-table col.col-destino { width: 20%; }
             .bdv-local-table col.col-unidade { width: 23%; }
             .bdv-local-table textarea.bdv-rota-campo { width: 100%; min-height: 18px; padding: 2px; border: 0; resize: none; overflow-wrap: anywhere; white-space: pre-wrap; overflow: hidden; font: inherit; text-align: center; }
+            .bdv-estadual-table tbody tr { height: 28px; }
+            .bdv-estadual-table tbody td { height: 28px; }
             .bdv-local-a4-layout { display: flex !important; flex-direction: row !important; gap: 12px !important; width: 100% !important; align-items: stretch; }
             .bdv-local-a4-layout > .bdv-local-trips { flex: 2.3; min-width: 0; }
             .bdv-local-a4-layout > .bdv-local-checklist { flex: 1.1; min-width: 0; }
