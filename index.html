@@ -1657,7 +1657,7 @@
 
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-      import { getDatabase, ref, push, onValue, remove, update, query, orderByChild, startAt, endAt, set, get } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+      import { getDatabase, ref, push, onValue, remove, update, query, orderByChild, startAt, endAt, set, get, runTransaction } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
       import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
       // NOTA DE REATORAÇÃO: Muitas funções são atribuídas ao objeto `window` para que possam ser
@@ -3906,6 +3906,9 @@
 
         // --- Ações do Solicitante/Admin ---
         if (temPermissao) {
+          if (status === STATUS.EM_DESLOCAMENTO && v.solicitanteUID === AppState.user.uid && !v.aceiteConclusao) {
+            btns += `<button aria-label="Aceitar conclusão da viagem" style="background:#087f5b; color:white; ${btnStyle} width:auto; padding:0 8px;" onclick="abrirAceiteConclusao('${v.id}')" title="Aceitar conclusão da viagem">✅ Aceite</button>`;
+          }
             if (status !== STATUS.FINALIZADO && status !== STATUS.CANCELADO && status !== STATUS.EM_DESLOCAMENTO) {
                 btns += `<button class="btn-edit" aria-label="Editar viagem" onclick="prepararEdicao('${v.id}')" title="Editar viagem">✏️</button>`;
             }
@@ -4055,6 +4058,72 @@
               showToast("Viagem finalizada!", "success");
           }).catch(err => alert("Erro ao finalizar viagem: " + err.message));
       };
+
+        async function gerarHashAceite(dados) {
+          const texto = JSON.stringify(dados);
+          const bytes = new TextEncoder().encode(texto);
+          const digest = await crypto.subtle.digest('SHA-256', bytes);
+          return Array.from(new Uint8Array(digest)).map(byte => byte.toString(16).padStart(2, '0')).join('');
+        }
+
+        window.abrirAceiteConclusao = (id) => {
+          const viagem = AppState.viagens.find(item => item.id === id);
+          if (!viagem) return alert('Viagem não encontrada!');
+          if (viagem.aceiteConclusao) return mostrarAceiteRegistrado(viagem.aceiteConclusao);
+          const modal = document.getElementById('bdv-modal');
+          const painel = document.getElementById('bdv-aceite-painel');
+          document.getElementById('bdv-aceite-viagem-id').value = id;
+          document.getElementById('bdv-aceite-resumo').textContent = `${viagem.solicitanteNome || 'Solicitante'} | ${new Date(viagem.saida).toLocaleString('pt-BR')} - ${new Date(viagem.chegada).toLocaleString('pt-BR')}`;
+          document.getElementById('bdv-aceite-rota').textContent = viagem.trajetoExibicao || 'Rota não informada';
+          document.getElementById('bdv-aceite-confirmacao').checked = false;
+          painel.classList.remove('hidden');
+          modal.classList.remove('hidden');
+          modal.style.display = 'flex';
+          document.getElementById('bdv-aceite-confirmacao').focus();
+        };
+
+        function mostrarAceiteRegistrado(aceite) {
+          alert(`Aceite já registrado em ${new Date(aceite.timestamp).toLocaleString('pt-BR')}\nHash: ${aceite.hash}`);
+        }
+
+        window.registrarAceiteConclusao = async () => {
+          const id = document.getElementById('bdv-aceite-viagem-id').value;
+          const viagem = AppState.viagens.find(item => item.id === id);
+          const checkbox = document.getElementById('bdv-aceite-confirmacao');
+          if (!viagem || viagem.solicitanteUID !== AppState.user.uid) return alert('Somente o solicitante da viagem pode registrar o aceite.');
+          if (!checkbox.checked) return alert('Confirme que a viagem foi concluída para registrar o aceite.');
+          if (viagem.aceiteConclusao) return mostrarAceiteRegistrado(viagem.aceiteConclusao);
+
+          const timestamp = new Date().toISOString();
+          const dadosParaValidacao = {
+            viagemId: id,
+            statusAnterior: viagem.status,
+            solicitanteUID: AppState.user.uid,
+            solicitanteNome: viagem.solicitanteNome || '',
+            timestamp,
+            rota: viagem.trajetoExibicao || ''
+          };
+          const aceite = { ...dadosParaValidacao, hash: await gerarHashAceite(dadosParaValidacao), metodo: 'Aceite de Conclusão Web' };
+            let resultado;
+            try {
+              resultado = await runTransaction(getRegionalRef(DB_PATHS.VIAGENS, id), atual => {
+                if (!atual || atual.aceiteConclusao) return;
+                  return {
+                    ...atual,
+                    status: STATUS.FINALIZADO,
+                    aceiteConclusao: aceite,
+                    bdv: { status: 'Gerado', geradoEm: timestamp, hashValidacao: aceite.hash }
+                  };
+              });
+            } catch (error) {
+              showToast('Não foi possível registrar o aceite. Verifique a conexão e tente novamente.', 'error');
+              return;
+            }
+          if (!resultado.committed) return alert('Este aceite já foi registrado por outro acesso.');
+          document.getElementById('bdv-aceite-painel').classList.add('hidden');
+          registrarLog('Aceite de Conclusão', `Viagem ID ${id} aceita pelo solicitante. Hash: ${aceite.hash}`);
+          showToast('Aceite registrado e BDV validado com hash.', 'success');
+        };
 
       window.darCiencia = (id) => {
           const v = AppState.viagens.find(x => x.id === id);
@@ -5423,6 +5492,13 @@
           }
           .bdv-tab-content { display: none; }
           .bdv-tab-content.bdv-active { display: block; }
+          .bdv-aceite-painel { border: 2px solid #087f5b; border-radius: 6px; padding: 14px; margin-bottom: 16px; background: #f0fff8; }
+          .bdv-aceite-painel h3 { color: #087f5b; margin-bottom: 8px; font-size: 1.1rem; }
+          .bdv-aceite-painel p { margin-bottom: 8px; line-height: 1.4; }
+          .bdv-aceite-painel button { background: #087f5b; color: white; border: 0; border-radius: 4px; padding: 11px 16px; font-weight: bold; cursor: pointer; }
+          .bdv-aceite-painel label { display: block; margin: 12px 0; line-height: 1.4; }
+          .bdv-aceite-hash { overflow-wrap: anywhere; font-family: ui-monospace, monospace; font-size: 0.78rem; }
+          html[data-theme="dark"] .bdv-aceite-painel { background: #163b31; color: #e2e8f0; }
 
           /* Dark mode adaptations for BDV */
           html[data-theme="dark"] .bdv-header-title { background-color: #4A5568; color: #E2E8F0; border-color: #718096; }
@@ -5491,6 +5567,16 @@
           <button class="bdv-btn bdv-btn-print" onclick="imprimirBDV()">🖨️ Imprimir PDF</button>
           <button class="bdv-btn bdv-btn-clear" onclick="limparBDV()">🧹 Limpar</button>
         </div>
+
+        <section id="bdv-aceite-painel" class="bdv-aceite-painel hidden" aria-labelledby="bdv-aceite-titulo">
+          <h3 id="bdv-aceite-titulo">Aceite de Conclusão da Viagem</h3>
+          <p id="bdv-aceite-resumo"></p>
+          <p><strong>Rota:</strong> <span id="bdv-aceite-rota"></span></p>
+          <input type="hidden" id="bdv-aceite-viagem-id">
+          <label><input type="checkbox" id="bdv-aceite-confirmacao"> Confirmo que a viagem foi concluída e aceito o registro eletrônico no BDV.</label>
+          <button type="button" onclick="registrarAceiteConclusao()">✅ Registrar aceite e gerar BDV</button>
+          <p class="text-xs" style="margin-top: 10px;">O registro recebe data/hora e um hash SHA-256 para validação.</p>
+        </section>
 
         <!-- ======================================================== -->
         <!-- MODELO 1: BOLETIM DIÁRIO - VIAGEM ESTADUAL               -->
