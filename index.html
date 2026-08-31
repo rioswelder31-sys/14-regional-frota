@@ -5031,21 +5031,34 @@
           diariasFiltradas // Ordena pela data de saída da viagem, da mais recente para a mais antiga
               .sort((a, b) => new Date(b.viagemSaida) - new Date(a.viagemSaida)).forEach(diaria => {
                   const tr = document.createElement('tr');
-                  // --- LÓGICA PARA COLORIR LINHA DE VIAGEM FINALIZADA ---
+                  // --- LÓGICA PARA COLORIR LINHA DE VIAGEM FINALIZADA OU VENCIDA ---
                   // Procura a viagem correspondente na lista de viagens já carregada.
+                  const agora = new Date();
                   const viagem = AppState.viagens.find(v => v.id === diaria.viagemId);
+                  
+                  let marcaComoConcluida = false;
+                  
                   if (viagem) {
                       let status = viagem.status || 'Pendente';
                       const chegada = new Date(viagem.chegada);
-                      const agora = new Date();
                       // Reutiliza a lógica que marca viagens como 'Finalizado' se a data de chegada já passou.
                       if ((status === 'Confirmado' || status === 'Em Deslocamento') && chegada < agora) {
                           status = 'Finalizado';
                       }
                       if (status === 'Finalizado') {
-                          tr.classList.add('linha-confirmada');
-                          tr.title = 'Esta diária corresponde a uma viagem já finalizada.';
+                          marcaComoConcluida = true;
                       }
+                  } else if (diaria.viagemSaida) {
+                      // Se não encontrar a viagem, verifica se a data de saída da diária já passou
+                      const dataSaida = new Date(diaria.viagemSaida);
+                      if (dataSaida < agora) {
+                          marcaComoConcluida = true;
+                      }
+                  }
+                  
+                  if (marcaComoConcluida) {
+                      tr.classList.add('linha-confirmada');
+                      tr.title = 'Esta diária corresponde a uma viagem já finalizada ou com data de saída vencida.';
                   }
 
                   const dataSolicitacao = new Date(diaria.dataSolicitacao).toLocaleString('pt-BR');
