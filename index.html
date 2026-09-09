@@ -3420,9 +3420,10 @@
             if (dataSaidaObj < agoraObj) {
               if (!id && !AppState.user.podeTudo) {
                   return alert("A Data de Saída Prevista já passou. Não é possível agendar retroativamente.");
-              } else if (id) {
+                } else if (id) {
                   const viagemAtual = AppState.viagens.find(v => v.id === id);
-                  if (viagemAtual) {
+                  const podeCorrigirViagemFinalizada = AppState.user.podeTudo && viagemAtual && viagemAtual.status === STATUS.FINALIZADO;
+                  if (viagemAtual && !podeCorrigirViagemFinalizada) {
                       const dataOriginal = new Date(viagemAtual.saida);
                       dataOriginal.setSeconds(0, 0);
                       if (dataSaidaObj.getTime() !== dataOriginal.getTime()) {
