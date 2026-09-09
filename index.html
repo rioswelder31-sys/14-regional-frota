@@ -3937,7 +3937,7 @@
           if (status === STATUS.EM_DESLOCAMENTO && v.solicitanteUID === AppState.user.uid && !v.aceiteConclusao) {
             btns += `<button aria-label="Aceitar conclusão da viagem" style="background:#087f5b; color:white; ${btnStyle} width:auto; padding:0 8px;" onclick="abrirAceiteConclusao('${v.id}')" title="Aceitar conclusão da viagem">✅ Aceite</button>`;
           }
-            if (status !== STATUS.FINALIZADO && status !== STATUS.CANCELADO && status !== STATUS.EM_DESLOCAMENTO) {
+            if ((status !== STATUS.FINALIZADO || AppState.user.podeTudo) && status !== STATUS.CANCELADO && status !== STATUS.EM_DESLOCAMENTO) {
                 btns += `<button class="btn-edit" aria-label="Editar viagem" onclick="prepararEdicao('${v.id}')" title="Editar viagem">✏️</button>`;
             }
             if (status === STATUS.PENDENTE || status === STATUS.CIENTE || status === STATUS.CONFIRMADO) {
