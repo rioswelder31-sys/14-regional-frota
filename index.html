@@ -3417,10 +3417,10 @@
           const agoraObj = new Date();
           agoraObj.setSeconds(0, 0); // Ignorar os segundos para comparação justa do minuto atual
 
-          if (dataSaidaObj < agoraObj) {
-              if (!id) {
+            if (dataSaidaObj < agoraObj) {
+              if (!id && !AppState.user.podeTudo) {
                   return alert("A Data de Saída Prevista já passou. Não é possível agendar retroativamente.");
-              } else {
+              } else if (id) {
                   const viagemAtual = AppState.viagens.find(v => v.id === id);
                   if (viagemAtual) {
                       const dataOriginal = new Date(viagemAtual.saida);
