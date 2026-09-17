@@ -5091,17 +5091,22 @@
                       viagemInfo = { saida: diaria.viagemSaida, chegada: diaria.viagemChegada, roteiroArray: [], trajetoExibicao: diaria.viagemTrajetoExibicao || '' };
                   }
 
-                  const destinoFinal = (() => {
+                  const destinoIda = (() => {
                       if (viagemInfo?.roteiroArray?.length) {
-                          const ultimoTrecho = viagemInfo.roteiroArray[viagemInfo.roteiroArray.length - 1];
-                          return ultimoTrecho?.destino || 'Destino não informado';
+                          const primeiroTrecho = viagemInfo.roteiroArray[0];
+                          return primeiroTrecho?.destino || 'Destino não informado';
                       }
 
                       const trajeto = viagemInfo?.trajetoExibicao || diaria.viagemTrajetoExibicao || '';
                       if (!trajeto) return 'Destino não informado';
 
-                      const partes = trajeto.split(/\n|\r\n|\s*→\s*|\s*-\s*/).map(item => item.trim()).filter(Boolean);
-                      return partes.length ? partes[partes.length - 1] : 'Destino não informado';
+                      const linhas = trajeto.split(/\r?\n/).map(item => item.trim()).filter(Boolean);
+                      const primeiraLinha = linhas[0] || '';
+
+                      if (!primeiraLinha) return 'Destino não informado';
+
+                      const partes = primeiraLinha.split(/\s*[→-]\s*/).map(item => item.trim()).filter(Boolean);
+                      return partes.length > 1 ? partes[partes.length - 1] : partes[0];
                   })();
 
                   let datasDeslocamentoHtml = "";
@@ -5110,7 +5115,7 @@
                         <div class="text-xs text-gray-500 dark:text-gray-400 mt-1 bg-gray-100 dark:bg-gray-800 p-1 rounded border border-gray-200 dark:border-gray-700">
                           🛫 <b>Saída:</b> ${formataDataComDiaDaSemana(viagemInfo.saida)}<br>
                           🛬 <b>Chegada:</b> ${formataDataComDiaDaSemana(viagemInfo.chegada)}<br>
-                          📍 <b>Destino:</b> ${escapeHtml(destinoFinal)}
+                          📍 <b>Destino:</b> ${escapeHtml(destinoIda)}
                         </div>
                       `;
                   }
