@@ -4082,10 +4082,13 @@
 
           if(!confirm("Deseja finalizar esta viagem manualmente?")) return;
 
-          update(getRegionalRef(DB_PATHS.VIAGENS, id), {status: STATUS.FINALIZADO}).then(() => {              
-              registrarLog('Finalização Manual', `Viagem ID ${id} de ${v.solicitanteNome} foi finalizada manualmente.`);
-              showToast("Viagem finalizada!", "success");
-          }).catch(err => alert("Erro ao finalizar viagem: " + err.message));
+          update(getRegionalRef(DB_PATHS.VIAGENS, id), {status: STATUS.FINALIZADO})
+            .then(() => update(getRegionalRef('diarias_solicitadas', id), { status: 'Paga' }))
+            .then(() => {
+              registrarLog('Finalização Manual', `Viagem ID ${id} de ${v.solicitanteNome} foi finalizada manualmente e a diária marcada como paga.`);
+              showToast("Viagem finalizada e diária marcada como Paga.", "success");
+            })
+            .catch(err => alert("Erro ao finalizar viagem: " + err.message));
       };
 
         async function gerarHashAceite(dados) {
@@ -4434,8 +4437,19 @@
       // --- Lógica do Histórico de Diárias ---
       // --- Função de Atualização do Processo SEI no Banco de Dados ---
       window.atualizarProcessoSEI = (diariaId, novoValor) => {
-          update(getRegionalRef('diarias_solicitadas', diariaId), { processoSEI: novoValor }).then(() => {
-              showToast("Processo SEI atualizado!", "success");
+          const valorLimpo = (novoValor || '').trim();
+          const updates = { processoSEI: valorLimpo };
+
+          if (valorLimpo) {
+              updates.status = 'Processando';
+          }
+
+          update(getRegionalRef('diarias_solicitadas', diariaId), updates).then(() => {
+              if (valorLimpo) {
+                  showToast("Processo SEI salvo e status atualizado para Processando.", "success");
+              } else {
+                  showToast("Processo SEI atualizado!", "success");
+              }
           }).catch(err => {
               showToast("Erro ao salvar Processo SEI.", "error");
           });
@@ -5074,14 +5088,29 @@
                   // Resgata a viagem correspondente para extrair as datas de saída e chegada
                   let viagemInfo = AppState.viagens.find(v => v.id === diaria.viagemId) || AppState.viagemRecemCriada;
                   if (!viagemInfo && (diaria.viagemSaida || diaria.viagemChegada)) {
-                      viagemInfo = { saida: diaria.viagemSaida, chegada: diaria.viagemChegada };
+                      viagemInfo = { saida: diaria.viagemSaida, chegada: diaria.viagemChegada, roteiroArray: [], trajetoExibicao: diaria.viagemTrajetoExibicao || '' };
                   }
+
+                  const destinoFinal = (() => {
+                      if (viagemInfo?.roteiroArray?.length) {
+                          const ultimoTrecho = viagemInfo.roteiroArray[viagemInfo.roteiroArray.length - 1];
+                          return ultimoTrecho?.destino || 'Destino não informado';
+                      }
+
+                      const trajeto = viagemInfo?.trajetoExibicao || diaria.viagemTrajetoExibicao || '';
+                      if (!trajeto) return 'Destino não informado';
+
+                      const partes = trajeto.split(/\n|\r\n|\s*→\s*|\s*-\s*/).map(item => item.trim()).filter(Boolean);
+                      return partes.length ? partes[partes.length - 1] : 'Destino não informado';
+                  })();
+
                   let datasDeslocamentoHtml = "";
                   if (viagemInfo && (viagemInfo.saida || viagemInfo.chegada)) {
                       datasDeslocamentoHtml = `
                         <div class="text-xs text-gray-500 dark:text-gray-400 mt-1 bg-gray-100 dark:bg-gray-800 p-1 rounded border border-gray-200 dark:border-gray-700">
                           🛫 <b>Saída:</b> ${formataDataComDiaDaSemana(viagemInfo.saida)}<br>
-                          🛬 <b>Chegada:</b> ${formataDataComDiaDaSemana(viagemInfo.chegada)}
+                          🛬 <b>Chegada:</b> ${formataDataComDiaDaSemana(viagemInfo.chegada)}<br>
+                          📍 <b>Destino:</b> ${escapeHtml(destinoFinal)}
                         </div>
                       `;
                   }
