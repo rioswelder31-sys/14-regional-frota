@@ -1129,7 +1129,7 @@
           <h3 id="form-title" style="color: var(--primary); cursor: pointer;" onclick="abrirNovaSolicitacao()" title="Clique para resetar e focar no formulário" tabindex="0" role="button" onkeydown="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); abrirNovaSolicitacao(); }">📝 Nova Solicitação de Agendamento</h3>
           <input type="hidden" id="edit-id" />
           <div class="form-row">
-            <div class="col" style="flex: 2"><label for="solicitante">Solicitante:</label><input type="text" id="solicitante" list="lista-solicitantes" required /><datalist id="lista-solicitantes"></datalist></div>
+            <div class="col" style="flex: 2"><label for="solicitante">Solicitantes (separar por vírgula):</label><input type="text" id="solicitante" list="lista-solicitantes" placeholder="Nome 1, Nome 2" required /><datalist id="lista-solicitantes"></datalist></div>
             <div class="col"><label for="setor">Setor:</label><input type="text" id="setor" value="Geral" /></div>
           </div>
           
@@ -2023,6 +2023,13 @@
         if (!tel) return '';
         let phone = String(tel).replace(/\D/g, '');
         return (phone.length > 9 && !phone.startsWith('55')) ? '55' + phone : phone;
+      }
+
+      function enviarWhatsAppEmMassa(telefones, mensagem) {
+        const telefonesUnicos = [...new Set((telefones || []).map(tel => formatarTelefoneWpp(tel)).filter(Boolean))];
+        for (const phone of telefonesUnicos) {
+          window.open(`https://wa.me/${phone}?text=${encodeURIComponent(mensagem)}`, '_blank', 'noopener,noreferrer');
+        }
       }
 
       // Função auxiliar para formatar data e hora com o dia da semana
@@ -3233,7 +3240,7 @@
                         }
                     }
                     
-                    if (!AppState.user.isMotorista && AppState.user.uid === v.solicitanteUID && viagemAntiga && viagemAntiga.status !== v.status) {
+                    if (!AppState.user.isMotorista && getSolicitanteUIDs(v).includes(AppState.user.uid) && viagemAntiga && viagemAntiga.status !== v.status) {
                         if (v.status === STATUS.CONFIRMADO) mostrarNotificacaoPush('Viagem Confirmada ✅', 'Sua viagem foi confirmada pelo motorista!');
                         if (v.status === STATUS.REJEITADO) mostrarNotificacaoPush('Viagem Rejeitada ❌', 'Sua viagem foi rejeitada. Verifique a agenda.');
                     }
@@ -3273,15 +3280,63 @@
         atualizarEscutaViagens();
       }
 
+      function parseSolicitantesInput(texto) {
+        if (!texto || !texto.trim()) return [];
+
+        const nomes = texto.split(/[;,|\n]+/).map(nome => nome.trim()).filter(Boolean);
+        const solicitantes = [];
+        const nomesJaProcessados = new Set();
+
+        for (const nome of nomes) {
+          const nomeNormalizado = nome.replace(/\s+/g, ' ');
+          if (!nomeNormalizado || nomesJaProcessados.has(nomeNormalizado.toLowerCase())) continue;
+          nomesJaProcessados.add(nomeNormalizado.toLowerCase());
+
+          const membro = AppState.unidade.equipe.find(m => m.nome && m.nome.toLowerCase() === nomeNormalizado.toLowerCase());
+          solicitantes.push({
+            nome: nomeNormalizado,
+            uid: membro ? membro.uid : null,
+            telefone: membro ? membro.telefone : null
+          });
+        }
+
+        return solicitantes;
+      }
+
+      function getSolicitantesDaViagem(v) {
+        if (Array.isArray(v.solicitantes) && v.solicitantes.length > 0) return v.solicitantes;
+
+        const nomeTexto = (v.solicitanteNome || '').trim() ||
+          (v.solicitanteUID ? (AppState.unidade.equipe.find(m => m.uid === v.solicitanteUID)?.nome || '') : '') ||
+          (v.solicitante || '');
+
+        if (!nomeTexto) return [];
+
+        const solicitantes = parseSolicitantesInput(nomeTexto);
+        if (solicitantes.length > 0) return solicitantes;
+
+        return [{ nome: nomeTexto, uid: v.solicitanteUID || null, telefone: v.solicitanteTelefone || null }];
+      }
+
+      function getSolicitanteUIDs(v) {
+        const solicitantes = getSolicitantesDaViagem(v);
+        const uids = solicitantes.map(s => s.uid).filter(Boolean);
+        if (uids.length > 0) return uids;
+        if (v.solicitanteUID) return [v.solicitanteUID];
+        return [];
+      }
+
       function getNomeSolicitante(v) {
-        if (v.solicitanteNome) return v.solicitanteNome;
+        const solicitantes = getSolicitantesDaViagem(v);
+        if (solicitantes.length > 0) {
+          return solicitantes.map(s => s.nome).join(', ');
+        }
         if (v.solicitanteUID) {
           const solicitante = AppState.unidade.equipe.find(m => m.uid === v.solicitanteUID);
           if (solicitante) return solicitante.nome;
         }
-        // Fallback para registros muito antigos que podem ter apenas o campo 'solicitante'
-        if (v.solicitante) return v.solicitante; 
-        return null; // Retorna null para que o || 'N/D' funcione
+        if (v.solicitante) return v.solicitante;
+        return null;
       }
 
       function parseFolgaDate(dateStr, isEnd = false) {
@@ -3404,12 +3459,12 @@
       }
 
       window.salvarNoFirebase = async () => {
-        const solicitanteNome = document.getElementById("solicitante").value;
+        const solicitanteTexto = document.getElementById("solicitante").value;
         const saida = document.getElementById("saida").value;
         const chegada = document.getElementById("chegada").value;
         const motivo = document.getElementById("motivo").value.trim();
         const id = document.getElementById("edit-id").value;
-        if(!solicitanteNome || !saida || !chegada || !motivo) return alert("Preencha todos os campos obrigatórios: solicitante, horários e motivo!");
+        if(!solicitanteTexto || !saida || !chegada || !motivo) return alert("Preencha todos os campos obrigatórios: solicitante, horários e motivo!");
           if(new Date(chegada) < new Date(saida)) return alert("A data de chegada prevista não pode ser anterior à data de saída prevista!");
         if(AppState.roteiroAtual.length === 0) return alert("Preencha o roteiro da viagem!");
 
@@ -3433,8 +3488,13 @@
               }
           }
 
-        const solicitante = AppState.unidade.equipe.find(m => m.nome === solicitanteNome);
-        if (!solicitante) return alert("Solicitante inválido. Por favor, selecione um nome da lista ou cadastre-se se for um novo usuário.");
+        const solicitantes = parseSolicitantesInput(solicitanteTexto);
+        if (!solicitantes.length) return alert("Digite pelo menos um solicitante válido.");
+
+        const nomesInvalidos = solicitantes.filter(s => !s.uid).map(s => s.nome);
+        if (nomesInvalidos.length > 0) {
+          return alert(`Solicitante(s) não cadastrado(s): ${nomesInvalidos.join(', ')}. Selecione nomes da lista ou cadastre primeiro no sistema.`);
+        }
 
         const btnSave = document.getElementById("btn-save");
         const txtOriginal = btnSave.innerText;
@@ -3474,9 +3534,11 @@
             }
 
         const trajetoString = AppState.roteiroAtual.map(t => `🔹 ${t.origem} → ${t.destino}`).join("\n");
+        const solicitanteNomeExibicao = solicitantes.map(s => s.nome).join(', ');
         const dados = { 
-          solicitanteNome: solicitante.nome, 
-          solicitanteUID: solicitante.uid,
+          solicitanteNome: solicitanteNomeExibicao,
+          solicitanteUID: solicitantes[0].uid,
+          solicitantes: solicitantes,
           setor: document.getElementById("setor").value, saida, chegada, motivo: motivo, 
           trajetoExibicao: trajetoString, 
           roteiroArray: AppState.roteiroAtual
@@ -3494,21 +3556,19 @@
           dados.chegadaOriginal = chegada;
         }
         
-        const motoristaNome = AppState.unidade.motorista.nome;
         const dataSaidaFormatada = new Date(dados.saida).toLocaleString('pt-BR');
         const dataRetornoFormatada = new Date(dados.chegada).toLocaleString('pt-BR');
 
-        const msgMotorista = `🔔 *NOVO AGENDAMENTO RECEBIDO*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${dados.solicitanteNome}\n📅 *Saída Prevista:* ${dataSaidaFormatada}\n🔙 *Chegada Prevista:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${dados.trajetoExibicao}\n📝 *Motivo:* ${dados.motivo}\n\n*Acesse o aplicativo para confirmar ou recusar a viagem.*`;
+        const msgMotorista = `🔔 *NOVO AGENDAMENTO RECEBIDO*\n\n${AppState.regionalNome}\n\n👤 *Solicitantes:* ${dados.solicitanteNome}\n📅 *Saída Prevista:* ${dataSaidaFormatada}\n🔙 *Chegada Prevista:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${dados.trajetoExibicao}\n📝 *Motivo:* ${dados.motivo}\n\n*Acesse o aplicativo para confirmar ou recusar a viagem.*`;
 
         if(id) {
             await update(getRegionalRef(DB_PATHS.VIAGENS, id), dados);
             registrarLog('Edição de Viagem', `Viagem ID ${id} para ${dados.solicitanteNome} foi editada.`);
             showToast("Viagem editada! Notifique o motorista.", "success");
             const telMotorista = AppState.unidade.motorista.tel;
-            const msgEdicao = `🔄 *VIAGEM EDITADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${dados.solicitanteNome}\n📅 *Saída Prevista:* ${dataSaidaFormatada}\n🔙 *Chegada Prevista:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${dados.trajetoExibicao}\n📝 *Motivo:* ${dados.motivo}\n\n*A viagem foi editada. Acesse o aplicativo para confirmar ou recusar.*`;
+            const msgEdicao = `🔄 *VIAGEM EDITADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitantes:* ${dados.solicitanteNome}\n📅 *Saída Prevista:* ${dataSaidaFormatada}\n🔙 *Chegada Prevista:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${dados.trajetoExibicao}\n📝 *Motivo:* ${dados.motivo}\n\n*A viagem foi editada. Acesse o aplicativo para confirmar ou recusar.*`;
             if (telMotorista) {
-              let phone = formatarTelefoneWpp(telMotorista);
-              window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msgEdicao)}`, '_blank');
+              enviarWhatsAppEmMassa([telMotorista], msgEdicao);
             }
             resetForm();
         } else {
@@ -3525,8 +3585,7 @@
             // Enviar mensagem direto para o motorista
             const telMotorista = AppState.unidade.motorista.tel;
             if (telMotorista) {
-              let phone = formatarTelefoneWpp(telMotorista);
-              window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msgMotorista)}`, '_blank');
+              enviarWhatsAppEmMassa([telMotorista], msgMotorista);
             } else {
               alert("Telefone do motorista não encontrado. Verifique as configurações.");
             }
@@ -3583,17 +3642,16 @@
         const v = AppState.viagens.find(x => x.id === id);
         if (!v) return alert("Viagem não encontrada!");
 
-        const solicitante = AppState.unidade.equipe.find(m => m.uid === v.solicitanteUID);
-        if (!solicitante || !solicitante.telefone) return alert(`Telefone do solicitante '${v.solicitanteNome}' não encontrado para enviar a notificação.`);
+        const solicitantes = getSolicitantesDaViagem(v).filter(item => item.telefone);
+        if (!solicitantes.length) return alert(`Telefone do solicitante '${v.solicitanteNome}' não encontrado para enviar a notificação.`);
 
         const dataSaidaFormatada = new Date(v.saida).toLocaleString('pt-BR');
         const dataRetornoFormatada = new Date(v.chegada).toLocaleString('pt-BR');
         const trajeto = v.trajetoExibicao ? v.trajetoExibicao.replace(/\n/g, ' ') : 'Rota não informada';
-        const msgConfReenvio = `🔄 *REENVIO DE CONFIRMAÇÃO DE VIAGEM*\n\n(Esta é uma notificação reenviada para uma viagem já confirmada)\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída Prevista:* ${dataSaidaFormatada}\n🔙 *Chegada Prevista:* ${dataRetornoFormatada}\n📍 *Roteiro:* ${trajeto}\n\nSua viagem foi confirmada pelo motorista!`;
+        const msgConfReenvio = `🔄 *REENVIO DE CONFIRMAÇÃO DE VIAGEM*\n\n(Esta é uma notificação reenviada para uma viagem já confirmada)\n\n${AppState.regionalNome}\n\n👤 *Solicitantes:* ${v.solicitanteNome}\n📅 *Saída Prevista:* ${dataSaidaFormatada}\n🔙 *Chegada Prevista:* ${dataRetornoFormatada}\n📍 *Roteiro:* ${trajeto}\n\nSua viagem foi confirmada pelo motorista!`;
         
-        let phone = formatarTelefoneWpp(solicitante.telefone);
-        window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msgConfReenvio)}`, '_blank');
-        alert("Notificação de confirmação reenviada para o solicitante.");
+        enviarWhatsAppEmMassa(solicitantes.map(item => item.telefone), msgConfReenvio);
+        alert("Notificação de confirmação reenviada para os solicitantes.");
       };
 
       window.toggleHistorico = () => {
@@ -3908,7 +3966,7 @@
       };
 
       function createActionButtons(v, status) {
-        const temPermissao = AppState.user.podeTudo || v.registradoPor === AppState.user.email || v.solicitanteUID === AppState.user.uid;
+        const temPermissao = AppState.user.podeTudo || v.registradoPor === AppState.user.email || getSolicitanteUIDs(v).includes(AppState.user.uid);
         const isMotoristaOuAdmin = AppState.user.isMotorista || AppState.user.podeTudo;
         let btns = "";
         const btnStyle = "width: 32px; height: 32px; padding: 0; font-size: 1em; margin-right: 3px; border: none; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;";
@@ -3935,7 +3993,7 @@
 
         // --- Ações do Solicitante/Admin ---
         if (temPermissao) {
-          if (status === STATUS.EM_DESLOCAMENTO && v.solicitanteUID === AppState.user.uid && !v.aceiteConclusao) {
+          if (status === STATUS.EM_DESLOCAMENTO && getSolicitanteUIDs(v).includes(AppState.user.uid) && !v.aceiteConclusao) {
             btns += `<button aria-label="Aceitar conclusão da viagem" style="background:#087f5b; color:white; ${btnStyle} width:auto; padding:0 8px;" onclick="abrirAceiteConclusao('${v.id}')" title="Aceitar conclusão da viagem">✅ Aceite</button>`;
           }
             if ((status !== STATUS.FINALIZADO || AppState.user.podeTudo) && status !== STATUS.CANCELADO && status !== STATUS.EM_DESLOCAMENTO) {
@@ -4020,17 +4078,15 @@
           if(!v) return alert("Viagem não encontrada!");
           update(getRegionalRef(DB_PATHS.VIAGENS, id), {status: STATUS.CONFIRMADO}).then(() => {              
               registrarLog('Confirmação de Viagem', `Viagem ID ${id} de ${v.solicitanteNome} foi confirmada.`);
-              const solicitante = AppState.unidade.equipe.find(m => m.uid === v.solicitanteUID);
-              const telSol = solicitante ? solicitante.telefone : null;
+              const telefonesSolicitantes = getSolicitantesDaViagem(v).map(item => item.telefone).filter(Boolean);
               const dataSaidaFormatada = new Date(v.saida).toLocaleString('pt-BR');
               const dataRetornoFormatada = new Date(v.chegada).toLocaleString('pt-BR');
-                const trajeto = v.trajetoExibicao ? v.trajetoExibicao.replace(/\n/g, ' ') : 'Rota não informada';
-                const msgConf = `✅ *VIAGEM CONFIRMADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída Prevista:* ${dataSaidaFormatada}\n🔙 *Chegada Prevista:* ${dataRetornoFormatada}\n📍 *Roteiro:* ${trajeto}\n\nSua viagem foi confirmada pelo motorista!`;
-              if(telSol) {
-                let phone = formatarTelefoneWpp(telSol);
-                window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msgConf)}`, '_blank');
+              const trajeto = v.trajetoExibicao ? v.trajetoExibicao.replace(/\n/g, ' ') : 'Rota não informada';
+              const msgConf = `✅ *VIAGEM CONFIRMADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitantes:* ${v.solicitanteNome}\n📅 *Saída Prevista:* ${dataSaidaFormatada}\n🔙 *Chegada Prevista:* ${dataRetornoFormatada}\n📍 *Roteiro:* ${trajeto}\n\nSua viagem foi confirmada pelo motorista!`;
+              if(telefonesSolicitantes.length > 0) {
+                enviarWhatsAppEmMassa(telefonesSolicitantes, msgConf);
               }
-              showToast("Viagem confirmada! Solicitante notificado.", "success");
+              showToast("Viagem confirmada! Solicitantes notificados.", "success");
           }).catch(err => alert("Erro ao confirmar: " + err.message));
       };
 
@@ -4039,17 +4095,15 @@
           if(!v) return alert("Viagem não encontrada!");
           update(getRegionalRef(DB_PATHS.VIAGENS, id), {status: STATUS.REJEITADO}).then(() => {              
               registrarLog('Rejeição de Viagem', `Viagem ID ${id} de ${v.solicitanteNome} foi rejeitada.`);
-              const solicitante = AppState.unidade.equipe.find(m => m.uid === v.solicitanteUID);
-              const telSol = solicitante ? solicitante.telefone : null;
+              const telefonesSolicitantes = getSolicitantesDaViagem(v).map(item => item.telefone).filter(Boolean);
               const dataSaidaFormatada = new Date(v.saida).toLocaleString('pt-BR');
               const dataRetornoFormatada = new Date(v.chegada).toLocaleString('pt-BR');
               const trajeto = v.trajetoExibicao ? v.trajetoExibicao.replace(/\n/g, ' ') : 'Rota não informada';
-              const msgRejeicao = `❌ *VIAGEM REJEITADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída Prevista:* ${dataSaidaFormatada}\n🔙 *Chegada Prevista:* ${dataRetornoFormatada}\n📍 *Roteiro:* ${trajeto}\n\nInfelizmente, sua viagem foi rejeitada pelo motorista. Tente agendar em outro horário.`;
-              if(telSol) {
-                let phone = formatarTelefoneWpp(telSol);
-                window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msgRejeicao)}`, '_blank');
+              const msgRejeicao = `❌ *VIAGEM REJEITADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitantes:* ${v.solicitanteNome}\n📅 *Saída Prevista:* ${dataSaidaFormatada}\n🔙 *Chegada Prevista:* ${dataRetornoFormatada}\n📍 *Roteiro:* ${trajeto}\n\nInfelizmente, sua viagem foi rejeitada pelo motorista. Tente agendar em outro horário.`;
+              if(telefonesSolicitantes.length > 0) {
+                enviarWhatsAppEmMassa(telefonesSolicitantes, msgRejeicao);
               }
-              showToast("Viagem rejeitada! Solicitante notificado.", "success");
+              showToast("Viagem rejeitada! Solicitantes notificados.", "success");
           }).catch(err => alert("Erro ao rejeitar: " + err.message));
       };
 
@@ -4057,22 +4111,19 @@
           const v = AppState.viagens.find(x => x.id === id);
           if(!v) return alert("Viagem não encontrada!");
 
-          if(!confirm("Deseja marcar esta viagem como 'Em Deslocamento'? O solicitante será notificado.")) return;
+          if(!confirm("Deseja marcar esta viagem como 'Em Deslocamento'? Os solicitantes serão notificados.")) return;
 
           update(getRegionalRef(DB_PATHS.VIAGENS, id), {status: STATUS.EM_DESLOCAMENTO}).then(() => {              
               registrarLog('Início de Deslocamento', `Viagem ID ${id} de ${v.solicitanteNome} foi marcada como 'Em Deslocamento'.`);
               
-              const solicitante = AppState.unidade.equipe.find(m => m.uid === v.solicitanteUID);
-              const telSol = solicitante ? solicitante.telefone : null;
-              
+              const telefonesSolicitantes = getSolicitantesDaViagem(v).map(item => item.telefone).filter(Boolean);
               const destinoFinal = v.roteiroArray && v.roteiroArray.length > 0 ? (v.roteiroArray[v.roteiroArray.length-1].destino.split(' - ')[1] || 'destino') : 'destino';
               const msgInicio = `🚗 *VIAGEM INICIADA*\n\n${AppState.regionalNome}\n\nSua viagem com destino a ${destinoFinal} acaba de ser iniciada pelo motorista.\n\nBoa viagem!`;
               
-              if(telSol) {
-                  let phone = formatarTelefoneWpp(telSol);
-                  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msgInicio)}`, '_blank');
+              if(telefonesSolicitantes.length > 0) {
+                  enviarWhatsAppEmMassa(telefonesSolicitantes, msgInicio);
               }
-              showToast("Viagem iniciada! Solicitante notificado.", "success");
+              showToast("Viagem iniciada! Solicitantes notificados.", "success");
           }).catch(err => alert("Erro ao iniciar deslocamento: " + err.message));
       };
 
@@ -4122,7 +4173,7 @@
           const id = document.getElementById('bdv-aceite-viagem-id').value;
           const viagem = AppState.viagens.find(item => item.id === id);
           const checkbox = document.getElementById('bdv-aceite-confirmacao');
-          if (!viagem || viagem.solicitanteUID !== AppState.user.uid) return alert('Somente o solicitante da viagem pode registrar o aceite.');
+          if (!viagem || !getSolicitanteUIDs(viagem).includes(AppState.user.uid)) return alert('Somente um dos solicitantes da viagem pode registrar o aceite.');
           if (!checkbox.checked) return alert('Confirme que a viagem foi concluída para registrar o aceite.');
           if (viagem.aceiteConclusao) return mostrarAceiteRegistrado(viagem.aceiteConclusao);
 
