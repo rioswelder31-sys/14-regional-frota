@@ -36,6 +36,20 @@ self.addEventListener('activate', event => {
   );
 });
 
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  const targetUrl = new URL(event.notification.data?.url || './?pendencias-diarias=1', self.registration.scope).href;
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
+      const appClient = windowClients.find(client => new URL(client.url).origin === self.location.origin);
+      if (appClient) {
+        return appClient.navigate(targetUrl).then(client => client.focus());
+      }
+      return clients.openWindow(targetUrl);
+    })
+  );
+});
+
 // Nova Estratégia de Cache Otimizada
 self.addEventListener('fetch', event => {
   // REGRA 1: Ignorar requisições do Firebase e APIs externas. 

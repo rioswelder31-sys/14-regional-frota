@@ -738,6 +738,41 @@
       html[data-theme="dark"] .dash-title { color: #CBD5E0; } /* Título do card mais claro */
       html[data-theme="dark"] .dash-value { color: #F7FAFC; }
 
+      .diaria-pendencias { margin: 0 0 20px; border: 1px solid #f1aeb5; border-left: 5px solid #dc3545; border-radius: 6px; background: #fff5f5; padding: 14px 16px; }
+      .diaria-pendencias-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+      .diaria-pendencias-header h4 { color: #9f1d2b; margin: 0; }
+      .diaria-pendencias-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+      .diaria-pendencias button, .diaria-pendencias a { border: 0; border-radius: 4px; padding: 8px 12px; font-weight: 700; cursor: pointer; text-decoration: none; }
+      .diaria-pendencias-toggle { background: #dc3545; color: white; }
+      .diaria-pendencias-permission { background: #e9ecef; color: #333; }
+      .diaria-pendencias-details { overflow-x: auto; margin-top: 12px; }
+      .diaria-pendencias table { width: 100%; border-collapse: collapse; min-width: 600px; }
+      .diaria-pendencias th, .diaria-pendencias td { padding: 9px; text-align: left; border-bottom: 1px solid #e5c5c8; }
+      .diaria-pendencias th { color: #70202a; }
+      .diaria-pendencias tr.diaria-pendente { background: #fff4f4; }
+      .diaria-pendencias tr.diaria-prevista { background: #eef6ff; }
+      .diaria-viagem-solicitantes { display: block; margin-bottom: 5px; color: #005a2b; font-weight: 700; }
+      .diaria-viagem-detalhes { padding: 6px; border-radius: 4px; background: #f1f3f5; color: #52606d; font-size: .85rem; line-height: 1.5; }
+      html[data-theme="dark"] .diaria-pendencias tr.diaria-pendente { background: #472b31; }
+      html[data-theme="dark"] .diaria-pendencias tr.diaria-prevista { background: #25364b; }
+      html[data-theme="dark"] .diaria-viagem-solicitantes { color: #9ae6b4; }
+      html[data-theme="dark"] .diaria-viagem-detalhes { background: #1a202c; color: #d1d5db; }
+      .diaria-pendencias .comprovar-link { background: #007b2e; color: white; display: inline-block; margin-right: 5px; }
+      .diaria-pendencias .baixar-pendencia { background: #e9ecef; color: #333; }
+      html[data-theme="dark"] .diaria-pendencias { background: #38252a; border-color: #7f303a; }
+      html[data-theme="dark"] .diaria-pendencias-header h4, html[data-theme="dark"] .diaria-pendencias th { color: #ffd7dc; }
+      html[data-theme="dark"] .diaria-pendencias td { border-color: #614047; }
+      #comprovacao-diaria-modal { position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(0,0,0,.62); }
+      #comprovacao-diaria-modal.hidden { display: none; }
+      #comprovacao-diaria-modal-content { width: min(100%, 520px); background: white; color: #222; border-top: 6px solid #dc3545; border-radius: 6px; padding: 24px; box-shadow: 0 16px 44px rgba(0,0,0,.28); }
+      #comprovacao-diaria-modal-content h3 { color: #a51f2b; margin-bottom: 14px; }
+      #comprovacao-diaria-modal-content p { margin: 0 0 12px; line-height: 1.5; }
+      #comprovacao-diaria-modal-content .modal-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+      #comprovacao-diaria-modal-content .modal-actions a, #comprovacao-diaria-modal-content .modal-actions button { flex: 1; min-width: 175px; text-align: center; border: 0; border-radius: 4px; padding: 12px; font-weight: 700; cursor: pointer; text-decoration: none; }
+      #comprovacao-diaria-modal-content .modal-comprovar { background: #007b2e; color: white; }
+      #comprovacao-diaria-modal-content .modal-lembrar { background: #e9ecef; color: #333; }
+      html[data-theme="dark"] #comprovacao-diaria-modal-content { background: #232d3d; color: #f1f5f9; }
+
       /* Estilo para cabeçalhos de tabela fixos em modais */
       .sticky-thead { position: sticky; top: -11px; background: white; box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1); }
       html[data-theme="dark"] .sticky-thead { background: #2D3748; }
@@ -1253,6 +1288,32 @@
           <div id="card-falta-ciencia" class="dash-card border-info hidden" onclick="filtrarPorStatus('ciencia')"><div class="dash-title">Falta Ciência</div><div class="dash-value" id="dash-ciencia">0</div></div>
         </div>
 
+        <section id="diaria-pendencias" class="diaria-pendencias" aria-labelledby="diaria-pendencias-titulo">
+          <div class="diaria-pendencias-header">
+            <h4 id="diaria-pendencias-titulo">🚨 COMPROVAÇÕES DE DIÁRIAS PENDENTES</h4>
+            <div class="diaria-pendencias-actions">
+              <button id="diaria-pendencias-toggle" class="diaria-pendencias-toggle" onclick="togglePendenciasDiarias()" aria-expanded="false" aria-controls="diaria-pendencias-details">🔴 <span id="diaria-pendencias-count">0</span> COMPROVAÇÕES PENDENTES</button>
+              <button id="diaria-notification-permission" class="diaria-pendencias-permission" onclick="ativarNotificacoesDiarias()">Ativar notificações</button>
+            </div>
+          </div>
+          <div id="diaria-pendencias-details" class="diaria-pendencias-details hidden">
+            <div id="diaria-pendencias-list"></div>
+          </div>
+        </section>
+
+        <div id="comprovacao-diaria-modal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="comprovacao-diaria-titulo">
+          <div id="comprovacao-diaria-modal-content">
+            <h3 id="comprovacao-diaria-titulo">⚠️ COMPROVAÇÃO DE DIÁRIA PENDENTE</h3>
+            <p id="comprovacao-diaria-resumo">Esta viagem foi finalizada e gerou diária.</p>
+            <p>É necessário realizar a comprovação no sistema oficial de diárias da Defensoria Pública da Bahia.</p>
+            <p><strong>Acesse o sistema para realizar a comprovação.</strong></p>
+            <div class="modal-actions">
+              <a class="modal-comprovar" href="https://portal.defensoria.ba.def.br/Home/Login.php" target="_blank" rel="noopener noreferrer">FAZER COMPROVAÇÃO</a>
+              <button class="modal-lembrar" onclick="lembrarComprovacaoDepois()">LEMBRAR DEPOIS</button>
+            </div>
+          </div>
+        </div>
+
         <h4 id="filtro-ativo-titulo" class="text-lg font-semibold my-4 text-gray-700 dark:text-gray-300 hidden" style="text-align: center;"></h4>
 
         <div class="table-responsive-container"><table class="table-custom"><thead class="table-header-custom"><tr><th style="padding:12px;">Status</th><th style="padding:12px;">Saída Prevista</th><th style="padding:12px;">Chegada Prevista</th><th style="padding:12px;">Solicitante</th><th style="padding:12px;">Motivo</th><th style="padding:12px;">Roteiro</th><th style="padding:12px; text-align:center;">Ações</th></tr></thead><tbody id="tb-corpo"></tbody></table></div>
@@ -1744,6 +1805,23 @@
             else new Notification(titulo, options);
         }
       };
+      function mostrarNotificacaoComprovacao(corpo, viagemId) {
+        if (!('Notification' in window) || Notification.permission !== 'granted') return;
+        const options = {
+          body: corpo,
+          icon: './logo-dpe-192.png',
+          badge: './logo-dpe-192.png',
+          tag: `comprovacao-diaria-${viagemId}`,
+          renotify: true,
+          data: { url: './?pendencias-diarias=1' }
+        };
+        if (navigator.serviceWorker) {
+          navigator.serviceWorker.ready.then(registration => registration.showNotification('Frota DPE - Comprovação de diária pendente', options))
+            .catch(() => new Notification('Frota DPE - Comprovação de diária pendente', options));
+        } else {
+          new Notification('Frota DPE - Comprovação de diária pendente', options);
+        }
+      }
       window.solicitarPermissaoNotificacao = () => {
         if ("Notification" in window && Notification.permission === "default") {
             Notification.requestPermission().then(permission => { if (permission === "granted") console.log("Notificações ativas."); });
@@ -1918,6 +1996,9 @@
         paginaAtual: 1,
         registrosPorPagina: 10, // ⚡ OTIMIZAÇÃO: Reduzido de 20 para 10 para melhorar a performance de renderização da tabela.
         filtroStatusAtual: 'todos',
+        diariasIniciaisCarregadas: false,
+        diariasMigracaoEmCurso: new Set(),
+        abrirPendenciasAoIniciar: new URLSearchParams(location.search).has('pendencias-diarias'),
         viagemRecemCriada: null, // Guarda a viagem recém-criada para evitar race conditions
       };
       window.AppState = AppState; // Expor para depuração no console
@@ -1925,6 +2006,8 @@
       // Constantes para caminhos do DB, evitando "magic strings"
       const DB_PATHS = { VIAGENS: 'viagens', FOLGAS: 'folgas', UNIDADES: 'unidades', EQUIPE: 'equipe', MOTORISTA: 'motorista' };
       const STATUS = { PENDENTE: 'Pendente', CIENTE: 'Ciente', CONFIRMADO: 'Confirmado', EM_DESLOCAMENTO: 'Em Deslocamento', FINALIZADO: 'Finalizado', REJEITADO: 'Rejeitado', CANCELADO: 'Cancelado' };
+      const STATUS_COMPROVACAO_DIARIA = { NAO_SE_APLICA: 'NAO_SE_APLICA', PENDENTE: 'PENDENTE', COMPROVADA: 'COMPROVADA' };
+      const LINK_COMPROVACAO_DIARIA = 'https://portal.defensoria.ba.def.br/Home/Login.php';
 
       /*
        * NOTA DE FUNCIONALIDADE: Filtro de Status da Agenda
@@ -3774,9 +3857,8 @@
         // ⚡ OTIMIZAÇÃO: Batch update — atualiza todas as viagens expiradas em um único write
         const idsParaFinalizar = Object.keys(viagensParaAtualizar);
         if (idsParaFinalizar.length > 0 && (AppState.user.podeTudo || AppState.user.isMotorista)) {
-            const updates = {};
-            idsParaFinalizar.forEach(id => { updates[`${DB_PATHS.VIAGENS}/${id}/status`] = STATUS.FINALIZADO; });
-            update(getRegionalRef(), updates).catch(err => console.error('Erro ao finalizar viagens:', err));
+            Promise.all(idsParaFinalizar.map(id => finalizarViagemComControle(id, { mostrarAlerta: false })))
+              .catch(err => console.error('Erro ao finalizar viagens:', err));
         }
 
         // 2. Atualizar DOM do Dashboard
@@ -3785,6 +3867,7 @@
         document.getElementById('dash-concluidas').innerText = concluidas;
         document.getElementById('dash-canceladas').innerText = canceladas;
         document.getElementById('dash-ciencia').innerText = faltaCiencia;
+        renderPainelComprovacoes();
 
         // 3. Aplicar filtro de status
         let viagensFiltradas;
@@ -3879,10 +3962,12 @@
                 // Célula Status
                 const tdStatus = tr.insertCell();
                 tdStatus.setAttribute('data-label', 'Status');
-                tdStatus.style.cssText = 'text-align:center; white-space:nowrap;';
+                tdStatus.style.cssText = 'text-align:center;';
                 const statusBadge = document.createElement('span');
                 statusBadge.className = `status-badge ${badgeCor}`;
-                statusBadge.textContent = status;
+                statusBadge.textContent = status === STATUS.FINALIZADO && v.comprovacao_diaria_status === STATUS_COMPROVACAO_DIARIA.PENDENTE
+                  ? 'Viagem finalizada — comprovação de diária pendente'
+                  : status;
                 tdStatus.appendChild(statusBadge);
                 
                 if (v.cienciaAdmin) {
@@ -4145,19 +4230,71 @@
           }).catch(err => alert("Erro ao iniciar deslocamento: " + err.message));
       };
 
-      window.finalizarViagem = (id) => {
-          const v = AppState.viagens.find(x => x.id === id);
-          if(!v) return alert("Viagem não encontrada!");
+      async function finalizarViagemComControle(id, { mostrarAlerta = false, viagemInformada = null } = {}) {
+          const viagem = viagemInformada || AppState.viagens.find(item => item.id === id);
+          if (!viagem) throw new Error('Viagem não encontrada.');
 
-          if(!confirm("Deseja finalizar esta viagem manualmente?")) return;
+          const diariaSnapshot = await get(getRegionalRef('diarias_solicitadas', id));
+          const diaria = diariaSnapshot.exists() ? diariaSnapshot.val() : null;
+          const quantidade = diaria && Number(diaria.qtdDiarias);
+          const temDiaria = Boolean(diaria && diaria.status !== 'Cancelada' && (!Number.isFinite(quantidade) || quantidade > 0));
+          const timestamp = viagem.finalizadaEm || new Date().toISOString();
+          const responsavel = viagem.finalizadaPor || AppState.user.email || 'Usuário autenticado';
+          const statusAnterior = viagem.comprovacao_diaria_status || diaria?.comprovacaoDiariaStatus;
+          const statusComprovacao = temDiaria
+            ? (statusAnterior === STATUS_COMPROVACAO_DIARIA.COMPROVADA ? STATUS_COMPROVACAO_DIARIA.COMPROVADA : STATUS_COMPROVACAO_DIARIA.PENDENTE)
+            : STATUS_COMPROVACAO_DIARIA.NAO_SE_APLICA;
+          const roteiro = Array.isArray(viagem.roteiroArray) ? viagem.roteiroArray : [];
+          const veiculoConfigurado = AppState.unidade.veiculo;
+          const veiculo = viagem.veiculo || diaria?.veiculo || (typeof veiculoConfigurado === 'string' ? veiculoConfigurado : veiculoConfigurado?.nome || veiculoConfigurado?.modelo || veiculoConfigurado?.placa) || 'Não informado';
+          const dadosComprovacao = temDiaria ? {
+            viagemId: id,
+            numeroDiaria: diaria.numeroDiaria || diaria.processoSEI || null,
+            dataViagem: viagem.saida || diaria.viagemSaida || null,
+            finalizadaEm: timestamp,
+            motorista: diaria.motoristaNome || AppState.unidade.motorista?.nome || AppState.unidade.motoristaTitular?.nome || 'Não informado',
+            veiculo,
+            origem: roteiro[0]?.origem || 'Não informado',
+            destino: roteiro.length ? roteiro[roteiro.length - 1]?.destino || 'Não informado' : 'Não informado',
+            valorDiaria: Number.isFinite(Number(diaria.valorTotal)) ? Number(diaria.valorTotal) : null,
+            quantidadeDiarias: Number.isFinite(quantidade) ? quantidade : null,
+            responsavel,
+            status: statusComprovacao,
+            comprovadaEm: statusComprovacao === STATUS_COMPROVACAO_DIARIA.COMPROVADA ? (viagem.comprovadaEm || diaria.comprovadaEm || null) : null,
+            comprovadaPor: statusComprovacao === STATUS_COMPROVACAO_DIARIA.COMPROVADA ? (viagem.comprovadaPor || diaria.comprovadaPor || null) : null
+          } : null;
 
-          update(getRegionalRef(DB_PATHS.VIAGENS, id), {status: STATUS.FINALIZADO})
-            .then(() => update(getRegionalRef('diarias_solicitadas', id), { status: 'Paga' }))
-            .then(() => {
-              registrarLog('Finalização Manual', `Viagem ID ${id} de ${v.solicitanteNome} foi finalizada manualmente e a diária marcada como paga.`);
-              showToast("Viagem finalizada e diária marcada como Paga.", "success");
-            })
-            .catch(err => alert("Erro ao finalizar viagem: " + err.message));
+          const updates = {
+            [`${DB_PATHS.VIAGENS}/${id}/status`]: STATUS.FINALIZADO,
+            [`${DB_PATHS.VIAGENS}/${id}/finalizadaEm`]: timestamp,
+            [`${DB_PATHS.VIAGENS}/${id}/finalizadaPor`]: responsavel,
+            [`${DB_PATHS.VIAGENS}/${id}/comprovacao_diaria_status`]: statusComprovacao
+          };
+          if (temDiaria) {
+            updates[`${DB_PATHS.VIAGENS}/${id}/comprovacao_diaria`] = dadosComprovacao;
+            updates[`diarias_solicitadas/${id}/comprovacaoDiariaStatus`] = statusComprovacao;
+            updates[`diarias_solicitadas/${id}/comprovacaoDiaria`] = dadosComprovacao;
+          }
+          await update(getRegionalRef(), updates);
+
+          if (mostrarAlerta && statusComprovacao === STATUS_COMPROVACAO_DIARIA.PENDENTE) {
+            mostrarAlertaComprovacaoDiaria(viagem);
+          }
+          return { temDiaria, statusComprovacao, diaria };
+      }
+
+      window.finalizarViagem = async (id) => {
+          const viagem = AppState.viagens.find(item => item.id === id);
+          if (!viagem) return alert('Viagem não encontrada!');
+          if (!confirm('Deseja finalizar esta viagem manualmente?')) return;
+
+          try {
+            const resultado = await finalizarViagemComControle(id, { mostrarAlerta: true });
+            registrarLog('Finalização Manual', `Viagem ID ${id} de ${viagem.solicitanteNome} foi finalizada.${resultado.temDiaria ? ' Comprovação de diária pendente.' : ' Sem diária vinculada.'}`);
+            showToast(resultado.temDiaria ? 'Viagem finalizada; comprovação de diária pendente.' : 'Viagem finalizada sem diária vinculada.', 'success');
+          } catch (err) {
+            alert('Erro ao finalizar viagem: ' + err.message);
+          }
       };
 
         async function gerarHashAceite(dados) {
@@ -4221,6 +4358,11 @@
               return;
             }
           if (!resultado.committed) return alert('Este aceite já foi registrado por outro acesso.');
+            try {
+              await finalizarViagemComControle(id, { mostrarAlerta: true, viagemInformada: { ...viagem, id, status: STATUS.FINALIZADO } });
+            } catch (error) {
+              showToast('Aceite registrado, mas não foi possível sincronizar o controle da diária.', 'error');
+            }
           document.getElementById('bdv-aceite-painel').classList.add('hidden');
           registrarLog('Aceite de Conclusão', `Viagem ID ${id} aceita pelo solicitante. Hash: ${aceite.hash}`);
           showToast('Aceite registrado e BDV validado com hash.', 'success');
@@ -4525,12 +4667,165 @@
       };
 
       // --- RENDERIZADOR ATUALIZADO DO HISTÓRICO DE DIÁRIAS ---
+      function renderPainelComprovacoes() {
+          const agora = Date.now();
+          const comprovacoesVisiveis = AppState.diariasSolicitadas.map(diaria => {
+            const viagemId = diaria.viagemId || diaria.id;
+            const viagem = AppState.viagens.find(item => item.id === viagemId);
+            const dataViagem = diaria.viagemSaida || diaria.comprovacaoDiaria?.dataViagem || viagem?.saida;
+            const dataTimestamp = dataViagem ? new Date(dataViagem).getTime() : 0;
+            const quantidade = Number(diaria.qtdDiarias);
+            const pendente = diaria.comprovacaoDiariaStatus === STATUS_COMPROVACAO_DIARIA.PENDENTE;
+            const viagemEncerrada = [STATUS.FINALIZADO, STATUS.CANCELADO, STATUS.REJEITADO].includes(viagem?.status);
+            const prevista = !pendente && diaria.comprovacaoDiariaStatus !== STATUS_COMPROVACAO_DIARIA.COMPROVADA &&
+              diaria.status !== 'Cancelada' && Number.isFinite(dataTimestamp) && dataTimestamp > agora && !viagemEncerrada &&
+              (!Number.isFinite(quantidade) || quantidade > 0);
+            return pendente || prevista ? { diaria, viagem, viagemId, dataViagem, dataTimestamp, pendente } : null;
+          }).filter(Boolean).sort((a, b) => b.dataTimestamp - a.dataTimestamp);
+          const quantidadePendentes = comprovacoesVisiveis.filter(item => item.pendente).length;
+          const countEl = document.getElementById('diaria-pendencias-count');
+          const listEl = document.getElementById('diaria-pendencias-list');
+          const permissionButton = document.getElementById('diaria-notification-permission');
+          if (!countEl || !listEl) return;
+
+          countEl.textContent = quantidadePendentes;
+          const toggle = document.getElementById('diaria-pendencias-toggle');
+          toggle.setAttribute('aria-label', `${quantidadePendentes} ${quantidadePendentes === 1 ? 'comprovação pendente' : 'comprovações pendentes'}`);
+          toggle.innerHTML = `🔴 <span id="diaria-pendencias-count">${quantidadePendentes}</span> ${quantidadePendentes === 1 ? 'COMPROVAÇÃO PENDENTE' : 'COMPROVAÇÕES PENDENTES'}`;
+          if (permissionButton && 'Notification' in window) {
+            permissionButton.textContent = Notification.permission === 'granted' ? 'Notificações ativadas' : 'Ativar notificações';
+            permissionButton.disabled = Notification.permission === 'granted';
+          }
+
+          if (!comprovacoesVisiveis.length) {
+            listEl.innerHTML = '<p>Nenhuma comprovação de diária pendente.</p>';
+          } else {
+            listEl.innerHTML = `<table><thead><tr><th>Viagem (Solicitante)</th><th>Data</th><th>Motorista</th><th>Status e ações</th></tr></thead><tbody>${comprovacoesVisiveis.map(({ diaria, viagem, viagemId, dataViagem, pendente }) => {
+              const data = dataViagem ? new Date(dataViagem).toLocaleDateString('pt-BR') : 'Não informada';
+              const solicitantes = diaria.viagemSolicitanteNome || (viagem ? getNomeSolicitante(viagem) : '') || 'Solicitante não informado';
+              const roteiro = diaria.viagemTrajetoExibicao || viagem?.trajetoExibicao || '';
+              const destinoPrimeiraPerna = viagem?.roteiroArray?.[0]?.destino || roteiro.split(/\r?\n/).filter(Boolean)[0]?.split(/\s*[→➔]\s*/)[1]?.trim() || '';
+              const destino = destinoPrimeiraPerna.split(' - ').pop() || 'Destino não informado';
+              const chegada = diaria.viagemChegada || viagem?.chegada;
+              const detalhesViagem = `<div class="diaria-viagem-detalhes">🛫 <b>Saída:</b> ${escapeHtml(dataViagem ? formataDataComDiaDaSemana(dataViagem) : 'Não informada')}<br>🛬 <b>Chegada:</b> ${escapeHtml(chegada ? formataDataComDiaDaSemana(chegada) : 'Não informada')}<br>📍 <b>Destino:</b> ${escapeHtml(destino)}</div>`;
+              const idSeguro = escapeHtml(String(viagemId));
+              const statusAcoes = pendente
+                ? `<strong>🔴 Pendente</strong><br><a class="comprovar-link" href="${LINK_COMPROVACAO_DIARIA}" target="_blank" rel="noopener noreferrer">COMPROVAR DIÁRIA</a><button class="baixar-pendencia" onclick="marcarDiariaComprovada('${idSeguro}')">Registrar comprovação</button>`
+                : '<strong>🔵 Viagem prevista</strong>';
+              return `<tr class="${pendente ? 'diaria-pendente' : 'diaria-prevista'}"><td><strong class="diaria-viagem-solicitantes">${escapeHtml(solicitantes)}</strong>${detalhesViagem}</td><td>${escapeHtml(data)}</td><td>${escapeHtml(diaria.motoristaNome || 'Não informado')}</td><td>${statusAcoes}</td></tr>`;
+            }).join('')}</tbody></table>`;
+          }
+
+          if (AppState.abrirPendenciasAoIniciar) {
+            AppState.abrirPendenciasAoIniciar = false;
+            const details = document.getElementById('diaria-pendencias-details');
+            details.classList.remove('hidden');
+            toggle.setAttribute('aria-expanded', 'true');
+            document.getElementById('diaria-pendencias').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            history.replaceState(null, '', location.pathname + location.hash);
+          }
+      }
+
+      window.togglePendenciasDiarias = () => {
+          const details = document.getElementById('diaria-pendencias-details');
+          const toggle = document.getElementById('diaria-pendencias-toggle');
+          const aberto = details.classList.toggle('hidden') === false;
+          toggle.setAttribute('aria-expanded', String(aberto));
+      };
+
+      window.ativarNotificacoesDiarias = async () => {
+          if (!('Notification' in window)) return showToast('Este navegador não oferece suporte a notificações.', 'error');
+          const permission = await Notification.requestPermission();
+          renderPainelComprovacoes();
+          showToast(permission === 'granted' ? 'Notificações de comprovação ativadas.' : 'Permissão para notificações não concedida.', permission === 'granted' ? 'success' : 'info');
+      };
+
+      function mostrarAlertaComprovacaoDiaria(viagem) {
+          const data = viagem.saida ? new Date(viagem.saida).toLocaleDateString('pt-BR') : 'data não informada';
+          document.getElementById('comprovacao-diaria-resumo').textContent = `A viagem #${viagem.id || ''}, realizada em ${data}, foi finalizada e gerou diária.`;
+          document.getElementById('comprovacao-diaria-modal').classList.remove('hidden');
+          document.getElementById('comprovacao-diaria-modal-content').querySelector('.modal-lembrar').focus();
+      }
+
+      window.lembrarComprovacaoDepois = () => {
+          document.getElementById('comprovacao-diaria-modal').classList.add('hidden');
+      };
+
+      window.marcarDiariaComprovada = async (viagemId) => {
+          const diaria = AppState.diariasSolicitadas.find(item => item.id === viagemId);
+          if (!diaria) return showToast('Solicitação de diária não encontrada.', 'error');
+          if (!confirm('Confirma que a diária foi comprovada no sistema oficial? Esta ação encerrará a pendência no Frota DPE.')) return;
+
+          const timestamp = new Date().toISOString();
+          const email = AppState.user.email || 'Usuário autenticado';
+          const updates = {
+            [`${DB_PATHS.VIAGENS}/${viagemId}/comprovacao_diaria_status`]: STATUS_COMPROVACAO_DIARIA.COMPROVADA,
+            [`${DB_PATHS.VIAGENS}/${viagemId}/comprovadaEm`]: timestamp,
+            [`${DB_PATHS.VIAGENS}/${viagemId}/comprovadaPor`]: email,
+            [`${DB_PATHS.VIAGENS}/${viagemId}/comprovacao_diaria/status`]: STATUS_COMPROVACAO_DIARIA.COMPROVADA,
+            [`${DB_PATHS.VIAGENS}/${viagemId}/comprovacao_diaria/comprovadaEm`]: timestamp,
+            [`${DB_PATHS.VIAGENS}/${viagemId}/comprovacao_diaria/comprovadaPor`]: email,
+            [`diarias_solicitadas/${viagemId}/comprovacaoDiariaStatus`]: STATUS_COMPROVACAO_DIARIA.COMPROVADA,
+            [`diarias_solicitadas/${viagemId}/comprovadaEm`]: timestamp,
+            [`diarias_solicitadas/${viagemId}/comprovadaPor`]: email,
+            [`diarias_solicitadas/${viagemId}/comprovacaoDiaria/status`]: STATUS_COMPROVACAO_DIARIA.COMPROVADA,
+            [`diarias_solicitadas/${viagemId}/comprovacaoDiaria/comprovadaEm`]: timestamp,
+            [`diarias_solicitadas/${viagemId}/comprovacaoDiaria/comprovadaPor`]: email
+          };
+          try {
+            await update(getRegionalRef(), updates);
+            registrarLog('Comprovação de Diária', `Comprovação da viagem ID ${viagemId} registrada por ${email}.`);
+            showToast('Comprovação registrada. Pendência encerrada.', 'success');
+          } catch (error) {
+            showToast('Não foi possível registrar a comprovação. Verifique sua conexão e tente novamente.', 'error');
+          }
+      };
+
+      async function reconciliarDiariasLegadas(diarias) {
+          for (const diaria of diarias) {
+            if (diaria.comprovacaoDiariaStatus || AppState.diariasMigracaoEmCurso.has(diaria.id)) continue;
+            AppState.diariasMigracaoEmCurso.add(diaria.id);
+            try {
+              const viagemSnapshot = await get(getRegionalRef(DB_PATHS.VIAGENS, diaria.id));
+              const viagem = viagemSnapshot.exists() ? { ...viagemSnapshot.val(), id: diaria.id } : null;
+              const statusViagem = viagem?.status;
+              const chegadaPassada = viagem?.chegada && new Date(viagem.chegada) < new Date();
+              const viagemFinalizada = statusViagem === STATUS.FINALIZADO || (chegadaPassada && [STATUS.CONFIRMADO, STATUS.EM_DESLOCAMENTO].includes(statusViagem));
+              if (viagem && viagemFinalizada) {
+                await finalizarViagemComControle(diaria.id, { viagemInformada: viagem });
+              } else {
+                const updates = {
+                  [`diarias_solicitadas/${diaria.id}/comprovacaoDiariaStatus`]: STATUS_COMPROVACAO_DIARIA.NAO_SE_APLICA
+                };
+                if (viagem) updates[`${DB_PATHS.VIAGENS}/${diaria.id}/comprovacao_diaria_status`] = STATUS_COMPROVACAO_DIARIA.NAO_SE_APLICA;
+                await update(getRegionalRef(), updates);
+              }
+            } catch (error) {
+              console.warn(`Não foi possível reconciliar a diária ${diaria.id}:`, error);
+            } finally {
+              AppState.diariasMigracaoEmCurso.delete(diaria.id);
+            }
+          }
+      }
+
       function iniciarEscutaDiariasSolicitadas() {
           const diariasRef = getRegionalRef('diarias_solicitadas');
           onValue(diariasRef, (snapshot) => {
+              const statusAnterior = new Map(AppState.diariasSolicitadas.map(diaria => [diaria.id, diaria.comprovacaoDiariaStatus]));
               const data = snapshot.val();
               AppState.diariasSolicitadas = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
+              if (AppState.diariasIniciaisCarregadas) {
+                AppState.diariasSolicitadas.forEach(diaria => {
+                  if (diaria.comprovacaoDiariaStatus === STATUS_COMPROVACAO_DIARIA.PENDENTE && statusAnterior.get(diaria.id) !== STATUS_COMPROVACAO_DIARIA.PENDENTE) {
+                    const dataViagem = diaria.viagemSaida ? new Date(diaria.viagemSaida).toLocaleDateString('pt-BR') : 'data não informada';
+                    mostrarNotificacaoComprovacao(`A viagem realizada em ${dataViagem} gerou uma diária que ainda precisa ser comprovada.`, diaria.id);
+                  }
+                });
+              }
+              AppState.diariasIniciaisCarregadas = true;
               renderTabelaDiarias();
+              renderPainelComprovacoes();
+              reconciliarDiariasLegadas(AppState.diariasSolicitadas);
           });
       }
 
@@ -4609,6 +4904,8 @@
 
         // --- Lógica para salvar no Firebase, apenas quando a viagem já estiver salva ---
         if (viagemId) {
+          const diariaAnteriorSnapshot = await get(getRegionalRef('diarias_solicitadas', viagemId));
+          const diariaAnterior = diariaAnteriorSnapshot.exists() ? diariaAnteriorSnapshot.val() : null;
           const dadosDiaria = {
             viagemId: viagemId,
             viagemSolicitanteNome: viagemAtual.solicitanteNome,
@@ -4621,12 +4918,24 @@
             valorUnitario: valorUnitarioNumerico,
             valorTotal: parseFloat(valorTotal.replace('R$', '').replace('.', '').replace(',', '.').trim()),
             status: 'Solicitada',
-            solicitadoPor: AppState.user.email
+            solicitadoPor: AppState.user.email,
+            comprovacaoDiariaStatus: diariaAnterior?.comprovacaoDiariaStatus || STATUS_COMPROVACAO_DIARIA.NAO_SE_APLICA,
+            ...(diariaAnterior?.comprovacaoDiaria ? { comprovacaoDiaria: diariaAnterior.comprovacaoDiaria } : {})
           };
 
-          await set(getRegionalRef('diarias_solicitadas', viagemId), dadosDiaria).catch(error => {
+          try {
+            await set(getRegionalRef('diarias_solicitadas', viagemId), dadosDiaria);
+            const viagemJaFinalizada = viagemAtual.status === STATUS.FINALIZADO || viagemAtual.statusCalculado === STATUS.FINALIZADO;
+            if (viagemJaFinalizada) {
+              await finalizarViagemComControle(viagemId, { viagemInformada: { ...viagemAtual, id: viagemId, status: STATUS.FINALIZADO } });
+            } else {
+              await update(getRegionalRef(DB_PATHS.VIAGENS, viagemId), {
+                comprovacao_diaria_status: dadosDiaria.comprovacaoDiariaStatus
+              });
+            }
+          } catch (error) {
             showToast("Falha ao registrar a solicitação de diária no banco de dados.", "error");
-          });
+          }
         }
 
         const motoristaNome = AppState.unidade?.motorista?.nome || AppState.unidade?.motoristaTitular?.nome || 'N/D';
