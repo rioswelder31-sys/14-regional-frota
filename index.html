@@ -741,6 +741,7 @@
       .diaria-pendencias { margin: 0 0 20px; border: 1px solid #f1aeb5; border-left: 5px solid #dc3545; border-radius: 6px; background: #fff5f5; padding: 14px 16px; }
       .diaria-pendencias-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
       .diaria-pendencias-header h4 { color: #9f1d2b; margin: 0; }
+      .diaria-pendencias-prazo-info { margin: 10px 0 0; color: #70202a; font-size: .9rem; font-weight: 600; }
       .diaria-pendencias-actions { display: flex; gap: 8px; flex-wrap: wrap; }
       .diaria-pendencias button, .diaria-pendencias a { border: 0; border-radius: 4px; padding: 8px 12px; font-weight: 700; cursor: pointer; text-decoration: none; }
       .diaria-pendencias-toggle { background: #dc3545; color: white; }
@@ -753,14 +754,19 @@
       .diaria-pendencias tr.diaria-prevista { background: #eef6ff; }
       .diaria-viagem-solicitantes { display: block; margin-bottom: 5px; color: #005a2b; font-weight: 700; }
       .diaria-viagem-detalhes { padding: 6px; border-radius: 4px; background: #f1f3f5; color: #52606d; font-size: .85rem; line-height: 1.5; }
+      .diaria-prazo { display: inline-block; margin-top: 4px; color: #70202a; font-weight: 700; }
+      .diaria-prazo-vencido { color: #b42318; }
       html[data-theme="dark"] .diaria-pendencias tr.diaria-pendente { background: #472b31; }
       html[data-theme="dark"] .diaria-pendencias tr.diaria-prevista { background: #25364b; }
       html[data-theme="dark"] .diaria-viagem-solicitantes { color: #9ae6b4; }
       html[data-theme="dark"] .diaria-viagem-detalhes { background: #1a202c; color: #d1d5db; }
+      html[data-theme="dark"] .diaria-prazo { color: #ffd7dc; }
+      html[data-theme="dark"] .diaria-prazo-vencido { color: #fca5a5; }
       .diaria-pendencias .comprovar-link { background: #007b2e; color: white; display: inline-block; margin-right: 5px; }
       .diaria-pendencias .baixar-pendencia { background: #e9ecef; color: #333; }
       html[data-theme="dark"] .diaria-pendencias { background: #38252a; border-color: #7f303a; }
       html[data-theme="dark"] .diaria-pendencias-header h4, html[data-theme="dark"] .diaria-pendencias th { color: #ffd7dc; }
+      html[data-theme="dark"] .diaria-pendencias-prazo-info { color: #ffd7dc; }
       html[data-theme="dark"] .diaria-pendencias td { border-color: #614047; }
       #comprovacao-diaria-modal { position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(0,0,0,.62); }
       #comprovacao-diaria-modal.hidden { display: none; }
@@ -1288,7 +1294,7 @@
           <div id="card-falta-ciencia" class="dash-card border-info hidden" onclick="filtrarPorStatus('ciencia')"><div class="dash-title">Falta Ciência</div><div class="dash-value" id="dash-ciencia">0</div></div>
         </div>
 
-        <section id="diaria-pendencias" class="diaria-pendencias" aria-labelledby="diaria-pendencias-titulo">
+        <section id="diaria-pendencias" class="diaria-pendencias hidden" aria-labelledby="diaria-pendencias-titulo">
           <div class="diaria-pendencias-header">
             <h4 id="diaria-pendencias-titulo">🚨 COMPROVAÇÕES DE DIÁRIAS PENDENTES</h4>
             <div class="diaria-pendencias-actions">
@@ -1296,6 +1302,7 @@
               <button id="diaria-notification-permission" class="diaria-pendencias-permission" onclick="ativarNotificacoesDiarias()">Ativar notificações</button>
             </div>
           </div>
+          <p class="diaria-pendencias-prazo-info">Prazo de até 5 dias úteis após a chegada. A data estimada não considera feriados.</p>
           <div id="diaria-pendencias-details" class="diaria-pendencias-details hidden">
             <div id="diaria-pendencias-list"></div>
           </div>
@@ -1305,6 +1312,7 @@
           <div id="comprovacao-diaria-modal-content">
             <h3 id="comprovacao-diaria-titulo">⚠️ COMPROVAÇÃO DE DIÁRIA PENDENTE</h3>
             <p id="comprovacao-diaria-resumo">Esta viagem foi finalizada e gerou diária.</p>
+            <p id="comprovacao-diaria-prazo" class="diaria-prazo"></p>
             <p>É necessário realizar a comprovação no sistema oficial de diárias da Defensoria Pública da Bahia.</p>
             <p><strong>Acesse o sistema para realizar a comprovação.</strong></p>
             <div class="modal-actions">
@@ -1431,6 +1439,7 @@
     
         <h4>🗓️ HISTÓRICO DE DIÁRIAS E PROCESSO SEI</h4>
         <p><strong>REGISTRO AUTOMÁTICO:</strong> Após clicar em [🖨️ Imprimir Solicitação de Diária], a solicitação é automaticamente salva no painel "Histórico de Solicitações de Diárias", visível para Administradores e Motoristas.</p>
+        <p><strong>PRAZO DE COMPROVAÇÃO:</strong> A comprovação deve ser realizada em até 5 dias úteis após a chegada da viagem. O painel de pendências informa a data-limite e sinaliza quando o prazo já venceu. A contagem considera dias de segunda a sexta e não desconta feriados.</p>
         <p><strong>LANÇAMENTO DO PROCESSO SEI:</strong> Na tabela de histórico, o administrador pode digitar o número do Processo SEI correspondente diretamente no campo de texto. A alteração é salva automaticamente ao sair do campo.</p>
         <p><strong>LINK DIRETO PARA O SEI ↗️:</strong> Uma vez que o número do Processo SEI é salvo, um ícone de "abrir em nova aba" aparece ao lado do campo. Clicar neste ícone abre o processo diretamente no sistema SEI da Defensoria, agilizando a consulta.</p>
         <p><strong>CONTROLE DE STATUS:</strong> Administradores podem alterar o status de cada solicitação de diária (ex: de "Solicitada" para "Paga") usando o menu de seleção na coluna "Status".</p>
@@ -2996,6 +3005,7 @@
               const isEsther = AppState.user.email === "esther.bobbio@defensoria.ba.def.br";
               const isSilvana = AppState.user.email === "silvana.cardoso@defensoria.ba.def.br";
               AppState.user.podeTudo = isWelder || (isEsther && AppState.regionalID === 'EUNAPOLIS') || (isSilvana && AppState.regionalID === 'PORTO SEGURO') || isCustomAdmin;
+              document.getElementById('diaria-pendencias').classList.toggle('hidden', !AppState.user.podeTudo);
 
               // O formulário de agendamento fica oculto para qualquer usuário com perfil de motorista.
               if (AppState.user.isMotorista) {
@@ -4251,6 +4261,7 @@
             viagemId: id,
             numeroDiaria: diaria.numeroDiaria || diaria.processoSEI || null,
             dataViagem: viagem.saida || diaria.viagemSaida || null,
+            dataChegada: viagem.chegada || diaria.viagemChegada || null,
             finalizadaEm: timestamp,
             motorista: diaria.motoristaNome || AppState.unidade.motorista?.nome || AppState.unidade.motoristaTitular?.nome || 'Não informado',
             veiculo,
@@ -4666,8 +4677,45 @@
           });
       };
 
+      function obterPrazoComprovacaoDiaria(dataChegada) {
+          if (!dataChegada) return null;
+          const chegada = new Date(dataChegada);
+          if (Number.isNaN(chegada.getTime())) return null;
+
+          const prazo = new Date(chegada.getFullYear(), chegada.getMonth(), chegada.getDate());
+          let diasUteisContados = 0;
+          while (diasUteisContados < 5) {
+            prazo.setDate(prazo.getDate() + 1);
+            if (prazo.getDay() !== 0 && prazo.getDay() !== 6) diasUteisContados++;
+          }
+
+          const hoje = new Date();
+          hoje.setHours(0, 0, 0, 0);
+          const formatarData = data => data.toLocaleDateString('pt-BR');
+          if (prazo < hoje) {
+            return { texto: `Prazo vencido em ${formatarData(prazo)}.`, vencido: true };
+          }
+          if (prazo.getTime() === hoje.getTime()) {
+            return { texto: `Prazo final: ${formatarData(prazo)} (vence hoje).`, vencido: false };
+          }
+
+          let diasUteisRestantes = 0;
+          const proximoDia = new Date(hoje);
+          while (proximoDia < prazo) {
+            proximoDia.setDate(proximoDia.getDate() + 1);
+            if (proximoDia.getDay() !== 0 && proximoDia.getDay() !== 6) diasUteisRestantes++;
+          }
+          return { texto: `Prazo final: ${formatarData(prazo)} (${diasUteisRestantes} dias úteis restantes).`, vencido: false };
+      }
+
       // --- RENDERIZADOR ATUALIZADO DO HISTÓRICO DE DIÁRIAS ---
       function renderPainelComprovacoes() {
+          const painel = document.getElementById('diaria-pendencias');
+          if (!AppState.user.podeTudo) {
+            painel.classList.add('hidden');
+            return;
+          }
+
           const agora = Date.now();
           const comprovacoesVisiveis = AppState.diariasSolicitadas.map(diaria => {
             const viagemId = diaria.viagemId || diaria.id;
@@ -4706,8 +4754,12 @@
               const roteiro = diaria.viagemTrajetoExibicao || viagem?.trajetoExibicao || '';
               const destinoPrimeiraPerna = viagem?.roteiroArray?.[0]?.destino || roteiro.split(/\r?\n/).filter(Boolean)[0]?.split(/\s*[→➔]\s*/)[1]?.trim() || '';
               const destino = destinoPrimeiraPerna.split(' - ').pop() || 'Destino não informado';
-              const chegada = diaria.viagemChegada || viagem?.chegada;
-              const detalhesViagem = `<div class="diaria-viagem-detalhes">🛫 <b>Saída:</b> ${escapeHtml(dataViagem ? formataDataComDiaDaSemana(dataViagem) : 'Não informada')}<br>🛬 <b>Chegada:</b> ${escapeHtml(chegada ? formataDataComDiaDaSemana(chegada) : 'Não informada')}<br>📍 <b>Destino:</b> ${escapeHtml(destino)}</div>`;
+              const chegada = diaria.viagemChegada || diaria.comprovacaoDiaria?.dataChegada || viagem?.chegada;
+              const prazo = pendente ? obterPrazoComprovacaoDiaria(chegada) : null;
+              const prazoHtml = prazo
+                ? `<br><span class="diaria-prazo${prazo.vencido ? ' diaria-prazo-vencido' : ''}">⏰ ${escapeHtml(prazo.texto)}</span>`
+                : pendente ? '<br><span class="diaria-prazo">⏰ Prazo indisponível: data de chegada não cadastrada.</span>' : '';
+              const detalhesViagem = `<div class="diaria-viagem-detalhes">🛫 <b>Saída:</b> ${escapeHtml(dataViagem ? formataDataComDiaDaSemana(dataViagem) : 'Não informada')}<br>🛬 <b>Chegada:</b> ${escapeHtml(chegada ? formataDataComDiaDaSemana(chegada) : 'Não informada')}<br>📍 <b>Destino:</b> ${escapeHtml(destino)}${prazoHtml}</div>`;
               const idSeguro = escapeHtml(String(viagemId));
               const statusAcoes = pendente
                 ? `<strong>🔴 Pendente</strong><br><a class="comprovar-link" href="${LINK_COMPROVACAO_DIARIA}" target="_blank" rel="noopener noreferrer">COMPROVAR DIÁRIA</a><button class="baixar-pendencia" onclick="marcarDiariaComprovada('${idSeguro}')">Registrar comprovação</button>`
@@ -4727,6 +4779,7 @@
       }
 
       window.togglePendenciasDiarias = () => {
+          if (!AppState.user.podeTudo) return;
           const details = document.getElementById('diaria-pendencias-details');
           const toggle = document.getElementById('diaria-pendencias-toggle');
           const aberto = details.classList.toggle('hidden') === false;
@@ -4734,6 +4787,7 @@
       };
 
       window.ativarNotificacoesDiarias = async () => {
+          if (!AppState.user.podeTudo) return;
           if (!('Notification' in window)) return showToast('Este navegador não oferece suporte a notificações.', 'error');
           const permission = await Notification.requestPermission();
           renderPainelComprovacoes();
@@ -4741,8 +4795,15 @@
       };
 
       function mostrarAlertaComprovacaoDiaria(viagem) {
-          const data = viagem.saida ? new Date(viagem.saida).toLocaleDateString('pt-BR') : 'data não informada';
-          document.getElementById('comprovacao-diaria-resumo').textContent = `A viagem #${viagem.id || ''}, realizada em ${data}, foi finalizada e gerou diária.`;
+          if (!AppState.user.podeTudo) return;
+          const dataChegada = viagem.chegada ? new Date(viagem.chegada).toLocaleDateString('pt-BR') : 'data não informada';
+          const prazo = obterPrazoComprovacaoDiaria(viagem.chegada);
+          document.getElementById('comprovacao-diaria-resumo').textContent = `A viagem #${viagem.id || ''} chegou em ${dataChegada} e gerou diária.`;
+          const prazoEl = document.getElementById('comprovacao-diaria-prazo');
+          prazoEl.textContent = prazo
+            ? `${prazo.texto} Contagem de segunda a sexta, sem considerar feriados.`
+            : 'Prazo de até 5 dias úteis após a chegada. Data de chegada não cadastrada para calcular o vencimento.';
+          prazoEl.classList.toggle('diaria-prazo-vencido', !!prazo?.vencido);
           document.getElementById('comprovacao-diaria-modal').classList.remove('hidden');
           document.getElementById('comprovacao-diaria-modal-content').querySelector('.modal-lembrar').focus();
       }
@@ -4752,6 +4813,7 @@
       };
 
       window.marcarDiariaComprovada = async (viagemId) => {
+          if (!AppState.user.podeTudo) return showToast('Apenas administradores podem registrar a comprovação.', 'error');
           const diaria = AppState.diariasSolicitadas.find(item => item.id === viagemId);
           if (!diaria) return showToast('Solicitação de diária não encontrada.', 'error');
           if (!confirm('Confirma que a diária foi comprovada no sistema oficial? Esta ação encerrará a pendência no Frota DPE.')) return;
@@ -4814,11 +4876,14 @@
               const statusAnterior = new Map(AppState.diariasSolicitadas.map(diaria => [diaria.id, diaria.comprovacaoDiariaStatus]));
               const data = snapshot.val();
               AppState.diariasSolicitadas = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
-              if (AppState.diariasIniciaisCarregadas) {
+              if (AppState.user.podeTudo && AppState.diariasIniciaisCarregadas) {
                 AppState.diariasSolicitadas.forEach(diaria => {
                   if (diaria.comprovacaoDiariaStatus === STATUS_COMPROVACAO_DIARIA.PENDENTE && statusAnterior.get(diaria.id) !== STATUS_COMPROVACAO_DIARIA.PENDENTE) {
-                    const dataViagem = diaria.viagemSaida ? new Date(diaria.viagemSaida).toLocaleDateString('pt-BR') : 'data não informada';
-                    mostrarNotificacaoComprovacao(`A viagem realizada em ${dataViagem} gerou uma diária que ainda precisa ser comprovada.`, diaria.id);
+                    const chegada = diaria.viagemChegada || diaria.comprovacaoDiaria?.dataChegada;
+                    const dataChegada = chegada ? new Date(chegada).toLocaleDateString('pt-BR') : 'data não informada';
+                    const prazo = obterPrazoComprovacaoDiaria(chegada);
+                    const textoPrazo = prazo ? ` Prazo: ${prazo.texto} (sem considerar feriados).` : ' Prazo: até 5 dias úteis após a chegada.';
+                    mostrarNotificacaoComprovacao(`A viagem chegou em ${dataChegada} e gerou uma diária que precisa ser comprovada.${textoPrazo}`, diaria.id);
                   }
                 });
               }
