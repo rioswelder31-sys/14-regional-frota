@@ -1308,6 +1308,18 @@
           </div>
         </section>
 
+        <section id="diaria-comprovacoes-historico" class="diaria-pendencias hidden" aria-labelledby="diaria-comprovacoes-historico-titulo">
+          <div class="diaria-pendencias-header">
+            <h4 id="diaria-comprovacoes-historico-titulo">🗂️ HISTÓRICO DE COMPROVAÇÕES DE DIÁRIAS</h4>
+            <div class="diaria-pendencias-actions">
+              <button id="diaria-comprovacoes-toggle" class="diaria-pendencias-toggle" onclick="toggleHistoricoComprovacoesDiarias()" aria-expanded="false" aria-controls="diaria-comprovacoes-details">📄 EXIBIR HISTÓRICO</button>
+            </div>
+          </div>
+          <div id="diaria-comprovacoes-details" class="diaria-pendencias-details hidden">
+            <div id="diaria-comprovacoes-list"></div>
+          </div>
+        </section>
+
         <div id="comprovacao-diaria-modal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="comprovacao-diaria-titulo">
           <div id="comprovacao-diaria-modal-content">
             <h3 id="comprovacao-diaria-titulo">⚠️ COMPROVAÇÃO DE DIÁRIA PENDENTE</h3>
@@ -4734,6 +4746,9 @@
           const countEl = document.getElementById('diaria-pendencias-count');
           const listEl = document.getElementById('diaria-pendencias-list');
           const permissionButton = document.getElementById('diaria-notification-permission');
+          const historicoListEl = document.getElementById('diaria-comprovacoes-list');
+          const historicoPanel = document.getElementById('diaria-comprovacoes-historico');
+          const historicoToggle = document.getElementById('diaria-comprovacoes-toggle');
           if (!countEl || !listEl) return;
 
           countEl.textContent = quantidadePendentes;
@@ -4768,6 +4783,35 @@
             }).join('')}</tbody></table>`;
           }
 
+          const comprovacoesRegistradas = AppState.diariasSolicitadas
+            .filter(diaria => diaria.comprovacaoDiariaStatus === STATUS_COMPROVACAO_DIARIA.COMPROVADA)
+            .sort((a, b) => new Date(b.comprovadaEm || b.viagemChegada || b.dataSolicitacao).getTime() - new Date(a.comprovadaEm || a.viagemChegada || a.dataSolicitacao).getTime());
+
+          if (historicoPanel) {
+            historicoPanel.classList.toggle('hidden', !AppState.user.podeTudo || !comprovacoesRegistradas.length);
+          }
+
+          if (historicoListEl) {
+            if (!comprovacoesRegistradas.length) {
+              historicoListEl.innerHTML = '<p>Nenhuma comprovação de diária registrada no histórico.</p>';
+            } else {
+              historicoListEl.innerHTML = `<table><thead><tr><th>Viagem / Solicitante</th><th>Data chegada</th><th>Comprovada em</th><th>Registrado por</th></tr></thead><tbody>${comprovacoesRegistradas.map(diaria => {
+                const viagemId = diaria.viagemId || diaria.id;
+                const viagem = AppState.viagens.find(item => item.id === viagemId);
+                const solicitante = diaria.viagemSolicitanteNome || getNomeSolicitante(viagem) || 'Solicitante não informado';
+                const chegada = diaria.viagemChegada || diaria.comprovacaoDiaria?.dataChegada || viagem?.chegada;
+                const comprovadaEm = diaria.comprovadaEm ? new Date(diaria.comprovadaEm).toLocaleString('pt-BR') : 'Não informada';
+                const dataChegada = chegada ? new Date(chegada).toLocaleDateString('pt-BR') : 'Não informada';
+                return `<tr><td><strong>${escapeHtml(solicitante)}</strong><br><small>${escapeHtml(diaria.motoristaNome || 'Motorista não informado')}</small></td><td>${escapeHtml(dataChegada)}</td><td>${escapeHtml(comprovadaEm)}</td><td>${escapeHtml(diaria.comprovadaPor || 'Não informado')}</td></tr>`;
+              }).join('')}</tbody></table>`;
+            }
+          }
+
+          if (historicoToggle) {
+            const oculto = document.getElementById('diaria-comprovacoes-details')?.classList.contains('hidden');
+            historicoToggle.textContent = oculto ? '📄 EXIBIR HISTÓRICO' : '📄 OCULTAR HISTÓRICO';
+          }
+
           if (AppState.abrirPendenciasAoIniciar) {
             AppState.abrirPendenciasAoIniciar = false;
             const details = document.getElementById('diaria-pendencias-details');
@@ -4784,6 +4828,15 @@
           const toggle = document.getElementById('diaria-pendencias-toggle');
           const aberto = details.classList.toggle('hidden') === false;
           toggle.setAttribute('aria-expanded', String(aberto));
+      };
+
+      window.toggleHistoricoComprovacoesDiarias = () => {
+          if (!AppState.user.podeTudo) return;
+          const details = document.getElementById('diaria-comprovacoes-details');
+          const toggle = document.getElementById('diaria-comprovacoes-toggle');
+          const aberto = details.classList.toggle('hidden') === false;
+          toggle.setAttribute('aria-expanded', String(aberto));
+          toggle.textContent = aberto ? '📄 OCULTAR HISTÓRICO' : '📄 EXIBIR HISTÓRICO';
       };
 
       window.ativarNotificacoesDiarias = async () => {
