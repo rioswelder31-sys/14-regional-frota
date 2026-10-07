@@ -3179,7 +3179,29 @@
 
       function normalizarCidadeInput(inputId, tipo) {
         const input = document.getElementById(inputId);
-        if (!input) return;
+        const datalist = document.getElementById(`list-${tipo}`);
+        if (!input || !datalist) return;
+
+        const atualizarDatalist = () => {
+          const uf = document.getElementById(`uf-${tipo}`).value;
+          const cidades = (uf === 'BA' ? cidadesBA : (uf === 'ES' ? ["VITÓRIA", "VILA VELHA", "SERRA", "LINHARES", "SÃO MATEUS", "CARIACICA"] : [caps[uf] || ""]));
+          const consulta = normalizarBuscaCidade(input.value);
+          const opcoesFiltradas = consulta
+            ? cidades.filter(cidade => normalizarBuscaCidade(cidade).includes(consulta))
+            : cidades;
+
+          datalist.innerHTML = "";
+          opcoesFiltradas.forEach(cidade => {
+            const option = document.createElement('option');
+            option.value = cidade;
+            datalist.appendChild(option);
+          });
+        };
+
+        if (!input.dataset.cidadeBuscaListener) {
+          input.addEventListener('input', atualizarDatalist);
+          input.dataset.cidadeBuscaListener = 'true';
+        }
 
         input.onchange = () => {
           const uf = document.getElementById(`uf-${tipo}`).value;
@@ -3188,6 +3210,7 @@
           if (valor && valor !== input.value.trim()) {
             input.value = valor;
           }
+          atualizarDatalist();
         };
       }
 
