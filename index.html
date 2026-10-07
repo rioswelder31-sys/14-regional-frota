@@ -3185,13 +3185,14 @@
         const atualizarDatalist = () => {
           const uf = document.getElementById(`uf-${tipo}`).value;
           const cidades = (uf === 'BA' ? cidadesBA : (uf === 'ES' ? ["VITÓRIA", "VILA VELHA", "SERRA", "LINHARES", "SÃO MATEUS", "CARIACICA"] : [caps[uf] || ""]));
-          const consulta = normalizarBuscaCidade(input.value);
+          const consulta = normalizarBuscaCidade(input.value || '');
           const opcoesFiltradas = consulta
             ? cidades.filter(cidade => normalizarBuscaCidade(cidade).includes(consulta))
             : cidades;
 
           datalist.innerHTML = "";
-          opcoesFiltradas.forEach(cidade => {
+          const opcoesExibidas = opcoesFiltradas.length ? opcoesFiltradas : cidades;
+          opcoesExibidas.slice(0, 30).forEach(cidade => {
             const option = document.createElement('option');
             option.value = cidade;
             datalist.appendChild(option);
@@ -3200,6 +3201,7 @@
 
         if (!input.dataset.cidadeBuscaListener) {
           input.addEventListener('input', atualizarDatalist);
+          input.addEventListener('focus', atualizarDatalist);
           input.dataset.cidadeBuscaListener = 'true';
         }
 
