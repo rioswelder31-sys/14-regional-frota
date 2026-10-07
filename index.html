@@ -3150,12 +3150,54 @@
         carregarCidades('origem'); carregarCidades('destino');
       }
 
+      const caps = {"AC":"RIO BRANCO","AL":"MACEIÓ","AM":"MANAUS","AP":"MACAPÁ","CE":"FORTALEZA","DF":"BRASÍLIA","ES":"VITÓRIA","GO":"GOIÂNIA","MA":"SÃO LUÍS","MG":"BELO HORIZONTE","MS":"CAMPO GRANDE","MT":"CUIABÁ","PA":"BELÉM","PB":"JOÃO PESSOA","PE":"RECIFE","PI":"TERESINA","PR":"CURITIBA","RJ":"RIO DE JANEIRO","RN":"NATAL","RO":"PORTO VELHO","RR":"BOA VISTA","RS":"PORTO ALEGRE","SC":"FLORIANÓPOLIS","SE":"ARACAJU","SP":"SÃO PAULO","TO":"PALMAS"};
+
+      function normalizarBuscaCidade(valor = '') {
+        return String(valor)
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^A-Z0-9\s]/gi, '')
+          .toUpperCase()
+          .trim();
+      }
+
+      function resolverCidadeComAcento(cidades, valor) {
+        const valorInformado = String(valor || '').trim();
+        if (!valorInformado) return '';
+
+        const busca = normalizarBuscaCidade(valorInformado);
+        if (!busca) return '';
+
+        const cidadeExata = cidades.find(cidade => normalizarBuscaCidade(cidade) === busca);
+        if (cidadeExata) return cidadeExata;
+
+        const cidadeParcial = cidades.find(cidade => normalizarBuscaCidade(cidade).includes(busca));
+        if (cidadeParcial) return cidadeParcial;
+
+        return valorInformado;
+      }
+
+      function normalizarCidadeInput(inputId, tipo) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+
+        input.onchange = () => {
+          const uf = document.getElementById(`uf-${tipo}`).value;
+          const cidades = (uf === 'BA' ? cidadesBA : (uf === 'ES' ? ["VITÓRIA", "VILA VELHA", "SERRA", "LINHARES", "SÃO MATEUS", "CARIACICA"] : [caps[uf] || ""]));
+          const valor = resolverCidadeComAcento(cidades, input.value);
+          if (valor && valor !== input.value.trim()) {
+            input.value = valor;
+          }
+        };
+      }
+
       window.carregarCidades = (t) => { // This function remains synchronous
         const uf = document.getElementById(`uf-${t}`).value;
         const dl = document.getElementById(`list-${t}`); dl.innerHTML = "";
-        const caps = {"AC":"RIO BRANCO","AL":"MACEIÓ","AM":"MANAUS","AP":"MACAPÁ","CE":"FORTALEZA","DF":"BRASÍLIA","ES":"VITÓRIA","GO":"GOIÂNIA","MA":"SÃO LUÍS","MG":"BELO HORIZONTE","MS":"CAMPO GRANDE","MT":"CUIABÁ","PA":"BELÉM","PB":"JOÃO PESSOA","PE":"RECIFE","PI":"TERESINA","PR":"CURITIBA","RJ":"RIO DE JANEIRO","RN":"NATAL","RO":"PORTO VELHO","RR":"BOA VISTA","RS":"PORTO ALEGRE","SC":"FLORIANÓPOLIS","SE":"ARACAJU","SP":"SÃO PAULO","TO":"PALMAS"};
         let cidades = (uf === 'BA' ? cidadesBA : (uf === 'ES' ? ["VITÓRIA", "VILA VELHA", "SERRA", "LINHARES", "SÃO MATEUS", "CARIACICA"] : [caps[uf] || ""]));
+        cidades = cidades.filter(c => c && c.trim());
         cidades.forEach(c => dl.innerHTML += `<option value="${c}">`);
+        normalizarCidadeInput(`cidade-${t}`, t);
         
         // Preenche a cidade de origem padrão para cada regional, se o campo estiver vazio.
         if(t === 'origem' && uf === 'BA' && !document.getElementById(`cidade-origem`).value) {
@@ -3170,9 +3212,17 @@
       };
 
       window.adicionarTrecho = async () => {
-        const co = document.getElementById('cidade-origem').value; const cd = document.getElementById('cidade-destino').value;
+        const inputOrigem = document.getElementById('cidade-origem');
+        const inputDestino = document.getElementById('cidade-destino');
         const ufo = document.getElementById('uf-origem').value; const ufd = document.getElementById('uf-destino').value;
+        const cidadesOrigem = (ufo === 'BA' ? cidadesBA : (ufo === 'ES' ? ["VITÓRIA", "VILA VELHA", "SERRA", "LINHARES", "SÃO MATEUS", "CARIACICA"] : [caps[ufo] || ""]));
+        const cidadesDestino = (ufd === 'BA' ? cidadesBA : (ufd === 'ES' ? ["VITÓRIA", "VILA VELHA", "SERRA", "LINHARES", "SÃO MATEUS", "CARIACICA"] : [caps[ufd] || ""]));
+        const co = resolverCidadeComAcento(cidadesOrigem, inputOrigem.value);
+        const cd = resolverCidadeComAcento(cidadesDestino, inputDestino.value);
         if(!co || !cd) return alert("Por favor, selecione as cidades de origem e destino!");
+
+        inputOrigem.value = co;
+        inputDestino.value = cd;
 
         const origem = `${ufo} - ${co}`;
         const destino = `${ufd} - ${cd}`;
