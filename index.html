@@ -6747,6 +6747,7 @@
         printWindow.document.write(`
           <html><head>
           <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
           <title>BDV - Boletim Diário de Veículo</title>
           <style>
             * { box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; }
@@ -6854,7 +6855,13 @@
             .bdv-tab-content { display: none; }
             .bdv-tab-content.bdv-active { display: block; width: 100%; }
             @media print {
-              body { padding: 0; }
+              html, body {
+                width: 281mm !important;
+                min-width: 281mm !important;
+                margin: 0 !important;
+                padding: 0 !important;
+              }
+              .bdv-tab-content.bdv-active { width: 281mm !important; }
               input, select, textarea { border: none !important; }
               @page { size: A4 landscape; margin: 6mm 8mm; }
             }
