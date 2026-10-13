@@ -5581,6 +5581,34 @@
           html += '</div>'; container.innerHTML = html;
       };
 
+      function obterViagemDaDiaria(diaria) {
+          return AppState.viagens.find(viagem => viagem.id === diaria.viagemId) ||
+              (AppState.viagemRecemCriada?.id === diaria.viagemId ? AppState.viagemRecemCriada : null);
+      }
+
+      function obterDiariasDoPeriodoSelecionado() {
+          const mesFiltro = parseInt(document.getElementById('filtro-mes-diarias')?.value, 10);
+          const anoFiltro = parseInt(document.getElementById('filtro-ano-diarias')?.value, 10);
+          if (isNaN(mesFiltro) || isNaN(anoFiltro)) return [];
+
+          const inicioMesFiltro = new Date(anoFiltro, mesFiltro, 1);
+          const fimMesFiltro = new Date(anoFiltro, mesFiltro + 1, 0, 23, 59, 59);
+
+          return AppState.diariasSolicitadas.filter(diaria => {
+              const viagem = obterViagemDaDiaria(diaria);
+              const saida = viagem?.saida || diaria.viagemSaida;
+              const chegada = viagem?.chegada || diaria.viagemChegada;
+              if (!saida || !chegada) return false;
+
+              const dataViagemSaida = new Date(saida);
+              const dataViagemChegada = new Date(chegada);
+              if (isNaN(dataViagemSaida.getTime()) || isNaN(dataViagemChegada.getTime())) return false;
+
+              return dataViagemSaida.getTime() <= fimMesFiltro.getTime() &&
+                  dataViagemChegada.getTime() >= inicioMesFiltro.getTime();
+          });
+      }
+
       function renderTabelaDiarias() {
           const tbody = document.getElementById('tb-corpo-diarias');
           if (!tbody) return;
@@ -5592,22 +5620,7 @@
           tbody.innerHTML = ''; // Limpa a tabela
           const fragment = document.createDocumentFragment();
 
-          // Define o início e o fim do mês/ano selecionado no filtro
-          const inicioMesFiltro = new Date(anoFiltro, mesFiltro, 1);
-          const fimMesFiltro = new Date(anoFiltro, mesFiltro + 1, 0, 23, 59, 59);
-
-          const diariasFiltradas = AppState.diariasSolicitadas.filter(diaria => {
-              // Garante que as datas da viagem existem antes de criar objetos Date
-              if (!diaria.viagemSaida || !diaria.viagemChegada) return false;
-
-              const dataViagemSaida = new Date(diaria.viagemSaida);
-              const dataViagemChegada = new Date(diaria.viagemChegada);
-
-              // Lógica de sobreposição: a viagem deve ser exibida se qualquer parte dela
-              // ocorrer dentro do mês selecionado no filtro.
-              // (Início da Viagem <= Fim do Mês) E (Fim da Viagem >= Início do Mês)
-              return dataViagemSaida.getTime() <= fimMesFiltro.getTime() && dataViagemChegada.getTime() >= inicioMesFiltro.getTime();
-          });
+          const diariasFiltradas = obterDiariasDoPeriodoSelecionado();
 
           if (diariasFiltradas.length === 0) {
               tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 20px; font-style: italic;">Nenhuma solicitação de diária encontrada para este período.</td></tr>';
@@ -5615,12 +5628,16 @@
           }
 
           diariasFiltradas // Ordena pela data de saída da viagem, da mais recente para a mais antiga
-              .sort((a, b) => new Date(b.viagemSaida) - new Date(a.viagemSaida)).forEach(diaria => {
+              .sort((a, b) => {
+                  const saidaA = obterViagemDaDiaria(a)?.saida || a.viagemSaida;
+                  const saidaB = obterViagemDaDiaria(b)?.saida || b.viagemSaida;
+                  return new Date(saidaB) - new Date(saidaA);
+              }).forEach(diaria => {
                   const tr = document.createElement('tr');
                   // --- LÓGICA PARA COLORIR LINHA DE VIAGEM FINALIZADA OU VENCIDA ---
                   // Procura a viagem correspondente na lista de viagens já carregada.
                   const agora = new Date();
-                  const viagem = AppState.viagens.find(v => v.id === diaria.viagemId);
+                  const viagem = obterViagemDaDiaria(diaria);
                   
                   let marcaComoConcluida = false;
                   
@@ -5657,7 +5674,7 @@
                   const valorUnitario = valorUnitarioNumerico.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
                   // Resgata a viagem correspondente para extrair as datas de saída e chegada
-                  let viagemInfo = AppState.viagens.find(v => v.id === diaria.viagemId) || AppState.viagemRecemCriada;
+                  let viagemInfo = obterViagemDaDiaria(diaria);
                   if (!viagemInfo && (diaria.viagemSaida || diaria.viagemChegada)) {
                       viagemInfo = { saida: diaria.viagemSaida, chegada: diaria.viagemChegada, roteiroArray: [], trajetoExibicao: diaria.viagemTrajetoExibicao || '' };
                   }
@@ -5764,13 +5781,7 @@
       };
 
       window.imprimirHistoricoDiarias = async () => {
-        const mesFiltro = parseInt(document.getElementById('filtro-mes-diarias')?.value, 10);
-        const anoFiltro = parseInt(document.getElementById('filtro-ano-diarias')?.value, 10);
-
-        const diariasFiltradas = AppState.diariasSolicitadas.filter(diaria => {
-            const dataSolicitacao = new Date(diaria.dataSolicitacao);
-            return dataSolicitacao.getMonth() === mesFiltro && dataSolicitacao.getFullYear() === anoFiltro;
-        });
+        const diariasFiltradas = obterDiariasDoPeriodoSelecionado();
 
         if (!diariasFiltradas || diariasFiltradas.length === 0) {
           alert('Nenhum registro de diária para imprimir neste período!');
@@ -5950,13 +5961,7 @@
       };
 
       window.exportarDiariasCSV = () => {
-        const mesFiltro = parseInt(document.getElementById('filtro-mes-diarias')?.value, 10);
-        const anoFiltro = parseInt(document.getElementById('filtro-ano-diarias')?.value, 10);
-
-        const diariasFiltradas = AppState.diariasSolicitadas.filter(diaria => {
-            const dataSolicitacao = new Date(diaria.dataSolicitacao);
-            return dataSolicitacao.getMonth() === mesFiltro && dataSolicitacao.getFullYear() === anoFiltro;
-        });
+        const diariasFiltradas = obterDiariasDoPeriodoSelecionado();
 
         if (!diariasFiltradas || diariasFiltradas.length === 0) {
           alert('Nenhum registro de diária para exportar neste período!');
