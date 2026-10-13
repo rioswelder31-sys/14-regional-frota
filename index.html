@@ -1214,6 +1214,11 @@
             <div class="col"><label for="saida">Saída Prevista:</label><input type="datetime-local" id="saida" /></div>
             <div class="col"><label for="chegada">Chegada Prevista:</label><input type="datetime-local" id="chegada" /></div>
           </div>
+          <label style="display: flex; align-items: center; gap: 8px; margin: 12px 0; cursor: pointer;">
+            <input type="checkbox" id="grupo-juri" onchange="atualizarGrupoJuri()" style="width: 18px; height: 18px; margin: 0;" />
+            <span>Viagem do Grupo do Júri — não solicitar diária para o motorista</span>
+          </label>
+          <p id="grupo-juri-aviso" class="hidden" style="margin: 0 0 12px; color: var(--primary); font-weight: 600;">Viagem marcada como Grupo do Júri. A opção de solicitar diária está desativada.</p>
           <label for="motivo">Motivo:</label><textarea id="motivo" rows="2" required></textarea>
           <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;">
             <button id="btn-save" class="btn-primary" onclick="salvarNoFirebase()">✅ Salvar Solicitação</button>
@@ -3029,6 +3034,7 @@
                 const diariasPanel = document.getElementById('diarias-panel');
                 if (diariasPanel) diariasPanel.classList.remove('hidden');
               }
+              atualizarGrupoJuri();
               
               // O card "Falta Ciência" fica visível apenas para admin e motorista
               const cardFaltaCiencia = document.getElementById('card-falta-ciencia');
@@ -3089,6 +3095,14 @@
         const tempoTotal = calcularTempoTotalDeslocamento(saidaStr, chegadaStr);
         document.getElementById('diaria-tempo-total').textContent = tempoTotal;
       }
+
+      window.atualizarGrupoJuri = () => {
+        const grupoJuri = document.getElementById('grupo-juri').checked;
+        const diariasPanel = document.getElementById('diarias-panel');
+        const podeVerDiarias = AppState.user.isMotorista || AppState.user.podeTudo;
+        diariasPanel.classList.toggle('hidden', grupoJuri || !podeVerDiarias);
+        document.getElementById('grupo-juri-aviso').classList.toggle('hidden', !grupoJuri);
+      };
 
       function calcularTempoTotalDeslocamento(saidaStr, chegadaStr) {
         if (!saidaStr || !chegadaStr) return '0h 0m';
@@ -3590,6 +3604,8 @@
         document.getElementById('edit-id').value = '';
         document.getElementById('solicitante').value = '';
         document.getElementById('setor').value = 'Geral';
+        document.getElementById('grupo-juri').checked = false;
+        atualizarGrupoJuri();
         
         const now = new Date();
         const pad = (n) => n.toString().padStart(2, '0');
@@ -3738,6 +3754,7 @@
           solicitanteUID: solicitantes[0].uid,
           solicitantes: solicitantes,
           setor: document.getElementById("setor").value, saida, chegada, motivo: motivo, 
+          grupoJuri: document.getElementById('grupo-juri').checked,
           trajetoExibicao: trajetoString, 
           roteiroArray: AppState.roteiroAtual
         };
@@ -3757,14 +3774,15 @@
         const dataSaidaFormatada = new Date(dados.saida).toLocaleString('pt-BR');
         const dataRetornoFormatada = new Date(dados.chegada).toLocaleString('pt-BR');
 
-        const msgMotorista = `🔔 *NOVO AGENDAMENTO RECEBIDO*\n\n${AppState.regionalNome}\n\n👤 *Solicitantes:* ${dados.solicitanteNome}\n📅 *Saída Prevista:* ${dataSaidaFormatada}\n🔙 *Chegada Prevista:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${dados.trajetoExibicao}\n📝 *Motivo:* ${dados.motivo}\n\n*Acesse o aplicativo para confirmar ou recusar a viagem.*`;
+        const avisoGrupoJuri = dados.grupoJuri ? '\n\n⚖️ *GRUPO DO JÚRI:* Não solicitar diária para o motorista.' : '';
+        const msgMotorista = `🔔 *NOVO AGENDAMENTO RECEBIDO*\n\n${AppState.regionalNome}\n\n👤 *Solicitantes:* ${dados.solicitanteNome}\n📅 *Saída Prevista:* ${dataSaidaFormatada}\n🔙 *Chegada Prevista:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${dados.trajetoExibicao}\n📝 *Motivo:* ${dados.motivo}${avisoGrupoJuri}\n\n*Acesse o aplicativo para confirmar ou recusar a viagem.*`;
 
         if(id) {
             await update(getRegionalRef(DB_PATHS.VIAGENS, id), dados);
             registrarLog('Edição de Viagem', `Viagem ID ${id} para ${dados.solicitanteNome} foi editada.`);
             showToast("Viagem editada! Notifique o motorista.", "success");
             const telMotorista = AppState.unidade.motorista.tel;
-            const msgEdicao = `🔄 *VIAGEM EDITADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitantes:* ${dados.solicitanteNome}\n📅 *Saída Prevista:* ${dataSaidaFormatada}\n🔙 *Chegada Prevista:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${dados.trajetoExibicao}\n📝 *Motivo:* ${dados.motivo}\n\n*A viagem foi editada. Acesse o aplicativo para confirmar ou recusar.*`;
+            const msgEdicao = `🔄 *VIAGEM EDITADA*\n\n${AppState.regionalNome}\n\n👤 *Solicitantes:* ${dados.solicitanteNome}\n📅 *Saída Prevista:* ${dataSaidaFormatada}\n🔙 *Chegada Prevista:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${dados.trajetoExibicao}\n📝 *Motivo:* ${dados.motivo}${avisoGrupoJuri}\n\n*A viagem foi editada. Acesse o aplicativo para confirmar ou recusar.*`;
             if (telMotorista) {
               enviarWhatsAppEmMassa([telMotorista], msgEdicao);
             }
@@ -3794,7 +3812,9 @@
             AppState.viagemRecemCriada = { ...dados, id: newRef.key };
             btnSave.disabled = false;
             btnSave.innerText = txtOriginal;
-            showToast("Viagem salva! Agora você pode imprimir a solicitação de diária ou editar a viagem.", "success");
+            showToast(dados.grupoJuri
+              ? "Viagem do Grupo do Júri salva. Não é necessário solicitar diária para o motorista."
+              : "Viagem salva! Agora você pode imprimir a solicitação de diária ou editar a viagem.", "success");
           }
         } catch (error) {
             console.error(error);
@@ -3829,6 +3849,8 @@
         } else {
           msgReenvio = `🔄 *REENVIO DE SOLICITAÇÃO DE VIAGEM*\n\n(Esta é uma notificação reenviada para uma viagem já solicitada)\n\n${AppState.regionalNome}\n\n👤 *Solicitante:* ${v.solicitanteNome}\n📅 *Saída Prevista:* ${dataSaidaFormatada}\n🔙 *Chegada Prevista:* ${dataRetornoFormatada}\n📍 *Roteiro:*\n${v.trajetoExibicao}\n📝 *Motivo:* ${v.motivo || ''}\n\n*Acesse o aplicativo para confirmar ou recusar a viagem.*`;
         }
+
+        if (v.grupoJuri) msgReenvio += '\n\n⚖️ *GRUPO DO JÚRI:* Não solicitar diária para o motorista.';
 
         const telMotorista = AppState.unidade.motorista.tel;
         let phone = formatarTelefoneWpp(telMotorista);
@@ -4107,6 +4129,12 @@
                 const strongSolicitante = document.createElement('strong');
                 strongSolicitante.textContent = nomeParaExibir || 'N/D';
                 tdSolicitante.appendChild(strongSolicitante);
+                if (v.grupoJuri) {
+                    const marcadorJuri = document.createElement('div');
+                    marcadorJuri.textContent = '☒ Grupo do Júri — sem diária';
+                    marcadorJuri.style.cssText = 'margin-top: 4px; color: var(--primary); font-size: 0.85em; font-weight: 600;';
+                    tdSolicitante.appendChild(marcadorJuri);
+                }
 
                 // Célula Motivo
                 const tdMotivo = tr.insertCell();
@@ -4192,7 +4220,7 @@
         }
 
         const diariaRegistrada = AppState.diariasSolicitadas.some(diaria => diaria.id === v.id || diaria.viagemId === v.id);
-        if (AppState.user.podeTudo && !diariaRegistrada &&
+        if (AppState.user.podeTudo && !v.grupoJuri && !diariaRegistrada &&
             [STATUS.CONFIRMADO, STATUS.EM_DESLOCAMENTO, STATUS.FINALIZADO].includes(status)) {
             btns += `<button aria-label="Recuperar solicitação de diária" style="background:#17a2b8; color:white; ${btnStyle}" onclick="recuperarSolicitacaoDiaria('${v.id}')" title="Recuperar solicitação de diária ausente do histórico">🧾</button>`;
         }
@@ -4258,11 +4286,14 @@
 
       window.prepararEdicao = async (id) => { 
         const v = AppState.viagens.find(x => x.id === id);
+        if (!v) return alert("Viagem não encontrada!");
         document.getElementById('edit-id').value = id;
         document.getElementById('solicitante').value = getNomeSolicitante(v) || '';
         document.getElementById('saida').value = v.saida;
         document.getElementById('chegada').value = v.chegada;
         document.getElementById('motivo').value = v.motivo;
+        document.getElementById('grupo-juri').checked = v.grupoJuri === true;
+        atualizarGrupoJuri();
         AppState.roteiroAtual = v.roteiroArray || [];
 
         // Garante que viagens antigas (sem distância salva) tenham suas distâncias calculadas.
@@ -5046,6 +5077,13 @@
       };
 
       window.imprimirSolicitacaoDiaria = async () => {
+        const viagemIdAtual = document.getElementById('edit-id').value || AppState.viagemRecemCriada?.id;
+        const viagemSalva = AppState.viagens.find(v => v.id === viagemIdAtual) ||
+            (AppState.viagemRecemCriada?.id === viagemIdAtual ? AppState.viagemRecemCriada : null);
+        if (document.getElementById('grupo-juri').checked || viagemSalva?.grupoJuri) {
+            return showToast('Viagens do Grupo do Júri não devem gerar solicitação de diária para o motorista.', 'info');
+        }
+
         const motivo = document.getElementById('motivo').value?.trim() || 'Não informado';
         const saidaStr = document.getElementById('saida').value;
         const chegadaStr = document.getElementById('chegada').value;
@@ -5445,7 +5483,7 @@
             
             const motivo = escapeHtml(v.motivo || '');
             const traj = escapeHtml(v.trajetoExibicao ? v.trajetoExibicao.replace(/\n/g, ' | ') : '');
-            const solicitante = escapeHtml(getNomeSolicitante(v) || 'N/D');
+            const solicitante = `${escapeHtml(getNomeSolicitante(v) || 'N/D')}${v.grupoJuri ? '<br><small>☒ Grupo do Júri — sem diária</small>' : ''}`;
             const statusEscaped = escapeHtml(status);
             
             let saidaEscaped = escapeHtml(formataDataComDiaDaSemana(v.saida));
@@ -5808,6 +5846,10 @@
               showToast('Não foi possível localizar a viagem selecionada.', 'error');
               return;
           }
+          if (viagem.grupoJuri) {
+              showToast('Viagens do Grupo do Júri não devem gerar solicitação de diária para o motorista.', 'info');
+              return;
+          }
 
           const inicio = new Date(viagem.saida);
           const fim = new Date(viagem.chegada);
@@ -6041,7 +6083,7 @@
           alert('Nenhuma viagem registrada para exportar!');
           return;
         }
-        let csv = 'Status,Saída Prevista,Chegada Prevista,Solicitante,Motivo,Roteiro\n';
+        let csv = 'Status,Saída Prevista,Chegada Prevista,Solicitante,Motivo,Roteiro,Grupo do Júri\n';
         AppState.viagens.forEach(v => {
           const status = v.status || 'Pendente';
           
@@ -6058,7 +6100,7 @@
           const roteiro = v.trajetoExibicao ? v.trajetoExibicao.replace(/"/g, '""').replace(/\n/g, ' | ') : '';
           const nomeSolicitante = getNomeSolicitante(v);
           const solicitante = nomeSolicitante ? nomeSolicitante.replace(/"/g, '""') : '';
-          csv += `"${status}","${saida}","${chegada}","${solicitante}","${motivo}","${roteiro}"\n`;
+          csv += `"${status}","${saida}","${chegada}","${solicitante}","${motivo}","${roteiro}","${v.grupoJuri ? 'Sim - sem diária' : 'Não'}"\n`;
         });
         
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });

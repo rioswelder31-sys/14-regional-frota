@@ -1,4 +1,4 @@
-const CACHE_NAME = 'frota-dpe-cache-v15'; // ⚡ Versão atualizada com Tailwind cachado
+const CACHE_NAME = 'frota-dpe-cache-v16'; // ⚡ Versão atualizada com Tailwind cachado
 const urlsToCache = [
   './',
   './index.html',
