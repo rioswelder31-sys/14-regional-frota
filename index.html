@@ -4191,6 +4191,12 @@
             btns += `<button aria-label="Dar ciência da viagem" style="background:#f39c12; color:white; ${btnStyle}" onclick="darCiencia('${v.id}')" title="Dar ciência da viagem (Apenas controle interno)">👁️</button>`;
         }
 
+        const diariaRegistrada = AppState.diariasSolicitadas.some(diaria => diaria.id === v.id || diaria.viagemId === v.id);
+        if (AppState.user.podeTudo && !diariaRegistrada &&
+            [STATUS.CONFIRMADO, STATUS.EM_DESLOCAMENTO, STATUS.FINALIZADO].includes(status)) {
+            btns += `<button aria-label="Recuperar solicitação de diária" style="background:#17a2b8; color:white; ${btnStyle}" onclick="recuperarSolicitacaoDiaria('${v.id}')" title="Recuperar solicitação de diária ausente do histórico">🧾</button>`;
+        }
+
         // --- Ações do Solicitante/Admin ---
         if (temPermissao) {
           if (status === STATUS.EM_DESLOCAMENTO && getSolicitanteUIDs(v).includes(AppState.user.uid) && !v.aceiteConclusao) {
@@ -5018,6 +5024,7 @@
               AppState.diariasIniciaisCarregadas = true;
               renderTabelaDiarias();
               renderPainelComprovacoes();
+              if (AppState.viagensIniciaisCarregadas) atualizarTabelaGlobal();
               reconciliarDiariasLegadas(AppState.diariasSolicitadas);
           });
       }
@@ -5097,37 +5104,47 @@
 
         // --- Lógica para salvar no Firebase, apenas quando a viagem já estiver salva ---
         if (viagemId) {
-          const diariaAnteriorSnapshot = await get(getRegionalRef('diarias_solicitadas', viagemId));
-          const diariaAnterior = diariaAnteriorSnapshot.exists() ? diariaAnteriorSnapshot.val() : null;
-          const dadosDiaria = {
-            viagemId: viagemId,
-            viagemSolicitanteNome: viagemAtual.solicitanteNome,
-            motoristaNome: AppState.unidade?.motorista?.nome || 'N/D',
-            viagemSaida: viagemAtual.saida,
-            viagemChegada: viagemAtual.chegada,
-            viagemTrajetoExibicao: viagemAtual.trajetoExibicao,
-            dataSolicitacao: new Date().toISOString(),
-            qtdDiarias: parseFloat(qtdDiarias.replace(',', '.')),
-            valorUnitario: valorUnitarioNumerico,
-            valorTotal: parseFloat(valorTotal.replace('R$', '').replace('.', '').replace(',', '.').trim()),
-            status: 'Solicitada',
-            solicitadoPor: AppState.user.email,
-            comprovacaoDiariaStatus: diariaAnterior?.comprovacaoDiariaStatus || STATUS_COMPROVACAO_DIARIA.NAO_SE_APLICA,
-            ...(diariaAnterior?.comprovacaoDiaria ? { comprovacaoDiaria: diariaAnterior.comprovacaoDiaria } : {})
-          };
+          let statusComprovacaoDiaria = STATUS_COMPROVACAO_DIARIA.NAO_SE_APLICA;
+          try {
+            const diariaAnteriorSnapshot = await get(getRegionalRef('diarias_solicitadas', viagemId));
+            const diariaAnterior = diariaAnteriorSnapshot.exists() ? diariaAnteriorSnapshot.val() : null;
+            statusComprovacaoDiaria = diariaAnterior?.comprovacaoDiariaStatus || statusComprovacaoDiaria;
+            const dadosDiaria = {
+              viagemId: viagemId,
+              viagemSolicitanteNome: viagemAtual.solicitanteNome,
+              motoristaNome: AppState.unidade?.motorista?.nome || 'N/D',
+              viagemSaida: viagemAtual.saida,
+              viagemChegada: viagemAtual.chegada,
+              viagemTrajetoExibicao: viagemAtual.trajetoExibicao,
+              dataSolicitacao: new Date().toISOString(),
+              qtdDiarias: parseFloat(qtdDiarias.replace(',', '.')),
+              valorUnitario: valorUnitarioNumerico,
+              valorTotal: parseFloat(valorTotal.replace('R$', '').replace('.', '').replace(',', '.').trim()),
+              status: 'Solicitada',
+              solicitadoPor: AppState.user.email,
+              comprovacaoDiariaStatus: statusComprovacaoDiaria,
+              ...(diariaAnterior?.comprovacaoDiaria ? { comprovacaoDiaria: diariaAnterior.comprovacaoDiaria } : {})
+            };
+
+            await set(getRegionalRef('diarias_solicitadas', viagemId), dadosDiaria);
+          } catch (error) {
+            console.error('Falha ao registrar a solicitação de diária:', error);
+            showToast("Falha ao registrar a solicitação de diária no banco de dados. A impressão foi cancelada.", "error");
+            return;
+          }
 
           try {
-            await set(getRegionalRef('diarias_solicitadas', viagemId), dadosDiaria);
             const viagemJaFinalizada = viagemAtual.status === STATUS.FINALIZADO || viagemAtual.statusCalculado === STATUS.FINALIZADO;
             if (viagemJaFinalizada) {
               await finalizarViagemComControle(viagemId, { viagemInformada: { ...viagemAtual, id: viagemId, status: STATUS.FINALIZADO } });
             } else {
               await update(getRegionalRef(DB_PATHS.VIAGENS, viagemId), {
-                comprovacao_diaria_status: dadosDiaria.comprovacaoDiariaStatus
+                comprovacao_diaria_status: statusComprovacaoDiaria
               });
             }
           } catch (error) {
-            showToast("Falha ao registrar a solicitação de diária no banco de dados.", "error");
+            console.error('Solicitação salva, mas falhou a atualização do controle de comprovação:', error);
+            showToast("Solicitação salva, mas não foi possível atualizar o controle de comprovação da viagem.", "error");
           }
         }
 
@@ -5778,6 +5795,98 @@
       window.excluirSolicitacaoDiaria = (diariaId) => {
           if (!confirm("Tem certeza que deseja excluir PERMANENTEMENTE este registro de solicitação de diária?")) return;
           remove(getRegionalRef('diarias_solicitadas', diariaId)).then(() => { showToast("Registro de diária excluído.", "success"); });
+      };
+
+      window.recuperarSolicitacaoDiaria = async (viagemId) => {
+          if (!AppState.user.podeTudo) {
+              showToast('Somente administradores podem recuperar uma solicitação de diária.', 'error');
+              return;
+          }
+
+          const viagem = AppState.viagens.find(item => item.id === viagemId);
+          if (!viagem) {
+              showToast('Não foi possível localizar a viagem selecionada.', 'error');
+              return;
+          }
+
+          const inicio = new Date(viagem.saida);
+          const fim = new Date(viagem.chegada);
+          const dataInicio = new Date(`${String(viagem.saida).split('T')[0]}T12:00:00Z`);
+          const dataFim = new Date(`${String(viagem.chegada).split('T')[0]}T12:00:00Z`);
+          if ([inicio, fim, dataInicio, dataFim].some(data => isNaN(data.getTime())) || fim <= inicio) {
+              showToast('As datas da viagem são inválidas; não foi possível calcular a diária.', 'error');
+              return;
+          }
+
+          const pernoites = Math.round((dataFim.getTime() - dataInicio.getTime()) / (24 * 60 * 60 * 1000));
+          if (pernoites < 1) {
+              showToast('A recuperação automática só está disponível para viagens com pernoite.', 'info');
+              return;
+          }
+
+          const duracaoHoras = (fim.getTime() - inicio.getTime()) / (60 * 60 * 1000);
+          const qtdDiarias = pernoites + (duracaoHoras >= pernoites * 24 + 6 ? 0.5 : 0);
+          const valorUnitario = AppState.unidade.config?.valorDiaria || 404;
+          const valorTotal = qtdDiarias * valorUnitario;
+          const timestamp = new Date().toISOString();
+          const nomeSolicitante = getNomeSolicitante(viagem) || 'N/D';
+          const valorFormatado = valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+          if (!confirm(
+              `Recuperar a solicitação de diária de ${nomeSolicitante}?\n\n` +
+              `Período: ${formataDataComDiaDaSemana(viagem.saida)} a ${formataDataComDiaDaSemana(viagem.chegada)}\n` +
+              `Quantidade: ${qtdDiarias.toLocaleString('pt-BR')} diárias\n` +
+              `Valor de referência atual: ${valorUnitario.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n` +
+              `Total: ${valorFormatado}\n\n` +
+              `A data original da solicitação não está disponível; o registro usará a data de criação da viagem, quando existente, ou a data de hoje.`
+          )) return;
+
+          const dadosDiaria = {
+              viagemId,
+              viagemSolicitanteNome: nomeSolicitante,
+              motoristaNome: AppState.unidade?.motorista?.nome || AppState.unidade?.motoristaTitular?.nome || 'N/D',
+              viagemSaida: viagem.saida,
+              viagemChegada: viagem.chegada,
+              viagemTrajetoExibicao: viagem.trajetoExibicao || '',
+              dataSolicitacao: viagem.dataCriacao || timestamp,
+              qtdDiarias,
+              valorUnitario,
+              valorTotal,
+              status: 'Solicitada',
+              recuperadaDoAgendamento: true,
+              recuperadaEm: timestamp,
+              recuperadaPor: AppState.user.email,
+              comprovacaoDiariaStatus: STATUS_COMPROVACAO_DIARIA.NAO_SE_APLICA
+          };
+
+          let resultado;
+          try {
+              resultado = await runTransaction(getRegionalRef('diarias_solicitadas', viagemId), atual =>
+                  atual ? undefined : dadosDiaria
+              );
+          } catch (error) {
+              console.error('Erro ao recuperar solicitação de diária:', error);
+              showToast('Não foi possível recuperar a solicitação de diária. Verifique a conexão e tente novamente.', 'error');
+              return;
+          }
+
+          if (!resultado.committed) {
+              showToast('Esta viagem já possui uma solicitação de diária registrada.', 'info');
+              return;
+          }
+
+          try {
+              await update(getRegionalRef(DB_PATHS.VIAGENS, viagemId), {
+                  comprovacao_diaria_status: STATUS_COMPROVACAO_DIARIA.NAO_SE_APLICA
+              });
+          } catch (error) {
+              console.error('Diária recuperada, mas não foi possível atualizar o controle da viagem:', error);
+              showToast('Diária recuperada, mas o controle da viagem não foi atualizado.', 'error');
+              return;
+          }
+
+          registrarLog('Recuperação de Diária', `Solicitação da viagem ID ${viagemId} recuperada por ${AppState.user.email}. Quantidade: ${qtdDiarias}; total: ${valorFormatado}.`);
+          showToast('Solicitação de diária recuperada e adicionada ao histórico.', 'success');
       };
 
       window.imprimirHistoricoDiarias = async () => {
