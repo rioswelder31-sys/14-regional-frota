@@ -1135,7 +1135,7 @@
           <button id="theme-toggle-btn" class="btn-tertiary" aria-label="Alternar tema claro e escuro" style="width: auto; padding: 8px 12px; margin-bottom: 0; font-size: 1.1rem; line-height: 1;" onclick="toggleTheme()">🌙</button>
           <button id="unit-settings-btn" class="btn-outline hidden" style="width: auto; padding: 8px 12px; margin-bottom: 0; font-weight: bold;" onclick="toggleUnitSettingsModal(true)">⚙️ Gestão da Unidade</button>
           <button id="profile-btn" class="btn-outline" style="width: auto; padding: 8px 12px; margin-bottom: 0; font-weight: bold;" onclick="toggleProfileModal(true)">Meu Perfil</button>
-          <button class="btn-primary" style="width: auto; padding: 8px 15px; margin-bottom: 0; background: #005a2b; border: none;" onclick="toggleBDVModal(true)">📋 BDV</button>
+          <button id="bdv-open-btn" class="btn-primary" style="width: auto; padding: 8px 15px; margin-bottom: 0; background: #005a2b; border: none;" onclick="toggleBDVModal(true)">📋 BDV</button>
           <button class="btn-primary" style="width: auto; padding: 8px 15px; margin-bottom: 0; background: var(--danger); border: none;" onclick="fazerLogout()">Sair</button>
         </div>
       </div>
@@ -2025,12 +2025,20 @@
         diariasMigracaoEmCurso: new Set(),
         abrirPendenciasAoIniciar: new URLSearchParams(location.search).has('pendencias-diarias'),
         viagemRecemCriada: null, // Guarda a viagem recém-criada para evitar race conditions
+        bdvs: [],
+        bdvAtualId: null,
+        bdvAtualStatus: null,
+        bdvAtualVersao: 0,
+        bdvSessaoId: 'sess_' + Math.random().toString(36).slice(2, 10) + '_' + Date.now(),
+        bdvFiltroLista: 'andamento',
       };
       window.AppState = AppState; // Expor para depuração no console
 
       // Constantes para caminhos do DB, evitando "magic strings"
-      const DB_PATHS = { VIAGENS: 'viagens', FOLGAS: 'folgas', UNIDADES: 'unidades', EQUIPE: 'equipe', MOTORISTA: 'motorista' };
+      const DB_PATHS = { VIAGENS: 'viagens', FOLGAS: 'folgas', UNIDADES: 'unidades', EQUIPE: 'equipe', MOTORISTA: 'motorista', BDVS: 'bdvs' };
       const STATUS = { PENDENTE: 'Pendente', CIENTE: 'Ciente', CONFIRMADO: 'Confirmado', EM_DESLOCAMENTO: 'Em Deslocamento', FINALIZADO: 'Finalizado', REJEITADO: 'Rejeitado', CANCELADO: 'Cancelado' };
+      const STATUS_BDV = { EM_PREENCHIMENTO: 'Em preenchimento', PAUSADO: 'Pausado / Rascunho', FINALIZADO: 'Finalizado' };
+      window.STATUS_BDV = STATUS_BDV;
       const STATUS_COMPROVACAO_DIARIA = { NAO_SE_APLICA: 'NAO_SE_APLICA', PENDENTE: 'PENDENTE', COMPROVADA: 'COMPROVADA' };
       const LINK_COMPROVACAO_DIARIA = 'https://portal.defensoria.ba.def.br/Home/Login.php';
 
@@ -3500,7 +3508,49 @@
         onValue(getRegionalRef(DB_PATHS.FOLGAS), (s) => { AppState.folgas = s.val() ? Object.keys(s.val()).map(k => ({...s.val()[k], id: k})) : []; renderFolgas(); });
         
         iniciarEscutaDiariasSolicitadas();
+        iniciarEscutaBDVs();
         atualizarEscutaViagens();
+      }
+
+      // Ponte de persistência no Firebase para o módulo BDV (Digitação Pausada / Rascunhos)
+      window.BDVCloud = {
+        gerarNovoId: () => push(getRegionalRef(DB_PATHS.BDVS)).key,
+        salvar: async (id, payload) => {
+          await set(getRegionalRef(DB_PATHS.BDVS, id), payload);
+        },
+        atualizar: async (id, partial) => {
+          await update(getRegionalRef(DB_PATHS.BDVS, id), partial);
+        },
+        buscarPorId: async (id) => {
+          const snap = await get(getRegionalRef(DB_PATHS.BDVS, id));
+          return snap.exists() ? { id, ...snap.val() } : null;
+        },
+        excluir: async (id) => {
+          await remove(getRegionalRef(DB_PATHS.BDVS, id));
+        },
+        registrarLog: (acao, detalhes) => registrarLog(acao, detalhes),
+        escapeHtml: (str) => escapeHtml(str)
+      };
+
+      function iniciarEscutaBDVs() {
+        onValue(getRegionalRef(DB_PATHS.BDVS), (snapshot) => {
+          const val = snapshot.val();
+          const lista = val ? Object.keys(val).map(k => ({ ...val[k], id: k })) : [];
+          lista.sort((a, b) => new Date(b.atualizadoEm || b.criadoEm || 0) - new Date(a.atualizadoEm || a.criadoEm || 0));
+          AppState.bdvs = lista;
+
+          // Atualiza contador no botão principal 📋 BDV
+          const btnHeader = document.getElementById('bdv-open-btn');
+          const qtdRascunhos = lista.filter(b => b.status !== STATUS_BDV.FINALIZADO).length;
+          if (btnHeader) {
+            btnHeader.textContent = qtdRascunhos > 0 ? `📋 BDV (${qtdRascunhos})` : '📋 BDV';
+            btnHeader.title = qtdRascunhos > 0 ? `${qtdRascunhos} BDV(s) em andamento / rascunho` : 'Abrir Boletim Diário de Veículo';
+          }
+
+          if (typeof window.onBDVsListUpdated === 'function') {
+            window.onBDVsListUpdated(lista);
+          }
+        });
       }
 
       function parseSolicitantesInput(texto) {
@@ -6136,30 +6186,207 @@
           #bdv-modal-close:hover { color: #333; }
 
           /* BDV Scoped Styles */
+          .bdv-top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding: 10px 14px;
+            margin-bottom: 12px;
+            border-radius: 6px;
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+          }
+          html[data-theme="dark"] .bdv-top-bar {
+            background: #1e293b;
+            border-color: #475569;
+          }
+          .bdv-status-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+          }
+          .bdv-status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+          }
+          .bdv-status-novo { background: #e2e8f0; color: #334155; }
+          .bdv-status-preenchimento { background: #fef3c7; color: #92400e; border: 1px solid #f59e0b; }
+          .bdv-status-pausado { background: #ffedd5; color: #9a3412; border: 1px solid #ea580c; }
+          .bdv-status-finalizado { background: #dcfce7; color: #166534; border: 1px solid #16a34a; }
+          html[data-theme="dark"] .bdv-status-novo { background: #334155; color: #e2e8f0; }
+          html[data-theme="dark"] .bdv-status-preenchimento { background: #78350f; color: #fef3c7; }
+          html[data-theme="dark"] .bdv-status-pausado { background: #7c2d12; color: #ffedd5; }
+          html[data-theme="dark"] .bdv-status-finalizado { background: #14532d; color: #dcfce7; }
+          .bdv-meta-text {
+            font-size: 0.82rem;
+            color: #475569;
+          }
+          html[data-theme="dark"] .bdv-meta-text {
+            color: #cbd5e1;
+          }
+          .bdv-autosave-indicator {
+            font-size: 0.82rem;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 4px;
+            background: #f1f5f9;
+            color: #334155;
+          }
+          .bdv-autosave-saving { background: #dbeafe; color: #1e40af; }
+          .bdv-autosave-saved { background: #dcfce7; color: #166534; }
+          .bdv-autosave-error { background: #fee2e2; color: #991b1b; }
+          html[data-theme="dark"] .bdv-autosave-indicator { background: #334155; color: #e2e8f0; }
+          html[data-theme="dark"] .bdv-autosave-saving { background: #1e3a8a; color: #dbeafe; }
+          html[data-theme="dark"] .bdv-autosave-saved { background: #14532d; color: #dcfce7; }
+          html[data-theme="dark"] .bdv-autosave-error { background: #7f1d1d; color: #fee2e2; }
+
           .bdv-actions {
             display: flex;
-            gap: 10px;
-            justify-content: flex-end;
+            gap: 8px;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 15px;
             flex-wrap: wrap;
           }
+          .bdv-actions-left, .bdv-actions-right {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+          }
           .bdv-btn {
-            padding: 10px 20px;
+            padding: 9px 14px;
             border: none;
-            border-radius: 4px;
+            border-radius: 5px;
             font-weight: bold;
             cursor: pointer;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             width: auto !important;
             margin-bottom: 0 !important;
+            transition: opacity 0.2s, transform 0.1s;
           }
-          .bdv-btn-print {
+          .bdv-btn:hover { opacity: 0.92; }
+          .bdv-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+          .bdv-btn-rascunhos { background: #1e293b; color: white; }
+          .bdv-btn-novo { background: #0284c7; color: white; }
+          .bdv-btn-pause { background: #d97706; color: white; }
+          .bdv-btn-finalize { background: #16a34a; color: white; }
+          .bdv-btn-reopen { background: #4f46e5; color: white; }
+          .bdv-btn-print { background: #005a2b; color: white; }
+          .bdv-btn-clear { background: #dc3545; color: white; }
+
+          .bdv-rascunhos-painel {
+            border: 1px solid #cbd5e1;
+            border-left: 5px solid #d97706;
+            border-radius: 6px;
+            background: #fffbeb;
+            padding: 14px;
+            margin-bottom: 16px;
+          }
+          html[data-theme="dark"] .bdv-rascunhos-painel {
+            background: #1e293b;
+            border-color: #475569;
+            border-left-color: #f59e0b;
+          }
+          .bdv-rascunhos-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+          }
+          .bdv-rascunhos-tabs {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+          }
+          .bdv-tab-btn {
+            padding: 6px 12px;
+            border-radius: 4px;
+            border: 1px solid #cbd5e1;
+            background: white;
+            color: #334155;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            width: auto !important;
+            margin: 0 !important;
+          }
+          .bdv-tab-btn.active {
             background: #005a2b;
             color: white;
+            border-color: #005a2b;
           }
-          .bdv-btn-clear {
-            background: #dc3545;
-            color: white;
+          html[data-theme="dark"] .bdv-tab-btn {
+            background: #334155;
+            color: #e2e8f0;
+            border-color: #475569;
+          }
+          html[data-theme="dark"] .bdv-tab-btn.active {
+            background: #00b846;
+            color: #1a202c;
+            border-color: #00b846;
+          }
+          .bdv-rascunhos-lista {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 270px;
+            overflow-y: auto;
+          }
+          .bdv-rascunho-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 10px 12px;
+          }
+          .bdv-rascunho-card.ativo {
+            border: 2px solid #0284c7;
+            background: #f0f9ff;
+          }
+          html[data-theme="dark"] .bdv-rascunho-card {
+            background: #2d3748;
+            border-color: #4a5568;
+          }
+          html[data-theme="dark"] .bdv-rascunho-card.ativo {
+            border-color: #38bdf8;
+            background: #1e293b;
+          }
+          .bdv-conflito-banner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            background: #fef2f2;
+            border: 1px solid #f87171;
+            border-left: 5px solid #dc2626;
+            color: #991b1b;
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            font-size: 0.85rem;
+          }
+          html[data-theme="dark"] .bdv-conflito-banner {
+            background: #450a0a;
+            color: #fecaca;
+            border-color: #ef4444;
           }
           .bdv-header-title {
             text-align: center;
@@ -6308,11 +6535,52 @@
           }
         </style>
 
+        <!-- Barra de Status e Salvamento Automático do BDV -->
+        <div id="bdv-status-bar" class="bdv-top-bar">
+          <div class="bdv-status-group">
+            <span id="bdv-status-badge" class="bdv-status-pill bdv-status-novo">⚪ Novo BDV</span>
+            <span id="bdv-meta-info" class="bdv-meta-text">Preencha os campos abaixo. O progresso é salvo automaticamente.</span>
+          </div>
+          <div id="bdv-autosave-indicator" class="bdv-autosave-indicator" aria-live="polite">☁️ Pronto para preenchimento</div>
+        </div>
+
+        <!-- Alerta de Conflito entre Múltiplas Telas -->
+        <div id="bdv-conflito-banner" class="bdv-conflito-banner hidden" role="alert">
+          <span>⚠️ <strong>Atenção:</strong> Este BDV recebeu novas informações em outra aba ou dispositivo.</span>
+          <button type="button" class="bdv-btn bdv-btn-novo" onclick="recarregarBDVRemoto()">🔄 Atualizar com dados mais recentes</button>
+        </div>
+
         <!-- Ações do BDV -->
         <div class="bdv-actions">
-          <button class="bdv-btn bdv-btn-print" onclick="imprimirBDV()">🖨️ Imprimir PDF</button>
-          <button class="bdv-btn bdv-btn-clear" onclick="limparBDV()">🧹 Limpar</button>
+          <div class="bdv-actions-left">
+            <button id="bdv-btn-rascunhos" type="button" class="bdv-btn bdv-btn-rascunhos" onclick="togglePainelRascunhosBDV()">📂 BDVs em Andamento (<span id="bdv-rascunhos-count">0</span>)</button>
+            <button id="bdv-btn-novo" type="button" class="bdv-btn bdv-btn-novo" onclick="iniciarNovoBDV()" title="Iniciar um novo BDV em branco mantendo o atual salvo">➕ Novo BDV</button>
+          </div>
+          <div class="bdv-actions-right">
+            <button id="bdv-btn-pausar" type="button" class="bdv-btn bdv-btn-pause" onclick="salvarEPausarBDV()" title="Salva todas as informações preenchidas no banco de dados para continuar depois">⏸️ Salvar e Continuar Depois</button>
+            <button id="bdv-btn-finalizar" type="button" class="bdv-btn bdv-btn-finalize" onclick="finalizarBDV()" title="Valida os campos obrigatórios e conclui o BDV">✅ Finalizar BDV</button>
+            <button id="bdv-btn-reabrir" type="button" class="bdv-btn bdv-btn-reopen hidden" onclick="reabrirBDVParaEdicao()" title="Desbloqueia este BDV finalizado para ajustes">🔓 Reabrir para Edição</button>
+            <button type="button" class="bdv-btn bdv-btn-print" onclick="imprimirBDV()">🖨️ Imprimir PDF</button>
+            <button type="button" class="bdv-btn bdv-btn-clear" onclick="limparBDV(true)">🧹 Limpar</button>
+          </div>
         </div>
+
+        <!-- Painel de BDVs em Andamento (Rascunhos) e Finalizados -->
+        <section id="bdv-rascunhos-painel" class="bdv-rascunhos-painel hidden" aria-labelledby="bdv-rascunhos-titulo">
+          <div class="bdv-rascunhos-header">
+            <div>
+              <h3 id="bdv-rascunhos-titulo" style="margin: 0; font-size: 1rem; color: #b45309;">📂 BDVs Salvos no Banco de Dados</h3>
+              <p style="margin: 2px 0 0; font-size: 0.8rem; color: #64748b;">Retome um preenchimento pausado exatamente de onde parou ou consulte BDVs finalizados.</p>
+            </div>
+            <div class="bdv-rascunhos-tabs">
+              <button id="bdv-tab-andamento" type="button" class="bdv-tab-btn active" onclick="filtrarListaBDVs('andamento')">🟠 Em Andamento / Rascunhos (<span id="bdv-tab-andamento-count">0</span>)</button>
+              <button id="bdv-tab-finalizados" type="button" class="bdv-tab-btn" onclick="filtrarListaBDVs('finalizados')">🟢 Finalizados (<span id="bdv-tab-finalizados-count">0</span>)</button>
+            </div>
+          </div>
+          <div id="bdv-rascunhos-lista" class="bdv-rascunhos-lista">
+            <div style="text-align: center; padding: 14px; font-style: italic; color: #64748b;">Carregando BDVs...</div>
+          </div>
+        </section>
 
         <section id="bdv-aceite-painel" class="bdv-aceite-painel hidden" aria-labelledby="bdv-aceite-titulo">
           <h3 id="bdv-aceite-titulo">Aceite de Conclusão da Viagem</h3>
@@ -6553,52 +6821,825 @@
 
         document.querySelectorAll('#bdv-form .bdv-declaracao .bdv-data').forEach(input => aplicarMascara(input, 'data'));
 
-        // Auto-save do rascunho do BDV no localStorage para evitar perda acidental de dados
-        const BDV_STORAGE_KEY = 'bdv_rascunho_v1';
-        const bdvForm = document.getElementById('bdv-form');
-        if (bdvForm) {
-          const salvarRascunhoBDV = () => {
-            try {
-              const campos = Array.from(bdvForm.querySelectorAll('input, textarea, select')).map(el => {
-                if (el.type === 'checkbox') return { t: 'cb', v: el.checked };
-                return { t: 'val', v: el.value };
-              });
-              localStorage.setItem(BDV_STORAGE_KEY, JSON.stringify(campos));
-            } catch (e) {
-              console.warn('Não foi possível salvar rascunho do BDV:', e);
-            }
+        /* ===== GESTÃO DE RASCUNHOS, DIGITAÇÃO PAUSADA E SALVAMENTO AUTOMÁTICO DO BDV ===== */
+        const BDV_LOCAL_PREFIX = 'bdv_rascunho_v2_';
+        let autoSaveTimer = null;
+        let salvamentoEmAndamento = false;
+        let mudancaLocalPendente = false;
+        let registroRemotoConflito = null;
+        let suprimirEventosInput = false;
+
+        const getChaveLocal = () => `${BDV_LOCAL_PREFIX}${window.AppState?.regionalID || 'geral'}`;
+
+        // Extrai todos os dados do formulário BDV de forma estruturada + array bruto compatível
+        const extrairDadosFormularioBDV = () => {
+          const bdvForm = document.getElementById('bdv-form');
+          if (!bdvForm) return null;
+
+          const identificacao = {
+            motorista: document.getElementById('bdv-motorista')?.value || '',
+            periodo: document.getElementById('bdv-periodo')?.value || '',
+            observacao: document.getElementById('bdv-observacao')?.value || '',
+            cadastro: document.getElementById('bdv-cadastro')?.value || '',
+            veiculo: document.getElementById('bdv-veiculo')?.value || '',
+            motivo: document.getElementById('bdv-motivo')?.value || '',
+            placa: document.getElementById('bdv-placa')?.value || ''
           };
 
-          const restaurarRascunhoBDV = () => {
-            try {
-              const salvo = localStorage.getItem(BDV_STORAGE_KEY);
-              if (!salvo) return;
-              const campos = JSON.parse(salvo);
-              if (!Array.isArray(campos)) return;
+          const extrairLinhasTabela = (tbodyId, chaves) => {
+            const tbody = document.getElementById(tbodyId);
+            if (!tbody) return [];
+            return Array.from(tbody.querySelectorAll('tr')).map(tr => {
+              const inputs = Array.from(tr.querySelectorAll('input, select, textarea'));
+              const linhaObj = {};
+              chaves.forEach((chave, idx) => {
+                linhaObj[chave] = inputs[idx] ? inputs[idx].value : '';
+              });
+              return linhaObj;
+            });
+          };
+
+          const viagens = extrairLinhasTabela('bdv-viagens-tbody', [
+            'data', 'horaSaida', 'origem', 'odometroInicial', 'horaChegada',
+            'destino', 'odometroFinal', 'setor', 'matricula', 'passageiro', 'assinatura'
+          ]);
+
+          const condutor = extrairLinhasTabela('bdv-condutor-tbody', [
+            'dataSaida', 'horaSaida', 'dataChegada', 'horaChegada', 'nomeCondutor', 'assinatura'
+          ]);
+
+          const abastecimentos = extrairLinhasTabela('bdv-abastecimento-tbody', [
+            'data', 'hora', 'posto', 'combustivel', 'complemento', 'litros', 'valor', 'km', 'observacao'
+          ]);
+
+          const declInputs = bdvForm.querySelectorAll('.bdv-declaracao-fields input');
+          const declaracao = {
+            motorista: declInputs[0]?.value || '',
+            assinatura: declInputs[1]?.value || '',
+            data: declInputs[2]?.value || ''
+          };
+
+          const camposRaw = Array.from(bdvForm.querySelectorAll('input, textarea, select')).map(el => ({
+            t: el.type === 'checkbox' ? 'cb' : 'val',
+            v: el.type === 'checkbox' ? el.checked : el.value
+          }));
+
+          const viagensPreenchidas = viagens.filter(v => Object.values(v).some(val => String(val).trim() !== '')).length;
+          const condutorPreenchidos = condutor.filter(c => Object.values(c).some(val => String(val).trim() !== '')).length;
+          const abastecimentosPreenchidos = abastecimentos.filter(a => Object.values(a).some(val => String(val).trim() !== '')).length;
+          const temAlgumDado = Object.values(identificacao).some(v => String(v).trim() !== '') ||
+            viagensPreenchidas > 0 || condutorPreenchidos > 0 || abastecimentosPreenchidos > 0 ||
+            Object.values(declaracao).some(v => String(v).trim() !== '');
+
+          return {
+            identificacao,
+            viagens,
+            condutor,
+            abastecimentos,
+            declaracao,
+            camposRaw,
+            resumo: {
+              motorista: identificacao.motorista.trim(),
+              veiculo: identificacao.veiculo.trim(),
+              placa: identificacao.placa.trim(),
+              periodo: identificacao.periodo.trim(),
+              motivo: identificacao.motivo.trim(),
+              viagensPreenchidas,
+              condutorPreenchidos,
+              abastecimentosPreenchidos
+            },
+            temAlgumDado
+          };
+        };
+
+        // Preenche todos os campos do formulário a partir de um registro salvo (estruturado ou camposRaw)
+        const preencherFormularioComDadosBDV = (registro) => {
+          const bdvForm = document.getElementById('bdv-form');
+          if (!bdvForm) return;
+          suprimirEventosInput = true;
+          try {
+            // Limpa primeiro
+            bdvForm.querySelectorAll('input[type="text"], textarea').forEach(el => { el.value = ''; });
+            bdvForm.querySelectorAll('input[type="checkbox"]').forEach(el => { el.checked = false; });
+            bdvForm.querySelectorAll('select').forEach(el => { el.selectedIndex = 0; });
+
+            if (registro && Array.isArray(registro.camposRaw) && registro.camposRaw.length > 0) {
               const elementos = bdvForm.querySelectorAll('input, textarea, select');
               elementos.forEach((el, idx) => {
-                const item = campos[idx];
+                const item = registro.camposRaw[idx];
                 if (!item) return;
                 if (el.type === 'checkbox') el.checked = Boolean(item.v);
                 else el.value = item.v || '';
               });
-            } catch (e) {
-              console.warn('Não foi possível restaurar rascunho do BDV:', e);
+            } else if (registro && registro.dados) {
+              const d = registro.dados;
+              if (d.identificacao) {
+                const mapId = {
+                  'bdv-motorista': d.identificacao.motorista,
+                  'bdv-periodo': d.identificacao.periodo,
+                  'bdv-observacao': d.identificacao.observacao,
+                  'bdv-cadastro': d.identificacao.cadastro,
+                  'bdv-veiculo': d.identificacao.veiculo,
+                  'bdv-motivo': d.identificacao.motivo,
+                  'bdv-placa': d.identificacao.placa
+                };
+                Object.entries(mapId).forEach(([id, val]) => {
+                  const el = document.getElementById(id);
+                  if (el) el.value = val || '';
+                });
+              }
+
+              const preencherLinhasTabela = (tbodyId, linhas, chaves) => {
+                const tbody = document.getElementById(tbodyId);
+                if (!tbody || !Array.isArray(linhas)) return;
+                const trs = tbody.querySelectorAll('tr');
+                linhas.forEach((linhaObj, rIdx) => {
+                  const tr = trs[rIdx];
+                  if (!tr || !linhaObj) return;
+                  const inputs = tr.querySelectorAll('input, select, textarea');
+                  chaves.forEach((chave, cIdx) => {
+                    if (inputs[cIdx]) inputs[cIdx].value = linhaObj[chave] || '';
+                  });
+                });
+              };
+
+              preencherLinhasTabela('bdv-viagens-tbody', d.viagens, [
+                'data', 'horaSaida', 'origem', 'odometroInicial', 'horaChegada',
+                'destino', 'odometroFinal', 'setor', 'matricula', 'passageiro', 'assinatura'
+              ]);
+              preencherLinhasTabela('bdv-condutor-tbody', d.condutor, [
+                'dataSaida', 'horaSaida', 'dataChegada', 'horaChegada', 'nomeCondutor', 'assinatura'
+              ]);
+              preencherLinhasTabela('bdv-abastecimento-tbody', d.abastecimentos, [
+                'data', 'hora', 'posto', 'combustivel', 'complemento', 'litros', 'valor', 'km', 'observacao'
+              ]);
+
+              if (d.declaracao) {
+                const declInputs = bdvForm.querySelectorAll('.bdv-declaracao-fields input');
+                if (declInputs[0]) declInputs[0].value = d.declaracao.motorista || '';
+                if (declInputs[1]) declInputs[1].value = d.declaracao.assinatura || '';
+                if (declInputs[2]) declInputs[2].value = d.declaracao.data || '';
+              }
             }
+          } finally {
+            suprimirEventosInput = false;
+          }
+        };
+
+        const definirBloqueioCamposBDV = (bloqueado) => {
+          const bdvForm = document.getElementById('bdv-form');
+          if (!bdvForm) return;
+          bdvForm.querySelectorAll('input, textarea, select').forEach(el => {
+            el.readOnly = bloqueado;
+            if (el.tagName === 'SELECT' || el.type === 'checkbox') el.disabled = bloqueado;
+          });
+          const btnPausar = document.getElementById('bdv-btn-pausar');
+          const btnFinalizar = document.getElementById('bdv-btn-finalizar');
+          const btnReabrir = document.getElementById('bdv-btn-reabrir');
+          if (btnPausar) btnPausar.classList.toggle('hidden', bloqueado);
+          if (btnFinalizar) btnFinalizar.classList.toggle('hidden', bloqueado);
+          if (btnReabrir) btnReabrir.classList.toggle('hidden', !bloqueado);
+        };
+
+        const atualizarIndicadorAutoSave = (estado, mensagem) => {
+          const el = document.getElementById('bdv-autosave-indicator');
+          if (!el) return;
+          el.className = 'bdv-autosave-indicator';
+          if (estado === 'saving') el.classList.add('bdv-autosave-saving');
+          else if (estado === 'saved') el.classList.add('bdv-autosave-saved');
+          else if (estado === 'error') el.classList.add('bdv-autosave-error');
+          el.textContent = mensagem;
+        };
+
+        const atualizarBarraStatusBDV = (registro = null) => {
+          const badge = document.getElementById('bdv-status-badge');
+          const meta = document.getElementById('bdv-meta-info');
+          if (!badge || !meta) return;
+
+          const status = registro?.status || window.AppState?.bdvAtualStatus || null;
+          badge.className = 'bdv-status-pill';
+
+          if (!status) {
+            badge.classList.add('bdv-status-novo');
+            badge.textContent = '⚪ Novo BDV';
+            meta.textContent = 'Preencha os campos abaixo. O progresso é salvo automaticamente.';
+            definirBloqueioCamposBDV(false);
+            return;
+          }
+
+          const STATUS_BDV = window.STATUS_BDV || { EM_PREENCHIMENTO: 'Em preenchimento', PAUSADO: 'Pausado / Rascunho', FINALIZADO: 'Finalizado' };
+          if (status === STATUS_BDV.FINALIZADO) {
+            badge.classList.add('bdv-status-finalizado');
+            badge.textContent = '🟢 Finalizado';
+            definirBloqueioCamposBDV(true);
+          } else if (status === STATUS_BDV.PAUSADO) {
+            badge.classList.add('bdv-status-pausado');
+            badge.textContent = '🟠 Pausado / Rascunho';
+            definirBloqueioCamposBDV(false);
+          } else {
+            badge.classList.add('bdv-status-preenchimento');
+            badge.textContent = '🟡 Em preenchimento';
+            definirBloqueioCamposBDV(false);
+          }
+
+          const dataStr = registro?.atualizadoEm
+            ? new Date(registro.atualizadoEm).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+            : '';
+          const autor = registro?.atualizadoPor || window.AppState?.user?.email || '';
+          meta.textContent = dataStr ? `Última atualização: ${dataStr}${autor ? ` por ${autor}` : ''}` : 'Rascunho ativo';
+        };
+
+        const salvarCacheLocalBDV = (payload) => {
+          try {
+            localStorage.setItem(getChaveLocal(), JSON.stringify(payload));
+          } catch (e) {
+            console.warn('Não foi possível salvar cache local do BDV:', e);
+          }
+        };
+
+        // Salva efetivamente no Firebase e no cache local
+        const persistirBDVNoBanco = async ({ statusForcado = null, silencioso = true } = {}) => {
+          const extraido = extrairDadosFormularioBDV();
+          if (!extraido) return null;
+
+          // Se for um rascunho totalmente em branco e ainda não tiver ID no banco, não cria registro vazio
+          if (!extraido.temAlgumDado && !window.AppState?.bdvAtualId && !statusForcado) {
+            atualizarIndicadorAutoSave('idle', '☁️ Pronto para preenchimento');
+            return null;
+          }
+
+          const STATUS_BDV = window.STATUS_BDV || { EM_PREENCHIMENTO: 'Em preenchimento', PAUSADO: 'Pausado / Rascunho', FINALIZADO: 'Finalizado' };
+          const agora = new Date().toISOString();
+          const emailUsuario = window.AppState?.user?.email || 'Usuário local';
+          const uidUsuario = window.AppState?.user?.uid || null;
+
+          if (!window.AppState.bdvAtualId) {
+            window.AppState.bdvAtualId = window.BDVCloud?.gerarNovoId
+              ? window.BDVCloud.gerarNovoId()
+              : ('bdv_local_' + Date.now());
+            window.AppState.bdvAtualVersao = 0;
+          }
+
+          const bdvId = window.AppState.bdvAtualId;
+          const registroExistente = (window.AppState.bdvs || []).find(b => b.id === bdvId);
+          const novoStatus = statusForcado || window.AppState.bdvAtualStatus || STATUS_BDV.EM_PREENCHIMENTO;
+          const novaVersao = (Number(registroExistente?.versao || window.AppState.bdvAtualVersao) || 0) + 1;
+
+          const payload = {
+            id: bdvId,
+            status: novoStatus,
+            regionalID: window.AppState?.regionalID || '',
+            criadoEm: registroExistente?.criadoEm || agora,
+            criadoPor: registroExistente?.criadoPor || emailUsuario,
+            criadoPorUID: registroExistente?.criadoPorUID || uidUsuario,
+            atualizadoEm: agora,
+            atualizadoPor: emailUsuario,
+            versao: novaVersao,
+            sessaoId: window.AppState?.bdvSessaoId || '',
+            resumo: extraido.resumo,
+            dados: {
+              identificacao: extraido.identificacao,
+              viagens: extraido.viagens,
+              condutor: extraido.condutor,
+              abastecimentos: extraido.abastecimentos,
+              declaracao: extraido.declaracao
+            },
+            camposRaw: extraido.camposRaw,
+            ...(novoStatus === STATUS_BDV.FINALIZADO ? {
+              finalizadoEm: agora,
+              finalizadoPor: emailUsuario
+            } : {})
           };
 
-          restaurarRascunhoBDV();
-          bdvForm.addEventListener('input', salvarRascunhoBDV);
-          bdvForm.addEventListener('change', salvarRascunhoBDV);
+          window.AppState.bdvAtualStatus = novoStatus;
+          window.AppState.bdvAtualVersao = novaVersao;
+
+          // 1. Salva imediatamente no cache local (proteção contra queda de energia/rede)
+          salvarCacheLocalBDV({ ...payload, pendenteSincronizacao: true });
+
+          // 2. Persiste no Firebase Realtime Database
+          if (!window.BDVCloud || !navigator.onLine) {
+            atualizarIndicadorAutoSave('error', '⚠️ Sem conexão — salvo localmente (sincronizará ao reconectar)');
+            atualizarBarraStatusBDV(payload);
+            if (!silencioso && typeof showToast === 'function') {
+              showToast('Sem internet no momento. O rascunho foi salvo neste dispositivo e será sincronizado automaticamente.', 'info');
+            }
+            return payload;
+          }
+
+          salvamentoEmAndamento = true;
+          atualizarIndicadorAutoSave('saving', '⏳ Salvando...');
+
+          try {
+            await window.BDVCloud.salvar(bdvId, payload);
+            mudancaLocalPendente = false;
+            salvarCacheLocalBDV({ ...payload, pendenteSincronizacao: false });
+            const horaFormatada = new Date(agora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            atualizarIndicadorAutoSave('saved', `✅ Salvo às ${horaFormatada}`);
+            atualizarBarraStatusBDV(payload);
+            return payload;
+          } catch (err) {
+            console.error('Erro ao salvar BDV no Firebase:', err);
+            atualizarIndicadorAutoSave('error', '❌ Erro ao salvar no banco (salvo localmente)');
+            if (!silencioso && typeof showToast === 'function') {
+              showToast('Não foi possível gravar no servidor agora. Seus dados estão protegidos localmente.', 'error');
+            }
+            throw err;
+          } finally {
+            salvamentoEmAndamento = false;
+          }
+        };
+
+        // Disparo de auto-save com debounce quando o usuário digita
+        const agendarAutoSaveBDV = () => {
+          if (suprimirEventosInput) return;
+          const STATUS_BDV = window.STATUS_BDV || { EM_PREENCHIMENTO: 'Em preenchimento', PAUSADO: 'Pausado / Rascunho', FINALIZADO: 'Finalizado' };
+          if (window.AppState?.bdvAtualStatus === STATUS_BDV.FINALIZADO) return;
+
+          mudancaLocalPendente = true;
+          // Se estava pausado e voltou a digitar, muda para "Em preenchimento"
+          if (!window.AppState.bdvAtualStatus || window.AppState.bdvAtualStatus === STATUS_BDV.PAUSADO) {
+            window.AppState.bdvAtualStatus = STATUS_BDV.EM_PREENCHIMENTO;
+            atualizarBarraStatusBDV({ status: STATUS_BDV.EM_PREENCHIMENTO });
+          }
+
+          // Backup instantâneo no localStorage a cada tecla
+          const extraido = extrairDadosFormularioBDV();
+          if (extraido && extraido.temAlgumDado) {
+            salvarCacheLocalBDV({
+              id: window.AppState.bdvAtualId || null,
+              status: window.AppState.bdvAtualStatus || STATUS_BDV.EM_PREENCHIMENTO,
+              atualizadoEm: new Date().toISOString(),
+              resumo: extraido.resumo,
+              dados: {
+                identificacao: extraido.identificacao,
+                viagens: extraido.viagens,
+                condutor: extraido.condutor,
+                abastecimentos: extraido.abastecimentos,
+                declaracao: extraido.declaracao
+              },
+              camposRaw: extraido.camposRaw,
+              pendenteSincronizacao: true
+            });
+          }
+
+          atualizarIndicadorAutoSave('saving', '⏳ Digitando... (salvamento automático ativo)');
+          clearTimeout(autoSaveTimer);
+          autoSaveTimer = setTimeout(() => {
+            persistirBDVNoBanco({ silencioso: true }).catch(() => {});
+          }, 1200);
+        };
+
+        const bdvForm = document.getElementById('bdv-form');
+        if (bdvForm) {
+          bdvForm.addEventListener('input', agendarAutoSaveBDV);
+          bdvForm.addEventListener('change', agendarAutoSaveBDV);
         }
+
+        // Reconexão automática: sincroniza rascunho local pendente quando a internet voltar
+        window.addEventListener('online', () => {
+          try {
+            const raw = localStorage.getItem(getChaveLocal());
+            if (!raw) return;
+            const cache = JSON.parse(raw);
+            if (cache && cache.pendenteSincronizacao && window.AppState?.bdvAtualId) {
+              persistirBDVNoBanco({ silencioso: true }).catch(() => {});
+            }
+          } catch (e) {}
+        });
+
+        // Renderiza a lista de BDVs em andamento e finalizados
+        const renderListaBDVs = () => {
+          const container = document.getElementById('bdv-rascunhos-lista');
+          const countBtn = document.getElementById('bdv-rascunhos-count');
+          const countTabAndamento = document.getElementById('bdv-tab-andamento-count');
+          const countTabFinalizados = document.getElementById('bdv-tab-finalizados-count');
+          if (!container) return;
+
+          const STATUS_BDV = window.STATUS_BDV || { EM_PREENCHIMENTO: 'Em preenchimento', PAUSADO: 'Pausado / Rascunho', FINALIZADO: 'Finalizado' };
+          const todos = Array.isArray(window.AppState?.bdvs) ? window.AppState.bdvs : [];
+          const emAndamento = todos.filter(b => b.status !== STATUS_BDV.FINALIZADO);
+          const finalizados = todos.filter(b => b.status === STATUS_BDV.FINALIZADO);
+
+          if (countBtn) countBtn.textContent = emAndamento.length;
+          if (countTabAndamento) countTabAndamento.textContent = emAndamento.length;
+          if (countTabFinalizados) countTabFinalizados.textContent = finalizados.length;
+
+          const filtro = window.AppState?.bdvFiltroLista || 'andamento';
+          const tabAndamento = document.getElementById('bdv-tab-andamento');
+          const tabFinalizados = document.getElementById('bdv-tab-finalizados');
+          if (tabAndamento) tabAndamento.classList.toggle('active', filtro === 'andamento');
+          if (tabFinalizados) tabFinalizados.classList.toggle('active', filtro === 'finalizados');
+
+          const listaExibida = filtro === 'finalizados' ? finalizados : emAndamento;
+          const esc = window.BDVCloud?.escapeHtml || ((s) => String(s || '').replace(/[&<>"']/g, ''));
+
+          if (listaExibida.length === 0) {
+            container.innerHTML = `<div style="text-align: center; padding: 16px; color: #64748b; font-style: italic;">${
+              filtro === 'finalizados'
+                ? 'Nenhum BDV finalizado registrado até o momento.'
+                : 'Nenhum BDV em andamento ou pausado no momento.'
+            }</div>`;
+            return;
+          }
+
+          container.innerHTML = listaExibida.map(item => {
+            const isAtivo = window.AppState?.bdvAtualId === item.id;
+            const r = item.resumo || {};
+            const motorista = esc(r.motorista || item.dados?.identificacao?.motorista || 'Motorista não informado');
+            const veiculoPlaca = [r.veiculo || item.dados?.identificacao?.veiculo, r.placa || item.dados?.identificacao?.placa].filter(Boolean).join(' • ') || 'Veículo/Placa não informados';
+            const periodo = esc(r.periodo || item.dados?.identificacao?.periodo || 'Período não informado');
+            const qtdViagens = Number(r.viagensPreenchidas || 0);
+            const qtdAbast = Number(r.abastecimentosPreenchidos || 0);
+            const atualizado = item.atualizadoEm
+              ? new Date(item.atualizadoEm).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+              : 'Data N/D';
+            const autor = esc(item.atualizadoPor || item.criadoPor || '');
+            const idSeguro = esc(item.id);
+
+            let badgeHtml = `<span class="bdv-status-pill bdv-status-preenchimento">🟡 Em preenchimento</span>`;
+            if (item.status === STATUS_BDV.PAUSADO) {
+              badgeHtml = `<span class="bdv-status-pill bdv-status-pausado">🟠 Pausado / Rascunho</span>`;
+            } else if (item.status === STATUS_BDV.FINALIZADO) {
+              badgeHtml = `<span class="bdv-status-pill bdv-status-finalizado">🟢 Finalizado</span>`;
+            }
+
+            const btnPrincipal = item.status === STATUS_BDV.FINALIZADO
+              ? `<button type="button" class="bdv-btn bdv-btn-print" style="padding: 6px 12px; font-size: 0.8rem;" onclick="retomarBDV('${idSeguro}')">👁️ Abrir / Imprimir</button>`
+              : `<button type="button" class="bdv-btn bdv-btn-novo" style="padding: 6px 12px; font-size: 0.8rem;" onclick="retomarBDV('${idSeguro}')">${isAtivo ? '✏️ Editando Agora' : '▶️ Retomar Preenchimento'}</button>`;
+
+            return `
+              <div class="bdv-rascunho-card ${isAtivo ? 'ativo' : ''}">
+                <div style="flex: 1; min-width: 240px;">
+                  <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px;">
+                    ${badgeHtml}
+                    <strong style="font-size: 0.92rem;">${motorista}</strong>
+                    <span style="font-size: 0.82rem; color: #64748b;">(${esc(veiculoPlaca)})</span>
+                  </div>
+                  <div style="font-size: 0.8rem; color: #475569;">
+                    📅 <b>Período:</b> ${periodo} &nbsp;|&nbsp; 🚗 <b>${qtdViagens}</b> viagem(ns) preenchida(s)${qtdAbast > 0 ? ` • ⛽ <b>${qtdAbast}</b> abast.` : ''}
+                  </div>
+                  <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">
+                    🕒 Salvo em ${esc(atualizado)}${autor ? ` por ${autor}` : ''}
+                  </div>
+                </div>
+                <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                  ${btnPrincipal}
+                  <button type="button" class="bdv-btn bdv-btn-clear" style="padding: 6px 10px; font-size: 0.8rem;" onclick="excluirRegistroBDV('${idSeguro}')" title="Excluir este BDV">🗑️</button>
+                </div>
+              </div>
+            `;
+          }).join('');
+        };
+
+        // Callback invocado pelo listener onValue do Firebase sempre que a coleção 'bdvs' atualizar
+        window.onBDVsListUpdated = (lista) => {
+          renderListaBDVs();
+
+          // Verifica se o BDV atualmente aberto foi modificado em outra tela/aba
+          const atualId = window.AppState?.bdvAtualId;
+          if (!atualId) return;
+          const remoto = lista.find(b => b.id === atualId);
+          if (!remoto) return;
+
+          const versaoLocal = Number(window.AppState?.bdvAtualVersao || 0);
+          const versaoRemota = Number(remoto.versao || 0);
+          if (versaoRemota > versaoLocal && remoto.sessaoId && remoto.sessaoId !== window.AppState?.bdvSessaoId) {
+            if (!mudancaLocalPendente && !salvamentoEmAndamento) {
+              // Atualiza automaticamente se o usuário não estiver com digitação pendente
+              window.AppState.bdvAtualVersao = versaoRemota;
+              window.AppState.bdvAtualStatus = remoto.status;
+              preencherFormularioComDadosBDV(remoto);
+              atualizarBarraStatusBDV(remoto);
+            } else {
+              // Exibe banner de conflito para o usuário decidir
+              registroRemotoConflito = remoto;
+              document.getElementById('bdv-conflito-banner')?.classList.remove('hidden');
+            }
+          }
+        };
+
+        window.recarregarBDVRemoto = () => {
+          if (!registroRemotoConflito) return;
+          window.AppState.bdvAtualVersao = Number(registroRemotoConflito.versao || 0);
+          window.AppState.bdvAtualStatus = registroRemotoConflito.status;
+          preencherFormularioComDadosBDV(registroRemotoConflito);
+          atualizarBarraStatusBDV(registroRemotoConflito);
+          mudancaLocalPendente = false;
+          registroRemotoConflito = null;
+          document.getElementById('bdv-conflito-banner')?.classList.add('hidden');
+          if (typeof showToast === 'function') showToast('BDV atualizado com os dados mais recentes do banco!', 'info');
+        };
+
+        window.togglePainelRascunhosBDV = (forcarEstado) => {
+          const painel = document.getElementById('bdv-rascunhos-painel');
+          if (!painel) return;
+          if (typeof forcarEstado === 'boolean') {
+            painel.classList.toggle('hidden', !forcarEstado);
+          } else {
+            painel.classList.toggle('hidden');
+          }
+          renderListaBDVs();
+        };
+
+        window.filtrarListaBDVs = (filtro) => {
+          if (window.AppState) window.AppState.bdvFiltroLista = filtro;
+          renderListaBDVs();
+        };
+
+        // Botão: ➕ Novo BDV
+        window.iniciarNovoBDV = async () => {
+          clearTimeout(autoSaveTimer);
+          const extraido = extrairDadosFormularioBDV();
+          const STATUS_BDV = window.STATUS_BDV || { EM_PREENCHIMENTO: 'Em preenchimento', PAUSADO: 'Pausado / Rascunho', FINALIZADO: 'Finalizado' };
+
+          // Se houver um rascunho em andamento com dados, garante que ele fique salvo antes de abrir uma folha limpa
+          if (extraido && extraido.temAlgumDado && window.AppState?.bdvAtualStatus !== STATUS_BDV.FINALIZADO) {
+            try {
+              await persistirBDVNoBanco({ statusForcado: STATUS_BDV.PAUSADO, silencioso: true });
+            } catch (e) {}
+          }
+
+          window.AppState.bdvAtualId = null;
+          window.AppState.bdvAtualStatus = null;
+          window.AppState.bdvAtualVersao = 0;
+          mudancaLocalPendente = false;
+          registroRemotoConflito = null;
+          document.getElementById('bdv-conflito-banner')?.classList.add('hidden');
+
+          preencherFormularioComDadosBDV(null);
+
+          // Pré-preenche motorista da regional se disponível
+          const motoristaUnidade = window.AppState?.unidade?.motorista?.nome;
+          if (motoristaUnidade && motoristaUnidade !== 'N/D') {
+            const inputMot = document.getElementById('bdv-motorista');
+            if (inputMot && !inputMot.value) inputMot.value = motoristaUnidade;
+          }
+
+          localStorage.removeItem(getChaveLocal());
+          atualizarBarraStatusBDV(null);
+          atualizarIndicadorAutoSave('idle', '☁️ Novo BDV pronto para preenchimento');
+          renderListaBDVs();
+          if (typeof showToast === 'function') showToast('Novo BDV iniciado em branco.', 'info');
+        };
+
+        // Botão: ⏸️ Salvar e Continuar Depois (Pausar Digitação)
+        window.salvarEPausarBDV = async () => {
+          clearTimeout(autoSaveTimer);
+          const extraido = extrairDadosFormularioBDV();
+          if (!extraido || !extraido.temAlgumDado) {
+            if (typeof showToast === 'function') {
+              showToast('Preencha pelo menos um campo do BDV antes de salvar o rascunho.', 'info');
+            } else {
+              alert('Preencha pelo menos um campo do BDV antes de salvar o rascunho.');
+            }
+            return;
+          }
+
+          const STATUS_BDV = window.STATUS_BDV || { EM_PREENCHIMENTO: 'Em preenchimento', PAUSADO: 'Pausado / Rascunho', FINALIZADO: 'Finalizado' };
+          const btnPausar = document.getElementById('bdv-btn-pausar');
+          const txtOriginal = btnPausar ? btnPausar.textContent : '';
+          if (btnPausar) {
+            btnPausar.disabled = true;
+            btnPausar.textContent = '⏳ Salvando rascunho...';
+          }
+
+          try {
+            const salvo = await persistirBDVNoBanco({ statusForcado: STATUS_BDV.PAUSADO, silencioso: false });
+            if (window.BDVCloud?.registrarLog) {
+              window.BDVCloud.registrarLog('BDV: Digitação Pausada', `Rascunho do BDV (${salvo?.id || ''}) salvo para continuação posterior.`);
+            }
+            renderListaBDVs();
+            window.togglePainelRascunhosBDV(true);
+            if (typeof showToast === 'function') {
+              showToast('Rascunho salvo no banco de dados! Você pode sair e retomar o preenchimento depois.', 'success');
+            }
+          } catch (e) {
+            // Erro já tratado visualmente em persistirBDVNoBanco
+          } finally {
+            if (btnPausar) {
+              btnPausar.disabled = false;
+              btnPausar.textContent = txtOriginal;
+            }
+          }
+        };
+
+        // Retomar um BDV salvo no banco de dados
+        window.retomarBDV = async (bdvId) => {
+          if (!bdvId) return;
+          clearTimeout(autoSaveTimer);
+
+          // Se estiver editando outro rascunho com mudanças não salvas, salva antes de trocar
+          if (mudancaLocalPendente && window.AppState?.bdvAtualId && window.AppState.bdvAtualId !== bdvId) {
+            try {
+              await persistirBDVNoBanco({ silencioso: true });
+            } catch (e) {}
+          }
+
+          atualizarIndicadorAutoSave('saving', '⏳ Carregando BDV do banco de dados...');
+          let registro = null;
+          try {
+            if (window.BDVCloud?.buscarPorId && navigator.onLine) {
+              registro = await window.BDVCloud.buscarPorId(bdvId);
+            }
+          } catch (e) {
+            console.warn('Falha ao buscar BDV online, usando lista em memória:', e);
+          }
+
+          if (!registro) {
+            registro = (window.AppState?.bdvs || []).find(b => b.id === bdvId);
+          }
+
+          if (!registro) {
+            atualizarIndicadorAutoSave('error', '❌ Registro não encontrado');
+            if (typeof showToast === 'function') showToast('Não foi possível localizar este BDV no banco de dados.', 'error');
+            return;
+          }
+
+          window.AppState.bdvAtualId = registro.id;
+          window.AppState.bdvAtualStatus = registro.status;
+          window.AppState.bdvAtualVersao = Number(registro.versao || 1);
+          mudancaLocalPendente = false;
+          registroRemotoConflito = null;
+          document.getElementById('bdv-conflito-banner')?.classList.add('hidden');
+
+          preencherFormularioComDadosBDV(registro);
+          salvarCacheLocalBDV({ ...registro, pendenteSincronizacao: false });
+          atualizarBarraStatusBDV(registro);
+
+          const hora = registro.atualizadoEm
+            ? new Date(registro.atualizadoEm).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+            : '';
+          atualizarIndicadorAutoSave('saved', `☁️ Carregado do banco${hora ? ` (salvo às ${hora})` : ''}`);
+          renderListaBDVs();
+
+          if (typeof showToast === 'function') {
+            const msg = registro.status === (window.STATUS_BDV?.FINALIZADO || 'Finalizado')
+              ? 'BDV finalizado carregado para visualização/impressão.'
+              : 'Rascunho recuperado com sucesso! Continue o preenchimento de onde parou.';
+            showToast(msg, 'success');
+          }
+        };
+
+        // Botão: ✅ Finalizar BDV
+        window.finalizarBDV = async () => {
+          clearTimeout(autoSaveTimer);
+          const extraido = extrairDadosFormularioBDV();
+          if (!extraido) return;
+
+          // Validações obrigatórias antes de finalizar
+          const motorista = extraido.identificacao.motorista.trim();
+          const veiculo = extraido.identificacao.veiculo.trim();
+          const placa = extraido.identificacao.placa.trim();
+
+          if (!motorista) {
+            if (typeof showToast === 'function') showToast('Informe o nome do Motorista antes de finalizar o BDV.', 'error');
+            else alert('Informe o nome do Motorista antes de finalizar o BDV.');
+            document.getElementById('bdv-motorista')?.focus();
+            return;
+          }
+          if (!veiculo && !placa) {
+            if (typeof showToast === 'function') showToast('Informe o Veículo ou a Placa antes de finalizar o BDV.', 'error');
+            else alert('Informe o Veículo ou a Placa antes de finalizar o BDV.');
+            document.getElementById('bdv-veiculo')?.focus();
+            return;
+          }
+          if (extraido.resumo.viagensPreenchidas === 0) {
+            if (typeof showToast === 'function') showToast('Registre pelo menos um deslocamento/viagem na tabela antes de finalizar o BDV.', 'error');
+            else alert('Registre pelo menos um deslocamento/viagem na tabela antes de finalizar o BDV.');
+            return;
+          }
+
+          if (!confirm('Deseja finalizar este BDV?\n\nApós finalizado, ele será marcado como Concluído no banco de dados e estará pronto para impressão oficial.')) {
+            return;
+          }
+
+          const STATUS_BDV = window.STATUS_BDV || { EM_PREENCHIMENTO: 'Em preenchimento', PAUSADO: 'Pausado / Rascunho', FINALIZADO: 'Finalizado' };
+          const btnFinalizar = document.getElementById('bdv-btn-finalizar');
+          const txtOriginal = btnFinalizar ? btnFinalizar.textContent : '';
+          if (btnFinalizar) {
+            btnFinalizar.disabled = true;
+            btnFinalizar.textContent = '⏳ Finalizando...';
+          }
+
+          try {
+            const salvo = await persistirBDVNoBanco({ statusForcado: STATUS_BDV.FINALIZADO, silencioso: false });
+            if (window.BDVCloud?.registrarLog) {
+              window.BDVCloud.registrarLog('BDV: Finalizado', `BDV ID ${salvo?.id || ''} finalizado por ${window.AppState?.user?.email || 'usuário'}. Motorista: ${motorista}.`);
+            }
+            localStorage.removeItem(getChaveLocal());
+            renderListaBDVs();
+            if (typeof showToast === 'function') {
+              showToast('BDV finalizado e gravado com sucesso!', 'success');
+            }
+            if (confirm('BDV finalizado com sucesso! Deseja abrir a janela de impressão do PDF agora?')) {
+              window.imprimirBDV();
+            }
+          } catch (e) {
+            // Erro já exibido
+          } finally {
+            if (btnFinalizar) {
+              btnFinalizar.disabled = false;
+              btnFinalizar.textContent = txtOriginal;
+            }
+          }
+        };
+
+        // Permite reabrir um BDV finalizado caso o usuário precise corrigir ou complementar algo
+        window.reabrirBDVParaEdicao = async () => {
+          if (!window.AppState?.bdvAtualId) return;
+          if (!confirm('Deseja reabrir este BDV como Rascunho para realizar alterações?')) return;
+          const STATUS_BDV = window.STATUS_BDV || { EM_PREENCHIMENTO: 'Em preenchimento', PAUSADO: 'Pausado / Rascunho', FINALIZADO: 'Finalizado' };
+          try {
+            await persistirBDVNoBanco({ statusForcado: STATUS_BDV.EM_PREENCHIMENTO, silencioso: false });
+            if (typeof showToast === 'function') showToast('BDV reaberto para edição.', 'info');
+          } catch (e) {}
+        };
+
+        // Excluir um rascunho ou registro de BDV
+        window.excluirRegistroBDV = async (bdvId) => {
+          if (!bdvId) return;
+          const item = (window.AppState?.bdvs || []).find(b => b.id === bdvId);
+          const desc = item?.resumo?.motorista ? ` de "${item.resumo.motorista}"` : '';
+          if (!confirm(`Tem certeza que deseja excluir permanentemente este registro de BDV${desc} do banco de dados?`)) return;
+
+          try {
+            if (window.BDVCloud?.excluir) {
+              await window.BDVCloud.excluir(bdvId);
+            }
+            if (window.AppState?.bdvAtualId === bdvId) {
+              window.AppState.bdvAtualId = null;
+              window.AppState.bdvAtualStatus = null;
+              window.AppState.bdvAtualVersao = 0;
+              preencherFormularioComDadosBDV(null);
+              localStorage.removeItem(getChaveLocal());
+              atualizarBarraStatusBDV(null);
+              atualizarIndicadorAutoSave('idle', '☁️ Pronto para preenchimento');
+            }
+            if (window.BDVCloud?.registrarLog) {
+              window.BDVCloud.registrarLog('BDV: Exclusão', `Registro de BDV ID ${bdvId} foi excluído.`);
+            }
+            renderListaBDVs();
+            if (typeof showToast === 'function') showToast('Registro de BDV excluído.', 'success');
+          } catch (e) {
+            if (typeof showToast === 'function') showToast('Erro ao excluir BDV: ' + e.message, 'error');
+          }
+        };
+
+        // Restaura cache local ao inicializar se existir
+        try {
+          const salvoLocal = localStorage.getItem(getChaveLocal()) || localStorage.getItem('bdv_rascunho_v1');
+          if (salvoLocal) {
+            const parsed = JSON.parse(salvoLocal);
+            if (Array.isArray(parsed)) {
+              preencherFormularioComDadosBDV({ camposRaw: parsed });
+            } else if (parsed && typeof parsed === 'object') {
+              if (parsed.id) window.AppState.bdvAtualId = parsed.id;
+              if (parsed.status) window.AppState.bdvAtualStatus = parsed.status;
+              if (parsed.versao) window.AppState.bdvAtualVersao = parsed.versao;
+              preencherFormularioComDadosBDV(parsed);
+              atualizarBarraStatusBDV(parsed);
+            }
+          }
+        } catch (e) {
+          console.warn('Erro ao restaurar cache inicial do BDV:', e);
+        }
+
+        // Expõe utilitários internos para toggleBDVModal e limparBDV
+        window._bdvInternals = {
+          extrairDadosFormularioBDV,
+          preencherFormularioComDadosBDV,
+          persistirBDVNoBanco,
+          renderListaBDVs,
+          atualizarBarraStatusBDV,
+          atualizarIndicadorAutoSave,
+          getChaveLocal
+        };
       })();
 
-      window.toggleBDVModal = (show) => {
+      window.toggleBDVModal = async (show) => {
         const modal = document.getElementById('bdv-modal');
         if (show) {
           modal.classList.remove('hidden');
           modal.style.display = 'flex';
+          if (window._bdvInternals) {
+            window._bdvInternals.renderListaBDVs();
+            const extraido = window._bdvInternals.extrairDadosFormularioBDV();
+            const rascunhosAtivos = (window.AppState?.bdvs || []).filter(b => b.status !== (window.STATUS_BDV?.FINALIZADO || 'Finalizado'));
+            // Se a tela estiver vazia e houver rascunhos no banco, abre automaticamente o painel de rascunhos para facilitar a retomada
+            if ((!extraido || !extraido.temAlgumDado) && rascunhosAtivos.length > 0) {
+              window.togglePainelRascunhosBDV(true);
+            }
+          }
         } else {
+          // Ao fechar o modal, se houver alterações pendentes em um BDV em andamento, salva automaticamente no banco
+          if (window._bdvInternals) {
+            const extraido = window._bdvInternals.extrairDadosFormularioBDV();
+            const STATUS_BDV = window.STATUS_BDV || { EM_PREENCHIMENTO: 'Em preenchimento', PAUSADO: 'Pausado / Rascunho', FINALIZADO: 'Finalizado' };
+            if (extraido && extraido.temAlgumDado && window.AppState?.bdvAtualStatus !== STATUS_BDV.FINALIZADO) {
+              window._bdvInternals.persistirBDVNoBanco({ silencioso: true }).catch(() => {});
+            }
+          }
           modal.classList.add('hidden');
           modal.style.display = '';
         }
@@ -6749,16 +7790,27 @@
         const modal = document.getElementById('bdv-modal-content');
         if (!modal) return;
         const temPreenchimento = Array.from(modal.querySelectorAll('#bdv-form input[type="text"], #bdv-form textarea')).some(el => el.value.trim() !== '');
-        if (pedirConfirmacao && temPreenchimento && !confirm('Tem certeza que deseja limpar todos os campos preenchidos no BDV?')) {
+        if (pedirConfirmacao && temPreenchimento && !confirm('Tem certeza que deseja limpar os campos da tela atual do BDV?\n\n(Dica: Use "➕ Novo BDV" se quiser iniciar outro boletim mantendo o rascunho salvo no banco de dados.)')) {
           return;
         }
-        modal.querySelectorAll('input[type="text"]').forEach(input => { input.value = ''; });
-        modal.querySelectorAll('textarea').forEach(ta => { ta.value = ''; });
-        modal.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.checked = false; });
-        modal.querySelectorAll('select').forEach(sel => { sel.selectedIndex = 0; });
+        if (window._bdvInternals) {
+          window._bdvInternals.preencherFormularioComDadosBDV(null);
+          localStorage.removeItem(window._bdvInternals.getChaveLocal());
+          window.AppState.bdvAtualId = null;
+          window.AppState.bdvAtualStatus = null;
+          window.AppState.bdvAtualVersao = 0;
+          window._bdvInternals.atualizarBarraStatusBDV(null);
+          window._bdvInternals.atualizarIndicadorAutoSave('idle', '☁️ Pronto para preenchimento');
+          window._bdvInternals.renderListaBDVs();
+        } else {
+          modal.querySelectorAll('input[type="text"]').forEach(input => { input.value = ''; });
+          modal.querySelectorAll('textarea').forEach(ta => { ta.value = ''; });
+          modal.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.checked = false; });
+          modal.querySelectorAll('select').forEach(sel => { sel.selectedIndex = 0; });
+        }
         localStorage.removeItem('bdv_rascunho_v1');
         if (typeof showToast === 'function') {
-          showToast('BDV limpo com sucesso!', 'success');
+          showToast('Tela do BDV limpa com sucesso!', 'success');
         }
       };
     </script>
