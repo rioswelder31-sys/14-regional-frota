@@ -1,14 +1,9 @@
-const CACHE_NAME = 'frota-dpe-cache-v16'; // ⚡ Versão atualizada com Tailwind cachado
+const CACHE_NAME = 'frota-dpe-cache-v17'; // ⚡ Versão atualizada com cache resiliente
 const urlsToCache = [
   './',
   './index.html',
-  './logo-dpe-192.png',
-  './logo-dpe-512.png',
   './logo-dpe.png',
   './manifest.json',
-  // ⚡ OTIMIZAÇÃO: Cachear Tailwind CDN para economizar 100KB+ em cada reload
-  'https://cdn.tailwindcss.com',
-  // Adicione aqui outros assets estáticos (imagens, fontes, etc.)
 ];
 
 // Instalação do Service Worker
@@ -17,9 +12,9 @@ self.addEventListener('install', event => {
   self.skipWaiting(); 
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => {
+      .then(async cache => {
         console.log('Cache aberto');
-        return cache.addAll(urlsToCache);
+        await Promise.allSettled(urlsToCache.map(url => cache.add(url)));
       })
   );
 });
@@ -54,7 +49,7 @@ self.addEventListener('notificationclick', event => {
 self.addEventListener('fetch', event => {
   // REGRA 1: Ignorar requisições do Firebase e APIs externas. 
   // Fazer cache do Firebase quebra a conexão em tempo real (estado Online/Offline).
-  if (event.request.url.includes('firebaseio.com') || event.request.url.includes('googleapis.com') || event.request.url.includes('gstatic.com')) {
+  if (event.request.url.includes('firebaseio.com') || event.request.url.includes('googleapis.com') || event.request.url.includes('gstatic.com') || event.request.url.includes('project-osrm.org')) {
     return;
   }
 

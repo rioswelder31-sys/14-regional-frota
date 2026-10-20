@@ -4,10 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Frota DPE - Multi-Regional (V81.1)</title>
-    <link rel="icon" type="image/png" href="logo-dpe-192.png" />
+    <link rel="icon" type="image/png" href="logo-dpe.png" />
     <link rel="manifest" href="manifest.json" />
     <meta id="theme-color-meta" name="theme-color" content="#009c3b" />
-    <link rel="apple-touch-icon" href="logo-dpe-192.png" />
+    <link rel="apple-touch-icon" href="logo-dpe.png" />
     <style type="text/css">
       /* ===== CLASSES UTILITÁRIAS (substituem TailwindCSS CDN) ===== */
       .hidden { display: none !important; }
@@ -1199,12 +1199,12 @@
               </div>
               <datalist id="list-origem"></datalist><datalist id="list-destino"></datalist>
               <table class="roteiro-lista">
-                <thead><tr style="background: #eee;"><th style="width:45%;">De</th><th style="width:45%;">Para</th><th style="width:10%; text-align:center;">Dist.</th></tr></thead>
+                <thead><tr style="background: #eee;"><th style="width:42%;">De</th><th style="width:42%;">Para</th><th style="width:10%; text-align:center;">Dist.</th><th style="width:6%; text-align:center;">Ação</th></tr></thead>
                 <tbody id="roteiro-lista-body"></tbody>
                 <tfoot style="background: #f0f0f0; border-top: 2px solid #ccc;">
                   <tr>
                     <td colspan="2" style="text-align: right; font-weight: bold; padding-right: 10px;">Distância Total:</td>
-                    <td id="roteiro-distancia-total" style="text-align: center; font-weight: bold;">0 km</td>
+                    <td id="roteiro-distancia-total" colspan="2" style="text-align: center; font-weight: bold;">0 km</td>
                   </tr>
                 </tfoot>
               </table>
@@ -1825,7 +1825,7 @@
       window.mostrarNotificacaoPush = (titulo, corpo) => {
         if (!("Notification" in window)) return;
         if (Notification.permission === "granted") {
-            const options = { body: corpo, icon: './logo-dpe-192.png', badge: './logo-dpe-192.png', vibrate: [200, 100, 200] };
+            const options = { body: corpo, icon: './logo-dpe.png', badge: './logo-dpe.png', vibrate: [200, 100, 200] };
             if (navigator.serviceWorker) navigator.serviceWorker.ready.then(reg => reg.showNotification(titulo, options)).catch(() => new Notification(titulo, options));
             else new Notification(titulo, options);
         }
@@ -1834,8 +1834,8 @@
         if (!('Notification' in window) || Notification.permission !== 'granted') return;
         const options = {
           body: corpo,
-          icon: './logo-dpe-192.png',
-          badge: './logo-dpe-192.png',
+          icon: './logo-dpe.png',
+          badge: './logo-dpe.png',
           tag: `comprovacao-diaria-${viagemId}`,
           renotify: true,
           data: { url: './?pendencias-diarias=1' }
@@ -2309,7 +2309,14 @@
         .catch(e => alert("Erro ao criar conta: " + traduzirErroAuth(e)));
       };
 
-      window.fazerLogout = () => { signOut(auth).then(() => { localStorage.clear(); AppState.regionalID = ""; location.reload(); }); };
+      window.fazerLogout = () => {
+        signOut(auth).then(() => {
+          localStorage.removeItem('regionalID');
+          localStorage.removeItem('regionalNome');
+          AppState.regionalID = "";
+          location.reload();
+        });
+      };
 
       // ⚡ OTIMIZAÇÃO: Fetch com timeout (evita travar indefinidamente)
       async function fetchComTimeout(url, timeoutMs = 3000) {
@@ -2684,16 +2691,17 @@
 
                   const tdNome = document.createElement('td');
                   tdNome.style.padding = '10px 8px';
-                  const roleBadge = member.tipo ? ` <span style="background: #e2e8f0; color: #4a5568; padding: 2px 6px; border-radius: 4px; font-size: 0.75em; margin-right: 4px;">${member.tipo}</span>` : '';
+                  const roleBadge = member.tipo ? ` <span style="background: #e2e8f0; color: #4a5568; padding: 2px 6px; border-radius: 4px; font-size: 0.75em; margin-right: 4px;">${escapeHtml(member.tipo)}</span>` : '';
                   const driverBadge = member.isMotorista ? '<span style="background: var(--warning); color: #333; padding: 2px 6px; border-radius: 4px; font-size: 0.75em; font-weight: bold;">MOTORISTA</span>' : '';
-                  tdNome.innerHTML = `<strong>${member.nome}</strong><br><div style="margin-top: 4px; margin-bottom: 2px;">${roleBadge}${driverBadge}</div><small style="color: #666;">${member.email || 'E-mail não cadastrado'}</small>`;
+                  tdNome.innerHTML = `<strong>${escapeHtml(member.nome)}</strong><br><div style="margin-top: 4px; margin-bottom: 2px;">${roleBadge}${driverBadge}</div><small style="color: #666;">${escapeHtml(member.email || 'E-mail não cadastrado')}</small>`;
                   
                   const tdActions = document.createElement('td');
                   tdActions.style.padding = '10px 8px';
                   tdActions.style.textAlign = 'right';
+                  const uidEscaped = escapeHtml(member.uid);
                   tdActions.innerHTML = `
-                      <button class="btn-edit" aria-label="Editar membro" style="margin-right: 5px;" onclick="editTeamMember('${member.uid}')" title="Editar">✏️</button>
-                      <button class="btn-delete" aria-label="Remover membro" onclick="removeTeamMember('${member.uid}', '${member.nome}')" title="Remover">🗑️</button>
+                      <button class="btn-edit" aria-label="Editar membro" style="margin-right: 5px;" onclick="editTeamMember('${uidEscaped}')" title="Editar">✏️</button>
+                      <button class="btn-delete" aria-label="Remover membro" onclick="removeTeamMember('${uidEscaped}')" title="Remover">🗑️</button>
                   `;
 
                   tr.appendChild(tdNome);
@@ -2815,12 +2823,12 @@
 
               const tdNome = document.createElement('td');
               tdNome.style.padding = '10px 8px';
-              tdNome.innerHTML = `<strong>${admin.nome}</strong><br><small style="color: #666;">${admin.email}</small>`;
+              tdNome.innerHTML = `<strong>${escapeHtml(admin.nome)}</strong><br><small style="color: #666;">${escapeHtml(admin.email || '')}</small>`;
 
               const tdAcoes = document.createElement('td');
               tdAcoes.style.padding = '10px 8px';
               tdAcoes.style.textAlign = 'right';
-              tdAcoes.innerHTML = `<button class="btn-delete" onclick="removerAdministrador('${admin.uid}')" title="Remover">🗑️</button>`;
+              tdAcoes.innerHTML = `<button class="btn-delete" onclick="removerAdministrador('${escapeHtml(admin.uid)}')" title="Remover">🗑️</button>`;
 
               tr.appendChild(tdNome);
               tr.appendChild(tdAcoes);
@@ -2854,10 +2862,12 @@
       }
 
       window.removeTeamMember = (uid, nome) => {
-          if (!confirm(`Tem certeza que deseja remover "${nome}" da equipe desta regional?\n\nIsso NÃO excluirá a conta de login do usuário, apenas o removerá da lista de solicitantes.`)) return;
+          const member = AppState.unidade.equipe.find(m => m.uid === uid);
+          const nomeExibicao = nome || member?.nome || 'este membro';
+          if (!confirm(`Tem certeza que deseja remover "${nomeExibicao}" da equipe desta regional?\n\nIsso NÃO excluirá a conta de login do usuário, apenas o removerá da lista de solicitantes.`)) return;
           remove(getRegionalRef(DB_PATHS.EQUIPE, uid)).then(() => {
-              registrarLog('Admin: Remoção de Membro', `Admin removeu ${nome} da equipe.`);
-              alert(`${nome} foi removido da equipe.`);
+              registrarLog('Admin: Remoção de Membro', `Admin removeu ${nomeExibicao} da equipe.`);
+              alert(`${nomeExibicao} foi removido da equipe.`);
           }).catch(err => alert('Erro ao remover: ' + err.message));
       };
 
@@ -3283,18 +3293,35 @@
       function renderRoteiro() {
         const b = document.getElementById('roteiro-lista-body'); b.innerHTML = "";
         const fragment = document.createDocumentFragment();
-        AppState.roteiroAtual.forEach(t => {
+        AppState.roteiroAtual.forEach((t, idx) => {
             const tr = fragment.appendChild(document.createElement('tr'));
             const tdOrigem = tr.appendChild(document.createElement('td'));
             const tdDestino = tr.appendChild(document.createElement('td'));
             const tdDistancia = tr.appendChild(document.createElement('td'));
+            const tdAcao = tr.appendChild(document.createElement('td'));
             tdOrigem.textContent = t.origem;
             tdDestino.textContent = t.destino;
             tdDistancia.textContent = t.distancia !== undefined ? `${t.distancia} km` : '...';
             tdDistancia.style.cssText = 'text-align: center; font-weight: bold;';
+            tdAcao.style.cssText = 'text-align: center;';
+            const btnRem = document.createElement('button');
+            btnRem.type = 'button';
+            btnRem.textContent = '❌';
+            btnRem.title = 'Remover este trecho';
+            btnRem.setAttribute('aria-label', `Remover trecho ${t.origem} para ${t.destino}`);
+            btnRem.style.cssText = 'background: transparent; border: none; cursor: pointer; padding: 2px 6px; margin: 0; width: auto; font-size: 0.85em;';
+            btnRem.onclick = () => window.removerTrecho(idx);
+            tdAcao.appendChild(btnRem);
         });
         b.appendChild(fragment);
       }
+
+      window.removerTrecho = async (index) => {
+        if (index < 0 || index >= AppState.roteiroAtual.length) return;
+        AppState.roteiroAtual.splice(index, 1);
+        renderRoteiro();
+        await updateDistanciaTotal();
+      };
 
       async function updateDistanciaTotal() {
         let kmTotal = 0;
@@ -3894,7 +3921,7 @@
       };
       
       // --- Componente de Accordion Reutilizável ---
-      const toggleAccordion = (headerElement, options = { scroll: true }) => {
+      const togglePanelAccordion = (headerElement, options = { scroll: true }) => {
           const content = headerElement.nextElementSibling;
           if (!content) return;
 
@@ -3935,7 +3962,7 @@
 
           if (header && !isAccordionOpen) {
             // Aguarda o painel tornar-se visível para calcular corretamente a altura do conteúdo.
-            setTimeout(() => toggleAccordion(header), 50);
+            setTimeout(() => togglePanelAccordion(header), 50);
           } else if (panel) {
             panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }
@@ -4586,7 +4613,8 @@
             // até o FIM do bloqueio, para capturar viagens longas que possam cruzar o período.
             const margin = 30 * 24 * 60 * 60 * 1000; // 30 dias de margem
             const inicioBuscaDate = new Date(inicioDate.getTime() - margin);
-            const inicioBuscaStr = inicioBuscaDate.toISOString().slice(0, 16); // Formato YYYY-MM-DDTHH:mm
+            const padLocal = (n) => String(n).padStart(2, '0');
+            const inicioBuscaStr = `${inicioBuscaDate.getFullYear()}-${padLocal(inicioBuscaDate.getMonth() + 1)}-${padLocal(inicioBuscaDate.getDate())}T${padLocal(inicioBuscaDate.getHours())}:${padLocal(inicioBuscaDate.getMinutes())}`; // Formato local YYYY-MM-DDTHH:mm
 
             const viagensQuery = query(getRegionalRef(DB_PATHS.VIAGENS), orderByChild('saida'), startAt(inicioBuscaStr), endAt(fim));
             const snapshot = await get(viagensQuery);
@@ -4644,10 +4672,15 @@
         const folga = AppState.folgas.find(f => f.id === id);
         if (!folga) return alert('Bloqueio não encontrado!');
 
+        const toLocalISO = (d) => {
+          const pad = (n) => String(n).padStart(2, '0');
+          return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        };
+
         const formatDatetimeLocal = (value, fallbackTime) => {
           if (!value) return '';
           if (typeof value === 'number') {
-            return new Date(value).toISOString().slice(0, 16);
+            return toLocalISO(new Date(value));
           }
           if (typeof value === 'string') {
             if (value.includes('T')) {
@@ -4655,7 +4688,7 @@
             }
             return value + fallbackTime;
           }
-          return new Date(value).toISOString().slice(0, 16);
+          return toLocalISO(new Date(value));
         };
 
         document.getElementById('folga-inicio').value = formatDatetimeLocal(folga.inicio, 'T00:00');
@@ -4753,7 +4786,7 @@
         }
         
         if (bloqueioAtivoHoje && !AppState.folgaPanelAutoOpened) {
-            if (!headerEl.classList.contains('active')) toggleFolgaPanel(headerEl);
+            if (!headerEl.classList.contains('active')) togglePanelAccordion(headerEl, { scroll: false });
             AppState.folgaPanelAutoOpened = true;
         }
         
@@ -5146,6 +5179,7 @@
             const diariaAnteriorSnapshot = await get(getRegionalRef('diarias_solicitadas', viagemId));
             const diariaAnterior = diariaAnteriorSnapshot.exists() ? diariaAnteriorSnapshot.val() : null;
             statusComprovacaoDiaria = diariaAnterior?.comprovacaoDiariaStatus || statusComprovacaoDiaria;
+            const qtdDiariasNumerico = parseFloat(qtdDiarias.replace(',', '.')) || 0;
             const dadosDiaria = {
               viagemId: viagemId,
               viagemSolicitanteNome: viagemAtual.solicitanteNome,
@@ -5154,9 +5188,9 @@
               viagemChegada: viagemAtual.chegada,
               viagemTrajetoExibicao: viagemAtual.trajetoExibicao,
               dataSolicitacao: new Date().toISOString(),
-              qtdDiarias: parseFloat(qtdDiarias.replace(',', '.')),
+              qtdDiarias: qtdDiariasNumerico,
               valorUnitario: valorUnitarioNumerico,
-              valorTotal: parseFloat(valorTotal.replace('R$', '').replace('.', '').replace(',', '.').trim()),
+              valorTotal: Number((qtdDiariasNumerico * valorUnitarioNumerico).toFixed(2)),
               status: 'Solicitada',
               solicitadoPor: AppState.user.email,
               comprovacaoDiariaStatus: statusComprovacaoDiaria,
@@ -5543,96 +5577,6 @@
         
         printWindow.document.write(html);
         printWindow.document.close();
-      };
-
-      window.toggleCalendarModal = (show) => {
-          const modal = document.getElementById('calendar-modal');
-          if (show) {
-              // Sincroniza os dropdowns do calendário com os da tela principal
-              document.getElementById('cal-mes').innerHTML = document.getElementById('filtro-mes').innerHTML;
-              document.getElementById('cal-ano').innerHTML = document.getElementById('filtro-ano').innerHTML;
-              document.getElementById('cal-mes').value = document.getElementById('filtro-mes').value;
-              document.getElementById('cal-ano').value = document.getElementById('filtro-ano').value;
-              
-              renderCalendario();
-              modal.classList.remove('hidden');
-          } else {
-              modal.classList.add('hidden');
-          }
-      };
-
-      window.renderCalendario = () => {
-          const container = document.getElementById('calendar-container');
-          const mes = parseInt(document.getElementById('cal-mes').value, 10);
-          const ano = parseInt(document.getElementById('cal-ano').value, 10);
-          
-          const primeiroDia = new Date(ano, mes, 1);
-          const ultimoDia = new Date(ano, mes + 1, 0);
-          
-          let html = '<div class="calendar-grid">';
-          const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-          diasSemana.forEach(dia => { html += `<div class="calendar-day-header">${dia}</div>`; });
-          
-          // Células vazias iniciais
-          for (let i = 0; i < primeiroDia.getDay(); i++) { html += `<div class="calendar-day empty-day"></div>`; }
-          
-          // Inicializar matriz de dias
-          const eventosPorDia = {};
-          for (let i = 1; i <= ultimoDia.getDate(); i++) { eventosPorDia[i] = []; }
-          
-          // 1. Processar Viagens (Preenche dias que a viagem cruza)
-          AppState.viagens.forEach(v => {
-              if (v.status === STATUS.CANCELADO || v.status === STATUS.REJEITADO) return;
-              const saida = new Date(v.saida);
-              const chegada = new Date(v.chegada);
-              
-              // Só processa se a viagem tiver algum dia dentro do mês filtrado
-              if (saida.getTime() <= ultimoDia.getTime() && chegada.getTime() >= primeiroDia.getTime()) {
-                  let inicioLoop = (saida.getFullYear() === ano && saida.getMonth() === mes) ? saida.getDate() : 1;
-                  let fimLoop = (chegada.getFullYear() === ano && chegada.getMonth() === mes) ? chegada.getDate() : ultimoDia.getDate();
-                  
-                  for (let d = inicioLoop; d <= fimLoop; d++) {
-                      let horaExibicao = "";
-                      if (d === saida.getDate() && saida.getMonth() === mes) {
-                          horaExibicao = `<strong>${String(saida.getHours()).padStart(2,'0')}:${String(saida.getMinutes()).padStart(2,'0')}</strong> - `;
-                      }
-                      
-                      let tipoStatus = (v.status === STATUS.PENDENTE || v.status === STATUS.CIENTE) ? 'status-pendente' : (v.status === STATUS.CONFIRMADO ? 'status-confirmado' : 'status-finalizado');
-                      const destinoText = v.roteiroArray && v.roteiroArray.length > 0 ? (v.roteiroArray[v.roteiroArray.length-1].destino.split(' - ')[1] || 'Vários') : 'S/ Rota';
-                      const nomeCurto = v.solicitanteNome ? v.solicitanteNome.split(' ')[0] : 'N/D';
-                      const titleText = `De: ${formataDataComDiaDaSemana(v.saida)}\nAté: ${formataDataComDiaDaSemana(v.chegada)}\nSolicitante: ${v.solicitanteNome}\nRoteiro: ${v.trajetoExibicao}`;
-                      
-                      eventosPorDia[d].push({ tipo: 'viagem', dataOrder: (d === saida.getDate() ? saida : new Date(ano, mes, d, 0, 0)), html: `<div class="calendar-event ${tipoStatus}" title="${titleText}">${horaExibicao}🚗 ${destinoText} (${nomeCurto})</div>` });
-                  }
-              }
-          });
-          
-          // 2. Processar Folgas/Manutenção
-          AppState.folgas.forEach(f => {
-              const inicioF = parseFolgaDate(f.inicio, false);
-              const fimF = parseFolgaDate(f.fim, true);
-              
-              if (inicioF.getTime() <= ultimoDia.getTime() && fimF.getTime() >= primeiroDia.getTime()) {
-                  let inicioLoop = (inicioF.getFullYear() === ano && inicioF.getMonth() === mes) ? inicioF.getDate() : 1;
-                  let fimLoop = (fimF.getFullYear() === ano && fimF.getMonth() === mes) ? fimF.getDate() : ultimoDia.getDate();
-                  
-                  for (let d = inicioLoop; d <= fimLoop; d++) {
-                      eventosPorDia[d].push({ tipo: 'folga', dataOrder: new Date(ano, mes, d, 0, 0), html: `<div class="calendar-event status-folga" title="Indisponível: ${f.motivo}">🛑 ${f.motivo}</div>` });
-                  }
-              }
-          });
-          
-          // Renderizar na tela
-          for (let d = 1; d <= ultimoDia.getDate(); d++) {
-              html += `<div class="calendar-day"><div class="calendar-date">${d}</div>`;
-              eventosPorDia[d].sort((a, b) => a.dataOrder - b.dataOrder).forEach(ev => html += ev.html);
-              html += `</div>`;
-          }
-          
-          // Células vazias finais
-          const celulasRestantes = (primeiroDia.getDay() + ultimoDia.getDate()) % 7;
-          if (celulasRestantes !== 0) { for (let i = 0; i < (7 - celulasRestantes); i++) { html += `<div class="calendar-day empty-day"></div>`; } }
-          html += '</div>'; container.innerHTML = html;
       };
 
       function obterViagemDaDiaria(diaria) {
@@ -6146,7 +6090,7 @@
       // Função para inicializar todos os accordions na página
       const initAccordions = () => {
         document.querySelectorAll('.folga-accordion-header').forEach(header => {
-          header.addEventListener('click', () => toggleAccordion(header));
+          header.addEventListener('click', () => togglePanelAccordion(header));
         });
       };
       initAccordions(); // Inicializa os accordions
@@ -6608,6 +6552,45 @@
         }
 
         document.querySelectorAll('#bdv-form .bdv-declaracao .bdv-data').forEach(input => aplicarMascara(input, 'data'));
+
+        // Auto-save do rascunho do BDV no localStorage para evitar perda acidental de dados
+        const BDV_STORAGE_KEY = 'bdv_rascunho_v1';
+        const bdvForm = document.getElementById('bdv-form');
+        if (bdvForm) {
+          const salvarRascunhoBDV = () => {
+            try {
+              const campos = Array.from(bdvForm.querySelectorAll('input, textarea, select')).map(el => {
+                if (el.type === 'checkbox') return { t: 'cb', v: el.checked };
+                return { t: 'val', v: el.value };
+              });
+              localStorage.setItem(BDV_STORAGE_KEY, JSON.stringify(campos));
+            } catch (e) {
+              console.warn('Não foi possível salvar rascunho do BDV:', e);
+            }
+          };
+
+          const restaurarRascunhoBDV = () => {
+            try {
+              const salvo = localStorage.getItem(BDV_STORAGE_KEY);
+              if (!salvo) return;
+              const campos = JSON.parse(salvo);
+              if (!Array.isArray(campos)) return;
+              const elementos = bdvForm.querySelectorAll('input, textarea, select');
+              elementos.forEach((el, idx) => {
+                const item = campos[idx];
+                if (!item) return;
+                if (el.type === 'checkbox') el.checked = Boolean(item.v);
+                else el.value = item.v || '';
+              });
+            } catch (e) {
+              console.warn('Não foi possível restaurar rascunho do BDV:', e);
+            }
+          };
+
+          restaurarRascunhoBDV();
+          bdvForm.addEventListener('input', salvarRascunhoBDV);
+          bdvForm.addEventListener('change', salvarRascunhoBDV);
+        }
       })();
 
       window.toggleBDVModal = (show) => {
@@ -6759,18 +6742,21 @@
         printWindow.focus();
         setTimeout(() => { 
           printWindow.print();
-          // Limpa automaticamente após a impressão
-          limparBDV();
         }, 300);
       };
 
-      window.limparBDV = () => {
+      window.limparBDV = (pedirConfirmacao = true) => {
         const modal = document.getElementById('bdv-modal-content');
         if (!modal) return;
+        const temPreenchimento = Array.from(modal.querySelectorAll('#bdv-form input[type="text"], #bdv-form textarea')).some(el => el.value.trim() !== '');
+        if (pedirConfirmacao && temPreenchimento && !confirm('Tem certeza que deseja limpar todos os campos preenchidos no BDV?')) {
+          return;
+        }
         modal.querySelectorAll('input[type="text"]').forEach(input => { input.value = ''; });
         modal.querySelectorAll('textarea').forEach(ta => { ta.value = ''; });
         modal.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.checked = false; });
         modal.querySelectorAll('select').forEach(sel => { sel.selectedIndex = 0; });
+        localStorage.removeItem('bdv_rascunho_v1');
         if (typeof showToast === 'function') {
           showToast('BDV limpo com sucesso!', 'success');
         }
