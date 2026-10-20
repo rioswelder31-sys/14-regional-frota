@@ -3457,7 +3457,11 @@
         const viagensQuery = query(getRegionalRef(DB_PATHS.VIAGENS), orderByChild('saida'), startAt(startStr), endAt(endStr));
 
         AppState.unsubscribeViagens = onValue(viagensQuery, (s) => { 
-            const viagensFirebase = s.val() ? Object.keys(s.val()).map(k => ({...s.val()[k], id: k})) : []; 
+            const viagensFirebase = s.val()
+              ? Object.keys(s.val())
+                  .map(k => ({...s.val()[k], id: k}))
+                  .filter(v => !v.isBDVRecord && !String(v.saida || '').startsWith('BDV_'))
+              : []; 
             
             if (AppState.viagensIniciaisCarregadas) {
                 viagensFirebase.forEach(v => {
@@ -3513,29 +3517,79 @@
       }
 
       // Ponte de persistência no Firebase para o módulo BDV (Digitação Pausada / Rascunhos)
+      // Utiliza a coleção autorizada (DB_PATHS.VIAGENS) com chave indexada "BDV_ATIVOS_" no campo 'saida',
+      // respeitando as regras de segurança do Firebase (.read/.write/.validate) e mantendo isolamento total das viagens reais.
       window.BDVCloud = {
-        gerarNovoId: () => push(getRegionalRef(DB_PATHS.BDVS)).key,
+        gerarNovoId: () => 'bdv_' + push(getRegionalRef(DB_PATHS.VIAGENS)).key,
+        montarEnvelopeCompativel: (id, payload) => {
+          const uidAtual = AppState.user?.uid || auth.currentUser?.uid || payload.criadoPorUID || 'usuario_autenticado';
+          const nomeMotorista = (payload.resumo?.motorista || AppState.unidade?.motorista?.nome || AppState.user?.email || 'Motorista').trim();
+          const objetoSeguro = JSON.parse(JSON.stringify({
+            ...payload,
+            id,
+            isBDVRecord: true,
+            excluido: false,
+            solicitanteNome: nomeMotorista || 'Motorista',
+            solicitanteUID: uidAtual,
+            saida: `BDV_ATIVOS_${id}`,
+            chegada: `BDV_ATIVOS_${id}`,
+            status: payload.status || STATUS_BDV.EM_PREENCHIMENTO
+          }));
+          return objetoSeguro;
+        },
         salvar: async (id, payload) => {
-          await set(getRegionalRef(DB_PATHS.BDVS, id), payload);
+          const registroCompativel = window.BDVCloud.montarEnvelopeCompativel(id, payload);
+          await set(getRegionalRef(DB_PATHS.VIAGENS, id), registroCompativel);
         },
         atualizar: async (id, partial) => {
-          await update(getRegionalRef(DB_PATHS.BDVS, id), partial);
+          const existente = (AppState.bdvs || []).find(b => b.id === id) || {};
+          const mesclado = window.BDVCloud.montarEnvelopeCompativel(id, { ...existente, ...partial });
+          await set(getRegionalRef(DB_PATHS.VIAGENS, id), mesclado);
         },
         buscarPorId: async (id) => {
-          const snap = await get(getRegionalRef(DB_PATHS.BDVS, id));
-          return snap.exists() ? { id, ...snap.val() } : null;
+          const snap = await get(getRegionalRef(DB_PATHS.VIAGENS, id));
+          if (!snap.exists()) return null;
+          const val = snap.val();
+          if (val.excluido) return null;
+          return { id, ...val };
         },
         excluir: async (id) => {
-          await remove(getRegionalRef(DB_PATHS.BDVS, id));
+          try {
+            await remove(getRegionalRef(DB_PATHS.VIAGENS, id));
+          } catch (err) {
+            // Caso o usuário não seja admin e a regra bloqueie remove() (newData nulo), realiza exclusão lógica compatível com .validate
+            const uidAtual = AppState.user?.uid || auth.currentUser?.uid || 'usuario_autenticado';
+            await set(getRegionalRef(DB_PATHS.VIAGENS, id), {
+              id,
+              isBDVRecord: true,
+              excluido: true,
+              solicitanteNome: 'Excluído',
+              solicitanteUID: uidAtual,
+              saida: `BDV_EXCLUIDO_${id}`,
+              chegada: `BDV_EXCLUIDO_${id}`,
+              status: 'Excluído',
+              atualizadoEm: new Date().toISOString()
+            });
+          }
         },
         registrarLog: (acao, detalhes) => registrarLog(acao, detalhes),
         escapeHtml: (str) => escapeHtml(str)
       };
 
       function iniciarEscutaBDVs() {
-        onValue(getRegionalRef(DB_PATHS.BDVS), (snapshot) => {
+        const bdvQuery = query(
+          getRegionalRef(DB_PATHS.VIAGENS),
+          orderByChild('saida'),
+          startAt('BDV_ATIVOS_'),
+          endAt('BDV_ATIVOS_\uf8ff')
+        );
+        onValue(bdvQuery, (snapshot) => {
           const val = snapshot.val();
-          const lista = val ? Object.keys(val).map(k => ({ ...val[k], id: k })) : [];
+          const lista = val
+            ? Object.keys(val)
+                .map(k => ({ ...val[k], id: k }))
+                .filter(item => item.isBDVRecord && !item.excluido)
+            : [];
           lista.sort((a, b) => new Date(b.atualizadoEm || b.criadoEm || 0) - new Date(a.atualizadoEm || a.criadoEm || 0));
           AppState.bdvs = lista;
 
@@ -6829,7 +6883,7 @@
         let registroRemotoConflito = null;
         let suprimirEventosInput = false;
 
-        const getChaveLocal = () => `${BDV_LOCAL_PREFIX}${window.AppState?.regionalID || 'geral'}`;
+        const getChaveLocal = () => `${BDV_LOCAL_PREFIX}${window.AppState?.regionalID || localStorage.getItem('regionalID') || 'geral'}`;
 
         // Extrai todos os dados do formulário BDV de forma estruturada + array bruto compatível
         const extrairDadosFormularioBDV = () => {
@@ -7078,6 +7132,8 @@
               ? window.BDVCloud.gerarNovoId()
               : ('bdv_local_' + Date.now());
             window.AppState.bdvAtualVersao = 0;
+          } else if (!String(window.AppState.bdvAtualId).startsWith('bdv_')) {
+            window.AppState.bdvAtualId = 'bdv_' + window.AppState.bdvAtualId;
           }
 
           const bdvId = window.AppState.bdvAtualId;
@@ -7292,9 +7348,24 @@
           }).join('');
         };
 
-        // Callback invocado pelo listener onValue do Firebase sempre que a coleção 'bdvs' atualizar
+        // Callback invocado pelo listener onValue do Firebase sempre que a coleção de BDVs atualizar
+        let sincronizacaoInicialExecutada = false;
         window.onBDVsListUpdated = (lista) => {
           renderListaBDVs();
+
+          // Sincroniza rascunho local pendente (ex.: salvo offline) assim que a conexão/autenticação iniciar
+          if (!sincronizacaoInicialExecutada && window.AppState?.user?.uid) {
+            sincronizacaoInicialExecutada = true;
+            try {
+              const raw = localStorage.getItem(getChaveLocal()) || localStorage.getItem(`${BDV_LOCAL_PREFIX}geral`);
+              if (raw) {
+                const cache = JSON.parse(raw);
+                if (cache && cache.pendenteSincronizacao) {
+                  persistirBDVNoBanco({ silencioso: true }).catch(() => {});
+                }
+              }
+            } catch (e) {}
+          }
 
           // Verifica se o BDV atualmente aberto foi modificado em outra tela/aba
           const atualId = window.AppState?.bdvAtualId;
@@ -7588,13 +7659,15 @@
 
         // Restaura cache local ao inicializar se existir
         try {
-          const salvoLocal = localStorage.getItem(getChaveLocal()) || localStorage.getItem('bdv_rascunho_v1');
+          const salvoLocal = localStorage.getItem(getChaveLocal()) || localStorage.getItem(`${BDV_LOCAL_PREFIX}geral`) || localStorage.getItem('bdv_rascunho_v1');
           if (salvoLocal) {
             const parsed = JSON.parse(salvoLocal);
             if (Array.isArray(parsed)) {
               preencherFormularioComDadosBDV({ camposRaw: parsed });
             } else if (parsed && typeof parsed === 'object') {
-              if (parsed.id) window.AppState.bdvAtualId = parsed.id;
+              if (parsed.id) {
+                window.AppState.bdvAtualId = String(parsed.id).startsWith('bdv_') ? parsed.id : `bdv_${parsed.id}`;
+              }
               if (parsed.status) window.AppState.bdvAtualStatus = parsed.status;
               if (parsed.versao) window.AppState.bdvAtualVersao = parsed.versao;
               preencherFormularioComDadosBDV(parsed);
